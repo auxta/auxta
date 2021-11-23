@@ -1,12 +1,13 @@
 import chromium from 'chrome-aws-lambda';
 import log from "../auxta/services/log.service";
-import { returnImage } from '../auxta/helpers/response.helper';
 import { captureScreenshot } from "../auxta/utilities/screenshot.helper";
 import { AfterEach } from "../auxta/hooks/report.hook";
 import auxta from "../AuxTA";
 import { StepStatusEnum } from "../auxta/enums/step-status.enum";
 import { UploadModel } from "../auxta/models/upload.model";
 import puppeteer_core from 'puppeteer-core';
+import { config } from "./../auxta/configs/config";
+
 
 export class Puppeteer {
     public defaultPage!: puppeteer_core.Page;
@@ -22,26 +23,12 @@ export class Puppeteer {
                 '--disable-dev-shm-usage',
                 '--single-process'
             ],
-            defaultViewport: chromium.defaultViewport,
+            defaultViewport: null,
             // Return back to headless for commit
             headless: process.env.ENVIRONMENT == 'LOCAL' ? false : chromium.headless
         });
-        this.defaultPage = await this.browser.newPage();
-        await this.defaultPage.setViewport({
-            width: 1440,
-            height: 900
-        });
-    }
-
-    public async goto(page: string) {
-        await this.defaultPage.goto(page);
-    }
-
-    public async type(field: string, value: string) {
-        await this.defaultPage.type(field, value);
-    }
-
-    public async waitForNetwork() {
+        this.defaultPage = (await this.browser.pages())[0];
+        await this.defaultPage.goto(config.baseURL)
         await this.defaultPage.waitForNetworkIdle();
     }
 
@@ -53,7 +40,7 @@ export class Puppeteer {
         }
     }
 
-    public async run(event: any, callback: any, FeatureName = 'Test feature', ScenarioName = 'Test scenario', uploadModel?: UploadModel, close?: boolean) {
+    public async run(event: any, callback: any, featureName = 'Test feature', scenarioName = 'Test scenario', uploadModel?: UploadModel, close?: boolean) {
         if (uploadModel === undefined) uploadModel = auxta.getUploadModel();
         if (close === undefined) close = Puppeteer.setupHeader(event, uploadModel)
         let screenshotBuffer: Buffer;
@@ -61,23 +48,21 @@ export class Puppeteer {
         let statusCode: number = 200;
 
         try {
-            await log.push('When', `Starting puppeteer process`, StepStatusEnum.PASSED, 1000000);
+            await log.push('When', `Starting puppeteer process`, StepStatusEnum.PASSED);
             await this.startBrowser()
             await callback(event)
             screenshotBuffer = await captureScreenshot();
-            await log.push('When', `Finished puppeteer process`, StepStatusEnum.PASSED, 1000000);
+            await log.push('When', `Finished puppeteer process`, StepStatusEnum.PASSED);
         } catch (err: any) {
-            console.log(`This is an error ${err}`);
+            console.log(`Error ${err}`);
             errMessage = err;
             statusCode = 500;
             screenshotBuffer = await captureScreenshot();
-            await log.push('When', `Finished puppeteer process`, StepStatusEnum.FAILED, 1000000);
+            await log.push('When', `Finished puppeteer process`, StepStatusEnum.FAILED);
         }
         if (close) await this.close();
 
-        await AfterEach(uploadModel, FeatureName, ScenarioName, statusCode, screenshotBuffer, errMessage);
-
-        return returnImage(statusCode, screenshotBuffer);
+        await AfterEach(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, errMessage);
     }
 
     private static setupHeader(event: any, uploadModel: UploadModel) {

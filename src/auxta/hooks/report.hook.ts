@@ -10,7 +10,7 @@ import {
 } from '../services/report.service';
 import { startSuite } from '../utilities/start-suite.helper';
 import { StepStatusEnum } from "../enums/step-status.enum";
-import UploadModel from "../models/upload.model";
+import { UploadModel } from "../models/upload.model";
 
 export async function AfterEach(body: any, featureName: string, scenarioName: string, statusCode: number, screenshotBuffer: Buffer, errMessage?: string) {
     let isFinal: boolean = false;

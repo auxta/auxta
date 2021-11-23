@@ -48,5 +48,3 @@ export class UploadModel {
         return this._environment;
     }
 }
-
-export default UploadModel;

@@ -1,7 +1,7 @@
 import axios from "axios";
-import { Log } from "./log.service";
+import { Step } from "./log.service";
 import { config } from "../configs/config";
-import UploadModel from "../models/upload.model";
+import { UploadModel } from "../models/upload.model";
 
 export interface Feature {
     featureId: string,
@@ -62,7 +62,7 @@ export async function createEmptyReport(body: any): Promise<string> {
     )).data.reportId;
 }
 
-export async function uploadScenario(stepLog: Log.Step[], scenarioName: string, screenshot?: Buffer, errMessage?: string) {
+export async function uploadScenario(stepLog: Step[], scenarioName: string, screenshot?: Buffer, errMessage?: string) {
     let scenarios = [];
     let token = await auth();
     let lastStep = stepLog[stepLog.length - 1];
