@@ -1,5 +1,5 @@
 import puppeteer, { Puppeteer } from "./puppeteer/puppeteer";
-import f, { FunctionHelper } from "./macros/helpers/code.helper";
+import { FunctionHelper } from "./macros/helpers/code.helper";
 import path from "path";
 import fs from "fs";
 import StepStatusEnum from "./auxta/enums/step-status.enum";
@@ -11,13 +11,13 @@ import { createEmptyReport } from "./auxta/services/report.service";
 
 dotenv.config();
 
-class AuxTA {
+class AuxTA extends FunctionHelper {
     public puppeteer: Puppeteer = puppeteer;
-    public functions: FunctionHelper = f;
 
     private readonly uploadModel: UploadModel;
 
     constructor() {
+        super();
         let file;
         try {
             //todo find a better way to load the file
@@ -71,8 +71,5 @@ class AuxTA {
 export const StepStatus = StepStatusEnum;
 
 const auxta: AuxTA = new AuxTA();
-
-export const auxtaRun = auxta.run;
-export const auxtaFunc = auxta.functions;
 
 export default auxta;
