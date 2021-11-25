@@ -80,8 +80,8 @@ export class FunctionHelper {
 
     public async click(className: string, page = puppeteer.defaultPage) {
         await page.waitForTimeout(this.defaultTimeout);
-        await page.click(className);
         const elementName = await puppeteer.defaultPage.$eval(className, (e) => e.textContent);
+        await page.click(className);
         log.push('Then', `I click on ${elementName}`, StepStatusEnum.PASSED);
     }
 
