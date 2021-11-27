@@ -1,7 +1,7 @@
-export enum StepStatusEnum {
+export enum StatusOfStep {
     PASSED = 'passed',
     FAILED = 'failed',
     SKIPPED = 'skipped',
     SUGGESTION = 'suggestion',
 }
-export default StepStatusEnum;
+export default StatusOfStep;

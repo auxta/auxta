@@ -2,10 +2,10 @@
 export class UploadModel {
     private _reportId: string;
     private _nextSuites: [];
-    private readonly _digitalProduct: string;
-    private readonly _baseUrl: string;
+    private _digitalProduct: string;
+    private _baseUrl: string;
     private readonly _organization: string;
-    private readonly _environment: string;
+    private _environment: string;
 
     constructor(org: string, baseUrl: string, digitalProduct: string) {
         this._reportId = '';
@@ -36,15 +36,27 @@ export class UploadModel {
         return this._digitalProduct;
     }
 
-    get baseUrl(): string {
-        return this._baseUrl;
+    set digitalProduct(value: string) {
+        this._digitalProduct = value;
     }
 
     get organization(): string {
         return this._organization;
     }
 
+    get baseUrl(): string {
+        return this._baseUrl;
+    }
+
+    set baseUrl(value: string) {
+        this._baseUrl = value;
+    }
+
     get environment(): string {
         return this._environment;
+    }
+
+    set environment(value: string) {
+        this._environment = value;
     }
 }

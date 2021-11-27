@@ -2,10 +2,10 @@ import puppeteer, { Puppeteer } from "./puppeteer/puppeteer";
 import { FunctionHelper } from "./macros/helpers/code.helper";
 import path from "path";
 import fs from "fs";
-import StepStatusEnum from "./auxta/enums/step-status.enum";
+import StatusOfStep from "./auxta/enums/status-of.step";
 import { UploadModel } from "./auxta/models/upload.model";
 import * as dotenv from "dotenv";
-import { config, setupConfig } from "./auxta/configs/config";
+import { setupConfig, config as c, setupOverrideConfig } from "./auxta/configs/config";
 import { startSuite } from "./auxta/utilities/start-suite.helper";
 import { createEmptyReport } from "./auxta/services/report.service";
 
@@ -13,6 +13,7 @@ dotenv.config();
 
 class AuxTA extends FunctionHelper {
     public puppeteer: Puppeteer = puppeteer;
+    public config = c;
 
     private readonly uploadModel: UploadModel;
 
@@ -36,7 +37,7 @@ class AuxTA extends FunctionHelper {
             }
             const jsonConfig = JSON.parse(fs.readFileSync(file).toString());
             try {
-                setupConfig(jsonConfig)
+                this.config = setupConfig(jsonConfig)
             } catch (e: any) {
                 console.log("Missing field in auxta.json:", e.message)
             }
@@ -48,18 +49,33 @@ class AuxTA extends FunctionHelper {
         }
     }
 
-    public async run(event: any) {
-        const model = this.uploadModel;
-        let token: string = event.queryStringParameters.token;
+    public async run(event: any, overrideConfig?: any) {
+        this.changeModelData(overrideConfig);
         let reportId: string | undefined = event.queryStringParameters.reportId;
-        if (token !== config.token) return {statusCode: 401, message: 'Unauthorized'}
-        const suites = config.suitesList.slice(0);
-        await startSuite(suites, reportId || await createEmptyReport(model));
+        if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
+            return {statusCode: 401, message: 'Unauthorized'}
+        const suites = this.config.suitesList.slice(0);
+        await startSuite(suites, reportId || await createEmptyReport(this.uploadModel));
         return {statusCode: 204}
     }
+    private changeModelData(overrideConfig?: any){
+        if (overrideConfig) {
+            if (overrideConfig.digitalProduct) this.uploadModel.digitalProduct = overrideConfig.digitalProduct
+            if (overrideConfig.environment) this.uploadModel.environment = overrideConfig.environment
+            if (overrideConfig.baseUrl) this.uploadModel.baseUrl = overrideConfig.baseUrl
+            this.config = setupOverrideConfig(overrideConfig)
+        }
+    }
 
-    public startBrowser(event: any, callback: any, feature: string, scenario: string) {
-        this.puppeteer.run(event, callback, feature, scenario)
+    public async startBrowser(event: any, callback: any, feature: string, scenario: string, overrideConfig?: any, singleFeature = false) {
+        this.changeModelData(overrideConfig);
+        if (singleFeature) {
+            if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
+                return {statusCode: 401, message: 'Unauthorized'}
+            this.uploadModel.reportId = await createEmptyReport(this.uploadModel);
+            this.uploadModel.nextSuites = [];
+        }
+        return this.puppeteer.run(event, callback, feature, scenario)
     }
 
     public getUploadModel(): UploadModel {
@@ -67,7 +83,7 @@ class AuxTA extends FunctionHelper {
     }
 }
 
-export const StepStatus = StepStatusEnum;
+export const StepStatus = StatusOfStep;
 
 const auxta: AuxTA = new AuxTA();
 

@@ -3,7 +3,7 @@ import log from "../auxta/services/log.service";
 import { captureScreenshot } from "../auxta/utilities/screenshot.helper";
 import { onTestEnd } from "../auxta/hooks/report.hook";
 import auxta from "../AuxTA";
-import { StepStatusEnum } from "../auxta/enums/step-status.enum";
+import { StatusOfStep } from "../auxta/enums/status-of.step";
 import { UploadModel } from "../auxta/models/upload.model";
 import puppeteer_core from 'puppeteer-core';
 import { config } from "./../auxta/configs/config";
@@ -34,7 +34,7 @@ export class Puppeteer {
             headless: process.env.ENVIRONMENT == 'LOCAL' ? false : chromium.headless
         });
         this.defaultPage = (await this.browser.pages())[0];
-        await this.defaultPage.goto(config.baseURL)
+        await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle0'})
         await this.defaultPage.waitForNetworkIdle();
     }
 
@@ -53,32 +53,33 @@ export class Puppeteer {
         let errMessage: string | undefined;
         let statusCode: number = 200;
 
-        let consoleStack = [];
+        let consoleStack: any[] = [];
         try {
-            await log.push('When', `Starting puppeteer process`, StepStatusEnum.PASSED);
+            await log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
             await this.startBrowser()
             this.defaultPage.on('console', message =>
                 consoleStack.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
-                .on('pageerror', ({ message }) => consoleStack.push(message))
+                .on('pageerror', ({message}) => consoleStack.push(message))
                 .on('response', response =>
                     consoleStack.push(`${response.status()} ${response.url()}`))
                 .on('requestfailed', request =>
                     consoleStack.push(`${request.failure().errorText} ${request.url()}`))
             await callback(event)
             screenshotBuffer = await captureScreenshot();
-            await log.push('When', `Finished puppeteer process`, StepStatusEnum.PASSED);
+            await log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
         } catch (err: any) {
             console.log(`Error ${err}`);
             errMessage = err;
             statusCode = 500;
             screenshotBuffer = await captureScreenshot();
-            await log.push('When', `Finished puppeteer process`, StepStatusEnum.FAILED);
+            await log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
         }
         let url = this.defaultPage.url();
         if (close) await this.close();
 
         await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
             currentPageUrl: url,
+            console: consoleStack,
             error: errMessage
         });
         log.clear();

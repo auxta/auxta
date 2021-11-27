@@ -9,7 +9,7 @@ import {
     uploadScenario
 } from '../services/report.service';
 import { startSuite } from '../utilities/start-suite.helper';
-import { StepStatusEnum } from "../enums/step-status.enum";
+import { StatusOfStep } from "../enums/status-of.step";
 import { UploadModel } from "../models/upload.model";
 
 export async function onTestEnd(body: any, featureName: string, scenarioName: string, statusCode: number, screenshotBuffer: Buffer, errMessage?: object) {
@@ -29,10 +29,10 @@ export async function onTestEnd(body: any, featureName: string, scenarioName: st
                 scenariosCount: featureRes.scenariosCount
             }
             const stepCounts: Steps = {
-                failedSteps: log.getStatusCount(StepStatusEnum.FAILED),
-                passedSteps: log.getStatusCount(StepStatusEnum.PASSED),
-                skippedSteps: log.getStatusCount(StepStatusEnum.SKIPPED),
-                suggestedSteps: log.getStatusCount(StepStatusEnum.SUGGESTION)
+                failedSteps: log.getStatusCount(StatusOfStep.FAILED),
+                passedSteps: log.getStatusCount(StatusOfStep.PASSED),
+                skippedSteps: log.getStatusCount(StatusOfStep.SKIPPED),
+                suggestedSteps: log.getStatusCount(StatusOfStep.SUGGESTION)
             }
             isFinal = (!(body.nextSuites && body.nextSuites.length > 0));
             await updateReport(body.reportId, feature, stepCounts, isFinal);
@@ -42,20 +42,15 @@ export async function onTestEnd(body: any, featureName: string, scenarioName: st
             console.log(error)
         }
     }
-    if (isFinal) await AfterComplete(body.reportId, body.endEmail, body);
-    else if (body && body.nextSuites && body.nextSuites.length > 0)
+    if (isFinal) await afterComplete(body.reportId, body);
+    else if (body && body.nextSuites && body.nextSuites[0])
         try {
             await startSuite(body.nextSuites, body.reportId);
         } catch {
         }
 }
 
-export async function AfterComplete(reportId: string, endEmail: string, body: UploadModel) {
-    if (process.env.ENVIRONMENT == "LIVE") {
+export async function afterComplete(reportId: string, body: UploadModel) {
+    if (process.env.ENVIRONMENT == "LIVE")
         await postNotifications(reportId, body);
-    }
-}
-
-export function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }

@@ -1,10 +1,10 @@
-import { StepStatusEnum } from "../enums/step-status.enum";
+import { StatusOfStep } from "../enums/status-of.step";
 
 export interface Step {
     keyword: string,
     name: string,
     result: {
-        status: StepStatusEnum,
+        status: StatusOfStep,
         duration: number
     }
 }
@@ -13,17 +13,17 @@ export class LogSteps {
     private stepLog: Step[] = [];
     private lastStepTime = new Date().getTime();
     public statusCounter = {
-        [StepStatusEnum.PASSED]: 0,
-        [StepStatusEnum.FAILED]: 0,
-        [StepStatusEnum.SKIPPED]: 0,
-        [StepStatusEnum.SUGGESTION]: 0,
+        [StatusOfStep.PASSED]: 0,
+        [StatusOfStep.FAILED]: 0,
+        [StatusOfStep.SKIPPED]: 0,
+        [StatusOfStep.SUGGESTION]: 0,
     }
 
     public addSuggestion(text: string) {
-        this.statusCounter[StepStatusEnum.SUGGESTION]++;
+        this.statusCounter[StatusOfStep.SUGGESTION]++;
         this.stepLog.push({
             keyword: 'Suggestion', name: text, result:
-                {status: StepStatusEnum.SUGGESTION, duration: 0}
+                {status: StatusOfStep.SUGGESTION, duration: 0}
         });
     }
 
@@ -31,7 +31,7 @@ export class LogSteps {
         this.stepLog = [];
     }
 
-    public push(keyword: string, name: string, status: StepStatusEnum) {
+    public push(keyword: string, name: string, status: StatusOfStep) {
         console.log(`System log -- status: ${status} -- : ${name} `);
         this.statusCounter[status]++;
         const currentStep = new Date().getTime();
@@ -43,7 +43,7 @@ export class LogSteps {
         return this.stepLog;
     }
 
-    public getStatusCount(status: StepStatusEnum): number {
+    public getStatusCount(status: StatusOfStep): number {
         return this.statusCounter[status];
     }
 }

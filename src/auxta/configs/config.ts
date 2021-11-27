@@ -18,6 +18,13 @@ export function setupConfig(jsonConfig: any) {
     if (jsonConfig.timeout) config.timeout = jsonConfig.timeout;
     if (jsonConfig.screenWidth) config.screenWidth = jsonConfig.screenWidth;
     if (jsonConfig.screenHeight) config.screenHeight = jsonConfig.screenHeight;
+    return config;
+}
+
+export function setupOverrideConfig(overrideConfig: any){
+    if (overrideConfig.baseURL) config.baseURL = overrideConfig.baseURL;
+    if (overrideConfig.digitalProduct) config.digitalProduct = overrideConfig.digitalProduct;
+    return config;
 }
 
 export let config = {

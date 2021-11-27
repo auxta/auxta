@@ -1,12 +1,12 @@
 import log from "../../auxta/services/log.service";
 import puppeteer from "../../puppeteer/puppeteer";
-import { StepStatusEnum } from "../../auxta/enums/step-status.enum";
+import { StatusOfStep } from "../../auxta/enums/status-of.step";
 import { config } from "../../auxta/configs/config";
 
 export class FunctionHelper {
     public readonly defaultTimeout: number = config.timeout;
 
-    public log(keyword: string, name: string, status: StepStatusEnum){
+    public log(keyword: string, name: string, status: StatusOfStep){
         log.push(keyword, name, status)
     }
 
@@ -25,51 +25,51 @@ export class FunctionHelper {
 
         const message = `I click on the ${text} ${selector}`;
         if (linkHandlers) {
-            log.push('Then', message, StepStatusEnum.PASSED);
+            log.push('Then', message, StatusOfStep.PASSED);
             await linkHandlers.click();
         } else {
-            log.push('Then', message, StepStatusEnum.FAILED);
+            log.push('Then', message, StatusOfStep.FAILED);
             throw new Error(`Link not found: ${text}`);
         }
     }
 
-    public async waitForSelectorWithText(selector: string, text: string) {
-        const linkHandlers = await puppeteer.defaultPage.$x(`//${selector}[. = ${this.getEscapedText(text)}]`);
+    public async waitForSelectorWithText(selector: string, text: string, page = puppeteer.defaultPage) {
+        const linkHandlers = await page.$x(`//${selector}[. = ${this.getEscapedText(text)}]`);
         const message = `I check for ${text}`;
         if (linkHandlers.length > 0) {
-            log.push('And', message, StepStatusEnum.PASSED);
+            log.push('And', message, StatusOfStep.PASSED);
             return true;
         } else {
-            log.push('And', message, StepStatusEnum.FAILED);
+            log.push('And', message, StatusOfStep.FAILED);
             throw new Error(`Link not found: ${text}`);
         }
     }
 
-    public async goto(page: string) {
-        await puppeteer.defaultPage.goto(page);
-        log.push('Then', `I go to the ${page} page`, StepStatusEnum.PASSED);
+    public async goto(url: string, page = puppeteer.defaultPage) {
+        await page.goto(url);
+        log.push('Then', `I go to the ${url} page`, StatusOfStep.PASSED);
     }
 
-    public async type(field: string, value: string) {
-        await puppeteer.defaultPage.type(field, value);
-        let elementName = await puppeteer.defaultPage.$eval(field, (e) => e.textContent);
+    public async type(field: string, value: string, page = puppeteer.defaultPage) {
+        await page.type(field, value);
+        let elementName = await page.$eval(field, (e) => e.textContent);
         if (!elementName || elementName === ' ') elementName = field;
-        log.push('Then', `I type '${value}' into the ${elementName} field`, StepStatusEnum.PASSED);
+        log.push('Then', `I type '${value}' into the ${elementName} field`, StatusOfStep.PASSED);
     }
 
-    public async waitForNetwork() {
+    public async waitForNetwork(page = puppeteer.defaultPage) {
         let message = 'I wait for the page to load'
         try{
-            await puppeteer.defaultPage.waitForNetworkIdle();
-            log.push('Then', message, StepStatusEnum.PASSED);
+            await page.waitForNetworkIdle();
+            log.push('Then', message, StatusOfStep.PASSED);
         } catch (e){
-            log.push('Then', message, StepStatusEnum.FAILED);
+            log.push('Then', message, StatusOfStep.FAILED);
             throw new Error(message)
         }
     }
 
-    public async timeout(timeout = this.defaultTimeout) {
-        await puppeteer.defaultPage.waitForTimeout(timeout);
+    public async timeout(timeout = this.defaultTimeout, page = puppeteer.defaultPage) {
+        await page.waitForTimeout(timeout);
     }
 
     /**
@@ -90,10 +90,10 @@ export class FunctionHelper {
                 timeout: time
             });
         } catch (e){
-            log.push('And', message, StepStatusEnum.FAILED);
+            log.push('And', message, StatusOfStep.FAILED);
             throw new Error(message)
         }
-        log.push('And', message, StepStatusEnum.PASSED);
+        log.push('And', message, StatusOfStep.PASSED);
     }
 
     public async click(className: string, page = puppeteer.defaultPage) {
@@ -101,17 +101,17 @@ export class FunctionHelper {
         let elementName = await puppeteer.defaultPage.$eval(className, (e) => e.textContent);
         if (!elementName || elementName === ' ') elementName = className;
         await page.click(className);
-        log.push('Then', `I click on ${elementName}`, StepStatusEnum.PASSED);
+        log.push('Then', `I click on ${elementName}`, StatusOfStep.PASSED);
     }
 
     public async urlContains(selector: string) {
         const url = puppeteer.defaultPage.url();
         let message = `I am on the ${selector} page`
         if (!url.includes(selector)) {
-            log.push('And', message, StepStatusEnum.FAILED);
+            log.push('And', message, StatusOfStep.FAILED);
             throw new Error(`I am not at the ${selector} page`)
         }
-        log.push('And', message, StepStatusEnum.PASSED);
+        log.push('And', message, StatusOfStep.PASSED);
     }
 
 }
