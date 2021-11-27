@@ -20,29 +20,40 @@ export class FunctionHelper {
     }
     
     public async clickByText(selector: string, text: string, page = puppeteer.defaultPage) {
-        await page.waitForTimeout(this.defaultTimeout);
-        const [linkHandlers] = await page.$x(`//${selector}[. = ${this.getEscapedText(text)}]`);
-
         const message = `I click on the '${text}' '${selector}'`;
-        if (linkHandlers) {
-            log.push('Then', message, StatusOfStep.PASSED);
-            await linkHandlers.click();
-        } else {
-            log.push('Then', message, StatusOfStep.FAILED);
-            throw new Error(`Link not found: ${text}`);
+        try{
+            await page.waitForSelector(selector, {
+                timeout: this.defaultTimeout
+            });
+            const [linkHandlers] = await page.$x(`//${selector}[. = ${this.getEscapedText(text)}]`);
+
+            if (linkHandlers) {
+                log.push('Then', message, StatusOfStep.PASSED);
+                await linkHandlers.click();
+                return;
+            }
+        } catch (e){
         }
+        log.push('Then', message, StatusOfStep.FAILED);
+        throw new Error(message);
+
     }
 
     public async waitForSelectorWithText(selector: string, text: string, page = puppeteer.defaultPage) {
-        const linkHandlers = await page.$x(`//${selector}[. = ${this.getEscapedText(text)}]`);
         const message = `I check for '${text}' on the current page`;
-        if (linkHandlers.length > 0) {
-            log.push('And', message, StatusOfStep.PASSED);
-            return true;
-        } else {
-            log.push('And', message, StatusOfStep.FAILED);
-            throw new Error(`Link not found: ${text}`);
+        try{
+            await page.waitForSelector(selector, {
+                timeout: this.defaultTimeout
+            });
+            const linkHandlers = await page.$x(`//${selector}[. = ${this.getEscapedText(text)}]`);
+            if (linkHandlers.length > 0) {
+                log.push('And', message, StatusOfStep.PASSED);
+                return true;
+            }
+        }catch (e) {
         }
+        log.push('And', message, StatusOfStep.FAILED);
+        throw new Error(message);
     }
 
     public async goto(url: string, page = puppeteer.defaultPage) {
@@ -105,12 +116,20 @@ export class FunctionHelper {
         log.push('And', message, StatusOfStep.PASSED);
     }
 
-    public async click(className: string, page = puppeteer.defaultPage) {
-        await page.waitForTimeout(this.defaultTimeout);
-        let elementName = await puppeteer.defaultPage.$eval(className, (e) => e.textContent);
-        if (!elementName || elementName === ' ') elementName = className;
-        await page.click(className);
-        log.push('Then', `I click on the '${elementName}'`, StatusOfStep.PASSED);
+    public async click(selector: string, page = puppeteer.defaultPage) {
+        try{
+            await page.waitForSelector(selector, {
+                timeout: this.defaultTimeout
+            });
+            let elementName = await puppeteer.defaultPage.$eval(selector, (e) => e.textContent);
+            if (!elementName || elementName === ' ') elementName = selector;
+            await page.click(selector);
+            log.push('Then', `I click on the '${elementName}'`, StatusOfStep.PASSED);
+        } catch (e){
+            const msg = `I click on the '${selector}'`;
+            log.push('Then', msg, StatusOfStep.FAILED);
+            throw new Error(msg)
+        }
     }
 
     public async urlContains(selector: string) {
