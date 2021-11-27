@@ -26,7 +26,7 @@ export let config = {
     netlifyPath: "",
     digitalProduct: "",
     token: "",
-    timeout: 1000,
+    timeout: 10000,
     suitesList: [],
     auxtaCredentials: {
         email: "",

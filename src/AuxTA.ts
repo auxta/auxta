@@ -20,20 +20,19 @@ class AuxTA extends FunctionHelper {
         super();
         let file;
         try {
-            //todo find a better way to load the file
-            let currentDir = "../"
+            let currentDir = ""
             while (true) {
                 file = path.join(__dirname, currentDir, "auxta.json");
-                try {
-                    fs.accessSync(file, fs.constants.R_OK | fs.constants.W_OK)
-                    break;
-                } catch {
+                if (!fs.existsSync(file)) {
                     currentDir += "../"
                     if (currentDir.length >= 30) {
+                        console.log("auxta.json file not found!")
                         process.exit(1);
                         return;
                     }
+                    continue;
                 }
+                break;
             }
             const jsonConfig = JSON.parse(fs.readFileSync(file).toString());
             try {
@@ -43,7 +42,7 @@ class AuxTA extends FunctionHelper {
             }
             this.uploadModel = new UploadModel(jsonConfig.organization, jsonConfig.baseURL, jsonConfig.digitalProduct);
         } catch (e: any) {
-            console.log("Missing or corrupted config: suitesList.json. Searching in location:", file)
+            console.log("Missing or corrupted config: auxta.json. Searching in location:", file)
             console.log(e);
             process.exit(1);
         }
