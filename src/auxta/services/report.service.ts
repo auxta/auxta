@@ -36,16 +36,20 @@ function headers(token: string) {
 }
 
 async function auth() {
-    //todo what happens if credentials are invalid?
-    return (await axios.post(
+    return axios.post(
         config.auxtaURL + 'login',
         config.auxtaCredentials,
         {
             headers: {
                 'Content-Type': 'application/json',
             }
-        }
-    )).data.token;
+        })
+        .then(({data}) => {
+            return data.token
+        })
+        .catch(() => {
+            throw new Error("Invalid login credentials")
+        });
 }
 
 export async function createEmptyReport(body: any): Promise<string> {
