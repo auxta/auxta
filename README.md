@@ -36,9 +36,13 @@ npm i
   # Default 1000
   "timeout": 1000,
   # The credentials of the user that uploads the tests to the site
-  "email": "",
-  "password": "",
-  "token": ""
+  "email": "string",
+  "password": "string",
+  "token": "string"
+  # Screen width and height used in the testing
+  # Allows testing from mobile devices screens
+  "screenWidth": 1920,
+  "screenHeight": 1080,
 }
 
 ```

@@ -16,6 +16,8 @@ export function setupConfig(jsonConfig: any) {
     if (!jsonConfig.suitesList) throw new Error("suitesList");
     config.suitesList = jsonConfig.suitesList;
     if (jsonConfig.timeout) config.timeout = jsonConfig.timeout;
+    if (jsonConfig.screenWidth) config.screenWidth = jsonConfig.screenWidth;
+    if (jsonConfig.screenHeight) config.screenHeight = jsonConfig.screenHeight;
 }
 
 export let config = {
@@ -26,6 +28,8 @@ export let config = {
     netlifyPath: "",
     digitalProduct: "",
     token: "",
+    screenWidth: 1920,
+    screenHeight: 1080,
     timeout: 10000,
     suitesList: [],
     auxtaCredentials: {

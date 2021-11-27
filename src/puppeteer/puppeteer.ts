@@ -14,17 +14,23 @@ export class Puppeteer {
     private browser!: puppeteer_core.Browser;
 
     public async startBrowser() {
+        let args = [
+            '--start-maximized',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--single-process'
+        ];
+        if (process.env.ENVIRONMENT != 'LOCAL')
+            args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
         this.browser = await chromium.puppeteer.launch({
             executablePath: process.env.NODE_ENV !== 'production' ? undefined : await chromium.executablePath,
-            args: [
-                '--start-maximized',
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--single-process'
-            ],
-            defaultViewport: null,
-            // Return back to headless for commit
+            args,
+            defaultViewport: process.env.ENVIRONMENT == 'LOCAL' ? null : {
+                width: config.screenWidth,
+                height: config.screenHeight
+            },
+            // Return back to headless for netlify
             headless: process.env.ENVIRONMENT == 'LOCAL' ? false : chromium.headless
         });
         this.defaultPage = (await this.browser.pages())[0];
