@@ -22,21 +22,17 @@ export class FunctionHelper {
     public async clickByText(selector: string, text: string, page = puppeteer.defaultPage) {
         const message = `I click on the '${text}' '${selector}'`;
         try{
-            await page.waitForSelector(selector, {
-                timeout: this.defaultTimeout
-            });
             const [linkHandlers] = await page.$x(`//${selector}[. = ${this.getEscapedText(text)}]`);
 
             if (linkHandlers) {
-                log.push('Then', message, StatusOfStep.PASSED);
                 await linkHandlers.click();
+                log.push('Then', message, StatusOfStep.PASSED);
                 return;
             }
         } catch (e){
         }
         log.push('Then', message, StatusOfStep.FAILED);
         throw new Error(message);
-
     }
 
     public async waitForSelectorWithText(selector: string, text: string, page = puppeteer.defaultPage) {
@@ -137,7 +133,7 @@ export class FunctionHelper {
         let message = `I am on the ${selector} page`
         if (!url.includes(selector)) {
             log.push('And', message, StatusOfStep.FAILED);
-            throw new Error(`I am not at the '${selector}' page`)
+            throw new Error(message)
         }
         log.push('And', message, StatusOfStep.PASSED);
     }
