@@ -42,7 +42,7 @@ export async function onTestEnd(body: any, featureName: string, scenarioName: st
             console.log(error)
         }
     }
-    if (isFinal) await afterComplete(body.reportId, body);
+    if (isFinal) await afterComplete(body);
     else if (body && body.nextSuites && body.nextSuites[0])
         try {
             await startSuite(body.nextSuites, body.reportId);
@@ -50,7 +50,7 @@ export async function onTestEnd(body: any, featureName: string, scenarioName: st
         }
 }
 
-export async function afterComplete(reportId: string, body: UploadModel) {
+export async function afterComplete(body: UploadModel) {
     if (process.env.ENVIRONMENT == "LIVE")
-        await postNotifications(reportId, body);
+        await postNotifications(body);
 }

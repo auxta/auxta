@@ -7,6 +7,7 @@ import { StatusOfStep } from "../auxta/enums/status-of.step";
 import { UploadModel } from "../auxta/models/upload.model";
 import puppeteer_core from 'puppeteer-core';
 import { config } from "./../auxta/configs/config";
+import { postNotificationsOnFail } from "../auxta/services/report.service";
 
 
 export class Puppeteer {
@@ -24,9 +25,9 @@ export class Puppeteer {
         if (process.env.ENVIRONMENT != 'LOCAL')
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
         this.browser = await chromium.puppeteer.launch({
-            executablePath: process.env.NODE_ENV !== 'production' ? undefined : await chromium.executablePath,
+            executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath,
             args,
-            defaultViewport: process.env.ENVIRONMENT == 'LOCAL' ? null : {
+            defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
                 width: config.screenWidth,
                 height: config.screenHeight
             },
@@ -50,7 +51,7 @@ export class Puppeteer {
         if (uploadModel === undefined) uploadModel = auxta.getUploadModel();
         if (close === undefined) close = Puppeteer.setupHeader(event, uploadModel)
         let screenshotBuffer: Buffer;
-        let errMessage: string | undefined;
+        let errMessage: any;
         let statusCode: number = 200;
 
         let consoleStack: any[] = [];
@@ -66,13 +67,14 @@ export class Puppeteer {
                     consoleStack.push(`${request.failure().errorText} ${request.url()}`))
             await callback(event)
             screenshotBuffer = await captureScreenshot();
-            await log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
-        } catch (err: any) {
+            log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
+        } catch (err) {
             console.log(`Error ${err}`);
             errMessage = err;
             statusCode = 500;
             screenshotBuffer = await captureScreenshot();
-            await log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
+            log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
+            await postNotificationsOnFail(uploadModel)
         }
         let url = this.defaultPage.url();
         if (close) await this.close();

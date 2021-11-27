@@ -38,11 +38,11 @@ class AuxTA extends FunctionHelper {
             const jsonConfig = JSON.parse(fs.readFileSync(file).toString());
             try {
                 this.config = setupConfig(jsonConfig)
-            } catch (e: any) {
-                console.log("Missing field in auxta.json:", e.message)
+            } catch (e) {
+                console.log("Missing field in auxta.json:", e)
             }
             this.uploadModel = new UploadModel(jsonConfig.organization, jsonConfig.baseURL, jsonConfig.digitalProduct);
-        } catch (e: any) {
+        } catch (e) {
             console.log("Missing or corrupted config: auxta.json. Searching in location:", file)
             console.log(e);
             process.exit(1);

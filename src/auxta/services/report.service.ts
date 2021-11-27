@@ -167,12 +167,23 @@ export async function getLastDayResults(): Promise<any> {
     )).data.results;
 }
 
-export async function postNotifications(reportId: string, body: UploadModel) {
+export async function postNotifications( body: UploadModel) {
     let token = await auth();
     await axios.post(`${config.auxtaURL}post-notification-after-run-background`, {
         environmentName: body.environment,
         digitalProductName: body.digitalProduct,
         organizationName: body.organization,
-        reportId: reportId,
+        reportId: body.reportId,
+    }, headers(token));
+}
+
+
+export async function postNotificationsOnFail( body: UploadModel) {
+    let token = await auth();
+    await axios.post(`${config.auxtaURL}post-notification-after-case-fail-background`, {
+        environmentName: body.environment,
+        digitalProductName: body.digitalProduct,
+        organizationName: body.organization,
+        reportId: body.reportId,
     }, headers(token));
 }
