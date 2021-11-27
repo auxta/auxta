@@ -121,7 +121,7 @@ export class FunctionHelper {
             await page.waitForSelector(selector, {
                 timeout: this.defaultTimeout
             });
-            let elementName = await puppeteer.defaultPage.$eval(selector, (e) => e.textContent);
+            let elementName = await page.$eval(selector, (e) => e.textContent);
             if (!elementName || elementName === ' ') elementName = selector;
             await page.click(selector);
             log.push('Then', `I click on the '${elementName}'`, StatusOfStep.PASSED);
@@ -132,8 +132,8 @@ export class FunctionHelper {
         }
     }
 
-    public async urlContains(selector: string) {
-        const url = puppeteer.defaultPage.url();
+    public async urlContains(selector: string, page = puppeteer.defaultPage) {
+        const url = page.url();
         let message = `I am on the ${selector} page`
         if (!url.includes(selector)) {
             log.push('And', message, StatusOfStep.FAILED);
