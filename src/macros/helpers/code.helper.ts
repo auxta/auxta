@@ -58,7 +58,14 @@ export class FunctionHelper {
     }
 
     public async waitForNetwork() {
-        await puppeteer.defaultPage.waitForNetworkIdle();
+        let message = 'I wait for the page to load'
+        try{
+            await puppeteer.defaultPage.waitForNetworkIdle();
+            log.push('Then', message, StepStatusEnum.PASSED);
+        } catch (e){
+            log.push('Then', message, StepStatusEnum.FAILED);
+            throw new Error(message)
+        }
     }
 
     public async timeout(timeout = this.defaultTimeout) {

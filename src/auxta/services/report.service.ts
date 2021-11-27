@@ -66,7 +66,7 @@ export async function createEmptyReport(body: any): Promise<string> {
     )).data.reportId;
 }
 
-export async function uploadScenario(stepLog: Step[], scenarioName: string, screenshot?: Buffer, errMessage?: string) {
+export async function uploadScenario(stepLog: Step[], scenarioName: string, screenshot?: Buffer, errMessage?: object) {
     let scenarios = [];
     let token = await auth();
     let lastStep = stepLog[stepLog.length - 1];

@@ -1,7 +1,7 @@
 import chromium from 'chrome-aws-lambda';
 import log from "../auxta/services/log.service";
 import { captureScreenshot } from "../auxta/utilities/screenshot.helper";
-import { AfterEach } from "../auxta/hooks/report.hook";
+import { onTestEnd } from "../auxta/hooks/report.hook";
 import auxta from "../AuxTA";
 import { StepStatusEnum } from "../auxta/enums/step-status.enum";
 import { UploadModel } from "../auxta/models/upload.model";
@@ -53,9 +53,17 @@ export class Puppeteer {
         let errMessage: string | undefined;
         let statusCode: number = 200;
 
+        let consoleStack = [];
         try {
             await log.push('When', `Starting puppeteer process`, StepStatusEnum.PASSED);
             await this.startBrowser()
+            await this.defaultPage.on('console', message =>
+                consoleStack.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
+                .on('pageerror', ({ message }) => consoleStack.push(message))
+                .on('response', response =>
+                    consoleStack.push(`${response.status()} ${response.url()}`))
+                .on('requestfailed', request =>
+                    consoleStack.push(`${request.failure().errorText} ${request.url()}`))
             await callback(event)
             screenshotBuffer = await captureScreenshot();
             await log.push('When', `Finished puppeteer process`, StepStatusEnum.PASSED);
@@ -66,9 +74,14 @@ export class Puppeteer {
             screenshotBuffer = await captureScreenshot();
             await log.push('When', `Finished puppeteer process`, StepStatusEnum.FAILED);
         }
+        let url = this.defaultPage.url();
         if (close) await this.close();
+        log.clear();
 
-        await AfterEach(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, errMessage);
+        await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
+            currentPageUrl: url,
+            error: errMessage
+        });
     }
 
     private static setupHeader(event: any, uploadModel: UploadModel) {
