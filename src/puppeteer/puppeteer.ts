@@ -57,7 +57,7 @@ export class Puppeteer {
         try {
             await log.push('When', `Starting puppeteer process`, StepStatusEnum.PASSED);
             await this.startBrowser()
-            await this.defaultPage.on('console', message =>
+            this.defaultPage.on('console', message =>
                 consoleStack.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
                 .on('pageerror', ({ message }) => consoleStack.push(message))
                 .on('response', response =>
@@ -76,12 +76,12 @@ export class Puppeteer {
         }
         let url = this.defaultPage.url();
         if (close) await this.close();
-        log.clear();
 
         await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
             currentPageUrl: url,
             error: errMessage
         });
+        log.clear();
     }
 
     private static setupHeader(event: any, uploadModel: UploadModel) {
