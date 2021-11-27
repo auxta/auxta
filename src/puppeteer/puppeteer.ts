@@ -50,7 +50,7 @@ export class Puppeteer {
     public async run(event: any, callback: any, featureName = 'Test feature', scenarioName = 'Test scenario', uploadModel?: UploadModel, close?: boolean) {
         if (uploadModel === undefined) uploadModel = auxta.getUploadModel();
         if (close === undefined) close = Puppeteer.setupHeader(event, uploadModel)
-        let screenshotBuffer: Buffer;
+        let screenshotBuffer: Buffer | undefined;
         let errMessage: any;
         let statusCode: number = 200;
 
@@ -66,7 +66,6 @@ export class Puppeteer {
                 .on('requestfailed', request =>
                     consoleStack.push(`${request.failure().errorText} ${request.url()}`))
             await callback(event)
-            screenshotBuffer = await captureScreenshot();
             log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
         } catch (err) {
             console.log(`Error ${err}`);

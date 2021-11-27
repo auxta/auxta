@@ -180,7 +180,7 @@ export async function postNotifications( body: UploadModel) {
 
 export async function postNotificationsOnFail( body: UploadModel) {
     let token = await auth();
-    await axios.post(`${config.auxtaURL}post-notification-after-case-fail-background`, {
+    await axios.post(`${config.auxtaURL}post-notifications-after-case-fail-background`, {
         environmentName: body.environment,
         digitalProductName: body.digitalProduct,
         organizationName: body.organization,

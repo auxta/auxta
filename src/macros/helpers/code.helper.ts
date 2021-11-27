@@ -23,7 +23,7 @@ export class FunctionHelper {
         await page.waitForTimeout(this.defaultTimeout);
         const [linkHandlers] = await page.$x(`//${selector}[. = ${this.getEscapedText(text)}]`);
 
-        const message = `I click on the ${text} ${selector}`;
+        const message = `I click on the '${text}' '${selector}'`;
         if (linkHandlers) {
             log.push('Then', message, StatusOfStep.PASSED);
             await linkHandlers.click();
@@ -35,7 +35,7 @@ export class FunctionHelper {
 
     public async waitForSelectorWithText(selector: string, text: string, page = puppeteer.defaultPage) {
         const linkHandlers = await page.$x(`//${selector}[. = ${this.getEscapedText(text)}]`);
-        const message = `I check for ${text}`;
+        const message = `I check for '${text}' on the current page`;
         if (linkHandlers.length > 0) {
             log.push('And', message, StatusOfStep.PASSED);
             return true;
@@ -47,14 +47,20 @@ export class FunctionHelper {
 
     public async goto(url: string, page = puppeteer.defaultPage) {
         await page.goto(url);
-        log.push('Then', `I go to the ${url} page`, StatusOfStep.PASSED);
+        log.push('Then', `I go to the '${url}' page`, StatusOfStep.PASSED);
     }
 
     public async type(field: string, value: string, page = puppeteer.defaultPage) {
-        await page.type(field, value);
-        let elementName = await page.$eval(field, (e) => e.textContent);
-        if (!elementName || elementName === ' ') elementName = field;
-        log.push('Then', `I type '${value}' into the ${elementName} field`, StatusOfStep.PASSED);
+        try{
+            await page.type(field, value);
+            let elementName = await page.$eval(field, (e) => e.textContent);
+            if (!elementName || elementName === ' ') elementName = field;
+            log.push('Then', `I type '${value}' into the '${elementName}' field`, StatusOfStep.PASSED);
+        } catch (e){
+            const msg = `I type '${value}' into the '${field}' field`
+            log.push('Then', msg, StatusOfStep.FAILED);
+            throw new Error(msg)
+        }
     }
 
     public async waitForNetwork(page = puppeteer.defaultPage) {
@@ -83,7 +89,7 @@ export class FunctionHelper {
      */
 
     public async waitForSelector(option: string, selector: string, time: number = this.defaultTimeout, page = puppeteer.defaultPage) {
-        const message = `I check for the ${selector} element to be ${option}`;
+        const message = `I check for the '${selector}' element to be ${option}`;
         try{
             await page.waitForSelector(selector, {
                 [option]: true,
@@ -101,7 +107,7 @@ export class FunctionHelper {
         let elementName = await puppeteer.defaultPage.$eval(className, (e) => e.textContent);
         if (!elementName || elementName === ' ') elementName = className;
         await page.click(className);
-        log.push('Then', `I click on ${elementName}`, StatusOfStep.PASSED);
+        log.push('Then', `I click on the '${elementName}'`, StatusOfStep.PASSED);
     }
 
     public async urlContains(selector: string) {
@@ -109,7 +115,7 @@ export class FunctionHelper {
         let message = `I am on the ${selector} page`
         if (!url.includes(selector)) {
             log.push('And', message, StatusOfStep.FAILED);
-            throw new Error(`I am not at the ${selector} page`)
+            throw new Error(`I am not at the '${selector}' page`)
         }
         log.push('And', message, StatusOfStep.PASSED);
     }

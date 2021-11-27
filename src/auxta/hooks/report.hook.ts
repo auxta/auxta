@@ -12,7 +12,7 @@ import { startSuite } from '../utilities/start-suite.helper';
 import { StatusOfStep } from "../enums/status-of.step";
 import { UploadModel } from "../models/upload.model";
 
-export async function onTestEnd(body: any, featureName: string, scenarioName: string, statusCode: number, screenshotBuffer: Buffer, errMessage?: object) {
+export async function onTestEnd(body: any, featureName: string, scenarioName: string, statusCode: number, screenshotBuffer?: Buffer, errMessage?: object) {
     let isFinal: boolean = false;
     if (process.env.ENVIRONMENT == "LIVE") {
         console.log('asc ' + errMessage);
