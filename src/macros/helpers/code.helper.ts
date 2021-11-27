@@ -52,6 +52,9 @@ export class FunctionHelper {
 
     public async type(field: string, value: string, page = puppeteer.defaultPage) {
         try{
+            await page.waitForSelector(field, {
+                timeout: this.defaultTimeout
+            });
             await page.type(field, value);
             let elementName = await page.$eval(field, (e) => e.textContent);
             if (!elementName || elementName === ' ') elementName = field;
