@@ -62,14 +62,14 @@ class AuxTA extends FunctionHelper {
         if (overrideConfig) {
             if (overrideConfig.digitalProduct) this.uploadModel.digitalProduct = overrideConfig.digitalProduct
             if (overrideConfig.environment) this.uploadModel.environment = overrideConfig.environment
-            if (overrideConfig.baseUrl) this.uploadModel.baseUrl = overrideConfig.baseUrl
+            if (overrideConfig.baseURL) this.uploadModel.baseUrl = overrideConfig.baseURL
             this.config = setupOverrideConfig(overrideConfig)
         }
     }
 
     public async startBrowser(event: any, callback: any, feature: string, scenario: string, overrideConfig?: any, singleFeature = false) {
         this.changeModelData(overrideConfig);
-        if (singleFeature) {
+        if (singleFeature && process.env.ENVIRONMENT !== 'LOCAL') {
             if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
                 return {statusCode: 401, message: 'Unauthorized'}
             this.uploadModel.reportId = await createEmptyReport(this.uploadModel);

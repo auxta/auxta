@@ -112,7 +112,7 @@ export class FunctionHelper {
         log.push('And', message, StatusOfStep.PASSED);
     }
 
-    public async click(selector: string, page = puppeteer.defaultPage) {
+    public async click(selector: string, logMessages = true, page = puppeteer.defaultPage) {
         try{
             await page.waitForSelector(selector, {
                 timeout: this.defaultTimeout

@@ -24,6 +24,8 @@ export function setupConfig(jsonConfig: any) {
 export function setupOverrideConfig(overrideConfig: any){
     if (overrideConfig.baseURL) config.baseURL = overrideConfig.baseURL;
     if (overrideConfig.digitalProduct) config.digitalProduct = overrideConfig.digitalProduct;
+    if (overrideConfig.screenWidth) config.screenWidth = overrideConfig.screenWidth;
+    if (overrideConfig.screenHeight) config.screenHeight = overrideConfig.screenHeight;
     return config;
 }
 
