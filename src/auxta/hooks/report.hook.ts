@@ -43,11 +43,7 @@ export async function onTestEnd(body: any, featureName: string, scenarioName: st
         }
     }
     if (isFinal) await afterComplete(body);
-    else if (body && body.nextSuites && body.nextSuites[0])
-        try {
-            await startSuite(body.nextSuites, body.reportId);
-        } catch {
-        }
+    else if (body && body.nextSuites) await startSuite(body.nextSuites, body.reportId);
 }
 
 export async function afterComplete(body: UploadModel) {

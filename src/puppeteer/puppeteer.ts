@@ -69,7 +69,7 @@ export class Puppeteer {
                 await callback(event)
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
             } catch (err) {
-                console.log(`Error ${err}`);
+                console.log("Error", err);
                 errMessage = err;
                 statusCode = 500;
                 screenshotBuffer = await captureScreenshot();
@@ -85,7 +85,7 @@ export class Puppeteer {
                 error: errMessage
             });
         } catch (e){
-            console.log(e);
+            console.log("Lib error:", e);
         } finally {
             log.clear();
         }
