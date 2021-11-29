@@ -48,42 +48,47 @@ export class Puppeteer {
     }
 
     public async run(event: any, callback: any, featureName = 'Test feature', scenarioName = 'Test scenario', uploadModel?: UploadModel, close?: boolean) {
-        if (uploadModel === undefined) uploadModel = auxta.getUploadModel();
-        if (close === undefined) close = Puppeteer.setupHeader(event, uploadModel)
-        let screenshotBuffer: Buffer | undefined;
-        let errMessage: any;
-        let statusCode: number = 200;
+        try{
+            if (uploadModel === undefined) uploadModel = auxta.getUploadModel();
+            if (close === undefined) close = Puppeteer.setupHeader(event, uploadModel)
+            let screenshotBuffer: Buffer | undefined;
+            let errMessage: any;
+            let statusCode: number = 200;
 
-        let consoleStack: any[] = [];
-        try {
-            await log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
-            await this.startBrowser()
-            this.defaultPage.on('console', message =>
-                consoleStack.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
-                .on('pageerror', ({message}) => consoleStack.push(message))
-                .on('response', response =>
-                    consoleStack.push(`${response.status()} ${response.url()}`))
-                .on('requestfailed', request =>
-                    consoleStack.push(`${request.failure().errorText} ${request.url()}`))
-            await callback(event)
-            log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
-        } catch (err) {
-            console.log(`Error ${err}`);
-            errMessage = err;
-            statusCode = 500;
-            screenshotBuffer = await captureScreenshot();
-            log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
-            await postNotificationsOnFail(uploadModel)
+            let consoleStack: any[] = [];
+            try {
+                await log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
+                await this.startBrowser()
+                this.defaultPage.on('console', message =>
+                    consoleStack.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
+                    .on('pageerror', ({message}) => consoleStack.push(message))
+                    .on('response', response =>
+                        consoleStack.push(`${response.status()} ${response.url()}`))
+                    .on('requestfailed', request =>
+                        consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
+                await callback(event)
+                log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
+            } catch (err) {
+                console.log(`Error ${err}`);
+                errMessage = err;
+                statusCode = 500;
+                screenshotBuffer = await captureScreenshot();
+                log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
+                await postNotificationsOnFail(uploadModel)
+            }
+            let url = this.defaultPage.url();
+            if (close) await this.close();
+
+            await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
+                currentPageUrl: url,
+                console: consoleStack,
+                error: errMessage
+            });
+        } catch (e){
+            console.log(e);
+        } finally {
+            log.clear();
         }
-        let url = this.defaultPage.url();
-        if (close) await this.close();
-
-        await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
-            currentPageUrl: url,
-            console: consoleStack,
-            error: errMessage
-        });
-        log.clear();
     }
 
     private static setupHeader(event: any, uploadModel: UploadModel) {
