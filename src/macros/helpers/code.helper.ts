@@ -22,7 +22,7 @@ export class FunctionHelper {
     public async clickByText(selector: string, text: string, page = puppeteer.defaultPage) {
         const message = `I click on the '${text}' '${selector}'`;
         try{
-            const [linkHandlers] = await page.$x(`//${selector}[. = ${this.getEscapedText(text)}]`);
+            const [linkHandlers] = await page.$x(`//${selector}[text() = ${this.getEscapedText(text)}]`);
 
             if (linkHandlers) {
                 await linkHandlers.click();
@@ -41,7 +41,7 @@ export class FunctionHelper {
             await page.waitForSelector(selector, {
                 timeout: this.defaultTimeout
             });
-            const linkHandlers = await page.$x(`//${selector}[. = ${this.getEscapedText(text)}]`);
+            const linkHandlers = await page.$x(`//${selector}[text() = ${this.getEscapedText(text)}]`);
             if (linkHandlers.length > 0) {
                 log.push('And', message, StatusOfStep.PASSED);
                 return true;
