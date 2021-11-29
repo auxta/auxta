@@ -19,10 +19,10 @@ export class FunctionHelper {
         return `concat('${splitedQuotes}', '')`;
     }
 
-    public async clickByText(selector: string, text: string, page = puppeteer.defaultPage) {
+    public async clickByText(selector: string, text: string, page = puppeteer.defaultPage, dotOrText = '.') {
         const message = `I click on the '${text}' '${selector}'`;
         try{
-            const [linkHandlers] = await page.$x(`//${selector}[text() = ${this.getEscapedText(text)}]`);
+            const [linkHandlers] = await page.$x(`//${selector}[${dotOrText} = ${this.getEscapedText(text)}]`);
 
             if (linkHandlers) {
                 await linkHandlers.click();
@@ -35,13 +35,13 @@ export class FunctionHelper {
         throw new Error(message);
     }
 
-    public async waitForSelectorWithText(selector: string, text: string, page = puppeteer.defaultPage) {
+    public async waitForSelectorWithText(selector: string, text: string, page = puppeteer.defaultPage, dotOrText = '.') {
         const message = `I check for '${text}' on the current page`;
         try{
             await page.waitForSelector(selector, {
                 timeout: this.defaultTimeout
             });
-            const linkHandlers = await page.$x(`//${selector}[text() = ${this.getEscapedText(text)}]`);
+            const linkHandlers = await page.$x(`//${selector}[${dotOrText} = ${this.getEscapedText(text)}]`);
             if (linkHandlers.length > 0) {
                 log.push('And', message, StatusOfStep.PASSED);
                 return true;
