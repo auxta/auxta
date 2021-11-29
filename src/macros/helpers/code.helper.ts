@@ -18,7 +18,7 @@ export class FunctionHelper {
         const splitedQuotes = text.replace(/'/g, `', "'", '`)
         return `concat('${splitedQuotes}', '')`;
     }
-    
+
     public async clickByText(selector: string, text: string, page = puppeteer.defaultPage) {
         const message = `I click on the '${text}' '${selector}'`;
         try{
@@ -96,9 +96,10 @@ export class FunctionHelper {
      * @param selector - class to select
      * @param time
      * @param page
+     * @param log_message
      */
 
-    public async waitForSelector(option: string, selector: string, time: number = this.defaultTimeout, page = puppeteer.defaultPage) {
+    public async waitForSelector(option: string, selector: string, time: number = this.defaultTimeout, page = puppeteer.defaultPage,log_message = true) {
         const message = `I check for the '${selector}' element to be ${option}`;
         try{
             await page.waitForSelector(selector, {
@@ -106,10 +107,14 @@ export class FunctionHelper {
                 timeout: time
             });
         } catch (e){
-            log.push('And', message, StatusOfStep.FAILED);
+            if (log_message) {
+                log.push('And', message, StatusOfStep.FAILED);
+            }
             throw new Error(message)
         }
-        log.push('And', message, StatusOfStep.PASSED);
+        if (log_message) {
+            log.push('And', message, StatusOfStep.PASSED);
+        }
     }
 
     public async click(selector: string, logMessages = true, page = puppeteer.defaultPage) {
