@@ -29,6 +29,12 @@ export class LogSteps {
 
     public clear() {
         this.stepLog = [];
+        this.statusCounter = {
+            [StatusOfStep.PASSED]: 0,
+            [StatusOfStep.FAILED]: 0,
+            [StatusOfStep.SKIPPED]: 0,
+            [StatusOfStep.SUGGESTION]: 0,
+        }
     }
 
     public push(keyword: string, name: string, status: StatusOfStep) {
