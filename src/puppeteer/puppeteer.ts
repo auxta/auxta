@@ -27,6 +27,7 @@ export class Puppeteer {
         this.browser = await chromium.puppeteer.launch({
             executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath,
             args,
+            ignoreDefaultArgs: ["--enable-automation"],
             defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
                 width: config.screenWidth,
                 height: config.screenHeight
