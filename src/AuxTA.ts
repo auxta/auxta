@@ -41,7 +41,7 @@ class AuxTA extends FunctionHelper {
             } catch (e) {
                 console.log("Missing field in auxta.json:", e)
             }
-            this.uploadModel = new UploadModel(jsonConfig.organization, jsonConfig.baseURL, jsonConfig.digitalProduct);
+            this.uploadModel = new UploadModel(jsonConfig.organization, jsonConfig.baseURL, jsonConfig.digitalProduct,jsonConfig.environment);
         } catch (e) {
             console.log("Missing or corrupted config: auxta.json. Searching in location:", file)
             console.log(e);

@@ -7,12 +7,12 @@ export class UploadModel {
     private readonly _organization: string;
     private _environment: string;
 
-    constructor(org: string, baseUrl: string, digitalProduct: string) {
+    constructor(org: string, baseUrl: string, digitalProduct: string, environment: string) {
         this._reportId = '';
         this._nextSuites = [];
         this._organization = org;
         this._digitalProduct = digitalProduct;
-        this._environment = process.env.NODE_ENV || "";
+        this._environment = environment;
         this._baseUrl = baseUrl;
     }
 
