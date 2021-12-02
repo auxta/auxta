@@ -16,11 +16,7 @@ export class Puppeteer {
 
     public async startBrowser() {
         let args = [
-            '--start-maximized',
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--single-process'
+            '--start-maximized'
         ];
         if (process.env.ENVIRONMENT != 'LOCAL')
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
