@@ -1,27 +1,27 @@
-import log from "../../auxta/services/log.service";
+import log from "../../this.services/log.service";
 import puppeteer from "../../puppeteer/puppeteer";
-import { StatusOfStep } from "../../auxta/enums/status-of.step";
-import { config } from "../../auxta/configs/config";
+import {StatusOfStep} from "../../this.enums/status-of.step";
+import {config} from "../../this.configs/config";
 
 export class FunctionHelper {
     public readonly defaultTimeout: number = config.timeout;
 
-    public log(keyword: string, name: string, status: StatusOfStep){
+    public log(keyword: string, name: string, status: StatusOfStep) {
         log.push(keyword, name, status)
     }
 
-    public suggest(name: string){
+    public suggest(name: string) {
         log.addSuggestion(name)
     }
 
-    private getEscapedText(text: string){
+    private getEscapedText(text: string) {
         const splitedQuotes = text.replace(/'/g, `', "'", '`)
         return `concat('${splitedQuotes}', '')`;
     }
 
     public async clickByText(selector: string, text: string, page = puppeteer.defaultPage, dotOrText = '.') {
         const message = `I click on the '${text}' '${selector}'`;
-        try{
+        try {
             const [linkHandlers] = await page.$x(`//${selector}[${dotOrText} = ${this.getEscapedText(text)}]`);
 
             if (linkHandlers) {
@@ -29,15 +29,30 @@ export class FunctionHelper {
                 log.push('Then', message, StatusOfStep.PASSED);
                 return;
             }
-        } catch (e){
+        } catch (e) {
         }
         log.push('Then', message, StatusOfStep.FAILED);
         throw new Error(message);
     }
+    public async clickByTextWithClass(class_selector: string, class_name: string, selector: string, text: string, page = puppeteer.defaultPage, dotOrText = '.') {
+        const message = `I click on the '${text}' '${selector}'`;
+        try {
+            const [linkHandlers] = await page.$x(`//${class_selector}[contains(@class,${this.getEscapedText(class_name)})]//${selector}[${dotOrText} = ${this.getEscapedText(text)}]`);
 
+            if (linkHandlers) {
+                await linkHandlers.click();
+                log.push('Then', message, StatusOfStep.PASSED);
+                return;
+            }
+        } catch (e) {
+        }
+        log.push('Then', message, StatusOfStep.FAILED);
+        throw new Error(message);
+    }
+    //div[contains(@class,"mat-menu-content")]//button
     public async waitForSelectorWithText(selector: string, text: string, page = puppeteer.defaultPage, dotOrText = '.') {
         const message = `I check for '${text}' on the current page`;
-        try{
+        try {
             await page.waitForSelector(selector, {
                 timeout: this.defaultTimeout
             });
@@ -46,7 +61,7 @@ export class FunctionHelper {
                 log.push('And', message, StatusOfStep.PASSED);
                 return true;
             }
-        }catch (e) {
+        } catch (e) {
         }
         log.push('And', message, StatusOfStep.FAILED);
         throw new Error(message);
@@ -58,7 +73,7 @@ export class FunctionHelper {
     }
 
     public async type(field: string, value: string, page = puppeteer.defaultPage) {
-        try{
+        try {
             await page.waitForSelector(field, {
                 timeout: this.defaultTimeout
             });
@@ -66,7 +81,7 @@ export class FunctionHelper {
             let elementName = await page.$eval(field, (e) => e.textContent);
             if (!elementName || elementName === ' ') elementName = field;
             log.push('Then', `I type '${value}' into the '${elementName}' field`, StatusOfStep.PASSED);
-        } catch (e){
+        } catch (e) {
             const msg = `I type '${value}' into the '${field}' field`
             log.push('Then', msg, StatusOfStep.FAILED);
             throw new Error(msg)
@@ -75,10 +90,10 @@ export class FunctionHelper {
 
     public async waitForNetwork(page = puppeteer.defaultPage) {
         let message = 'I wait for the page to load'
-        try{
+        try {
             await page.waitForNetworkIdle();
             log.push('Then', message, StatusOfStep.PASSED);
-        } catch (e){
+        } catch (e) {
             log.push('Then', message, StatusOfStep.FAILED);
             throw new Error(message)
         }
@@ -99,14 +114,14 @@ export class FunctionHelper {
      * @param log_message
      */
 
-    public async waitForSelector(option: string, selector: string, time: number = this.defaultTimeout, page = puppeteer.defaultPage,log_message = true) {
+    public async waitForSelector(option: string, selector: string, time: number = this.defaultTimeout, page = puppeteer.defaultPage, log_message = true) {
         const message = `I check for the '${selector}' element to be ${option}`;
-        try{
+        try {
             await page.waitForSelector(selector, {
                 [option]: true,
                 timeout: time
             });
-        } catch (e){
+        } catch (e) {
             if (log_message) {
                 log.push('And', message, StatusOfStep.FAILED);
             }
@@ -118,7 +133,7 @@ export class FunctionHelper {
     }
 
     public async click(selector: string, logMessages = true, page = puppeteer.defaultPage) {
-        try{
+        try {
             await page.waitForSelector(selector, {
                 timeout: this.defaultTimeout
             });
@@ -126,7 +141,7 @@ export class FunctionHelper {
             if (!elementName || elementName === ' ') elementName = selector;
             await page.click(selector);
             log.push('Then', `I click on the '${elementName}'`, StatusOfStep.PASSED);
-        } catch (e){
+        } catch (e) {
             const msg = `I click on the '${selector}'`;
             log.push('Then', msg, StatusOfStep.FAILED);
             throw new Error(msg)
@@ -142,6 +157,38 @@ export class FunctionHelper {
         }
         log.push('And', message, StatusOfStep.PASSED);
     }
+
+    public async pressEnter(page = puppeteer.defaultPage) {
+        await page.keyboard.press('Enter');
+    }
+
+    //TODO work in progress
+    /*
+    private async microsoftLogin(button: string, email: string, password: string) {
+        const email_input = 'input[type="email"]';
+        const password_input = 'input[type="password"]';
+        const no_button = 'input[type="button"]';
+        // click on login button
+        const nav = new Promise(res => puppeteer.defaultPage.browser().on('targetcreated', res));
+        await this.click(button);
+        await nav;
+        const pages = await puppeteer.defaultPage.browser().pages();
+        const loginPage = pages[pages.length - 1];
+        // enter password and submit
+        await this.waitForSelector('visible', email_input, 60000, loginPage);
+        await this.type(email_input, email, loginPage);
+        await this.pressEnter(loginPage);
+        await this.waitForNetwork(loginPage);
+        // enter password and submit
+        await this.waitForSelector('visible', password_input, 60000, loginPage);
+        await this.type(password_input, password, loginPage);
+        await this.pressEnter(loginPage);
+        await this.waitForNetwork(loginPage);
+        // press no
+        await this.waitForSelector('visible', no_button, 60000, loginPage);
+        await this.click(no_button, true, loginPage);
+        await this.waitForNetwork(loginPage);
+    }*/
 
 }
 
