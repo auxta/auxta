@@ -1,7 +1,7 @@
-import log from "../../this.services/log.service";
+import log from "../../auxta/services/log.service";
 import puppeteer from "../../puppeteer/puppeteer";
-import {StatusOfStep} from "../../this.enums/status-of.step";
-import {config} from "../../this.configs/config";
+import { StatusOfStep } from "../../auxta/enums/status-of.step";
+import { config } from "../../auxta/configs/config";
 
 export class FunctionHelper {
     public readonly defaultTimeout: number = config.timeout;
