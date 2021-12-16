@@ -168,6 +168,11 @@ export class FunctionHelper {
         await nav;
     }
 
+    public async closeLastPage(page = puppeteer.defaultPage) {
+        const pages = await page.browser().pages();
+        await pages[pages.length - 1].close();
+    }
+
     //TODO work in progress
     /*
     private async microsoftLogin(button: string, email: string, password: string) {
