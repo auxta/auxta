@@ -116,7 +116,6 @@ export class Puppeteer {
                 await callback(event)
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
             } catch (err) {
-                console.log("Error", err);
                 errMessage = err;
                 log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
                 return errMessage;
@@ -126,8 +125,8 @@ export class Puppeteer {
             console.log("Lib error:", e);
         } finally {
             log.clear();
-
         }
+        return true;
     }
 
     private static setupHeader(event: any, uploadModel: UploadModel) {
