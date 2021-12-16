@@ -20,32 +20,36 @@ class AuxTA extends FunctionHelper {
     constructor() {
         super();
         let file;
-        try {
-            let currentDir = ""
-            while (true) {
-                file = path.join(__dirname, currentDir, "auxta.json");
-                if (!fs.existsSync(file)) {
-                    currentDir += "../"
-                    if (currentDir.length >= 30) {
-                        console.log("auxta.json file not found!")
-                        process.exit(1);
-                        return;
-                    }
-                    continue;
-                }
-                break;
-            }
-            const jsonConfig = JSON.parse(fs.readFileSync(file).toString());
+        if (!process.env.RPA) {
             try {
-                this.config = setupConfig(jsonConfig)
+                let currentDir = ""
+                while (true) {
+                    file = path.join(__dirname, currentDir, "auxta.json");
+                    if (!fs.existsSync(file)) {
+                        currentDir += "../"
+                        if (currentDir.length >= 30) {
+                            console.log("auxta.json file not found!")
+                            process.exit(1);
+                            return;
+                        }
+                        continue;
+                    }
+                    break;
+                }
+                const jsonConfig = JSON.parse(fs.readFileSync(file).toString());
+                try {
+                    this.config = setupConfig(jsonConfig)
+                } catch (e) {
+                    console.log("Missing field in auxta.json:", e)
+                }
+                this.uploadModel = new UploadModel(jsonConfig.organization, jsonConfig.baseURL, jsonConfig.digitalProduct, jsonConfig.environment);
             } catch (e) {
-                console.log("Missing field in auxta.json:", e)
+                console.log("Missing or corrupted config: auxta.json. Searching in location:", file)
+                console.log(e);
+                process.exit(1);
             }
-            this.uploadModel = new UploadModel(jsonConfig.organization, jsonConfig.baseURL, jsonConfig.digitalProduct, jsonConfig.environment);
-        } catch (e) {
-            console.log("Missing or corrupted config: auxta.json. Searching in location:", file)
-            console.log(e);
-            process.exit(1);
+        } else {
+            this.uploadModel = new UploadModel('', '', '', '');
         }
     }
 
