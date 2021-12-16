@@ -1,13 +1,13 @@
-import puppeteer, { Puppeteer } from "./puppeteer/puppeteer";
-import { FunctionHelper } from "./macros/helpers/code.helper";
+import puppeteer, {Puppeteer} from "./puppeteer/puppeteer";
+import {FunctionHelper} from "./macros/helpers/code.helper";
 import path from "path";
 import fs from "fs";
 import StatusOfStep from "./auxta/enums/status-of.step";
-import { UploadModel } from "./auxta/models/upload.model";
+import {UploadModel} from "./auxta/models/upload.model";
 import * as dotenv from "dotenv";
-import { setupConfig, config as c, setupOverrideConfig } from "./auxta/configs/config";
-import { startSuite } from "./auxta/utilities/start-suite.helper";
-import { createEmptyReport } from "./auxta/services/report.service";
+import {setupConfig, config as c, setupOverrideConfig} from "./auxta/configs/config";
+import {startSuite} from "./auxta/utilities/start-suite.helper";
+import {createEmptyReport} from "./auxta/services/report.service";
 
 dotenv.config();
 
@@ -41,7 +41,7 @@ class AuxTA extends FunctionHelper {
             } catch (e) {
                 console.log("Missing field in auxta.json:", e)
             }
-            this.uploadModel = new UploadModel(jsonConfig.organization, jsonConfig.baseURL, jsonConfig.digitalProduct,jsonConfig.environment);
+            this.uploadModel = new UploadModel(jsonConfig.organization, jsonConfig.baseURL, jsonConfig.digitalProduct, jsonConfig.environment);
         } catch (e) {
             console.log("Missing or corrupted config: auxta.json. Searching in location:", file)
             console.log(e);
@@ -58,7 +58,8 @@ class AuxTA extends FunctionHelper {
         await startSuite(suites, reportId || await createEmptyReport(this.uploadModel));
         return {statusCode: 204}
     }
-    private changeModelData(overrideConfig?: any){
+
+    private changeModelData(overrideConfig?: any) {
         if (overrideConfig) {
             if (overrideConfig.digitalProduct) this.uploadModel.digitalProduct = overrideConfig.digitalProduct
             if (overrideConfig.environment) this.uploadModel.environment = overrideConfig.environment
@@ -76,6 +77,15 @@ class AuxTA extends FunctionHelper {
             this.uploadModel.nextSuites = [];
         }
         return this.puppeteer.run(event, callback, feature, scenario)
+    }
+
+    public async startBrowserRPA(event: any, callback: any, baseURL: string) {
+        this.changeModelData({
+            baseURL: baseURL,
+            environment: '',
+            digitalProduct: ''
+        });
+        return this.puppeteer.runRPA(event, callback)
     }
 
     public getUploadModel(): UploadModel {
