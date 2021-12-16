@@ -162,7 +162,7 @@ export class FunctionHelper {
         await page.keyboard.press('Enter');
     }
 
-    public async waitForPageToBeCreated(selector: string,page = puppeteer.defaultPage) {
+    public async clickAndWaitForPageToBeCreated(selector: string,page = puppeteer.defaultPage) {
         const nav = new Promise(res => page.browser().on('targetcreated', res));
         await this.click(selector);
         await nav;
