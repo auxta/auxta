@@ -1,11 +1,16 @@
 {
   "name": "@auxcode/auxta",
-  "version": "0.5.3",
+  "version": "0.5.6",
   "description": "",
-  "main": "src/AuxTA.ts",
+  "main": "./build/cjs/AuxTA.js",
+  "module": "./build/esm/AuxTA.js",
+  "files": [
+    "build/"
+  ],
   "scripts": {
-    "build": "tsc",
-    "test": "npm run build & node ./build/AuxTA.js"
+    "tsc": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
+    "prepublish": "npm run tsc",
+    "test": "npm run prepublish & node ./build/AuxTA.js"
   },
   "author": "auxcode",
   "license": "ISC",
