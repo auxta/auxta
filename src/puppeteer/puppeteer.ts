@@ -21,20 +21,28 @@ export class Puppeteer {
             '--disable-dev-shm-usage',
             '--single-process'
         ];
-        if (process.env.ENVIRONMENT != 'LOCAL')
+        if (process.env.ENVIRONMENT == 'LOCAL') {
+            this.browser = await chromium.puppeteer.launch({
+                executablePath: undefined,
+                args,
+                ignoreDefaultArgs: ["--enable-automation"],
+                defaultViewport: null,
+                headless: false
+            });
+        } else {
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
-        this.browser = await chromium.puppeteer.launch({
-            //executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath
-            executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : process.env.CHROME_PATH,
-            args,
-            ignoreDefaultArgs: ["--enable-automation"],
-            defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
-                width: config.screenWidth,
-                height: config.screenHeight
-            },
-            // Return back to headless for netlify
-            headless: process.env.ENVIRONMENT == 'LOCAL' ? false : chromium.headless
-        });
+            this.browser = await puppeteer_core.launch({
+                //executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath
+                executablePath: process.env.CHROME_PATH,
+                args,
+                ignoreDefaultArgs: ["--enable-automation"],
+                defaultViewport: {
+                    width: config.screenWidth,
+                    height: config.screenHeight
+                },
+                headless: chromium.headless
+            });
+        }
         this.defaultPage = (await this.browser.pages())[0];
         await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle0'})
         await this.defaultPage.waitForNetworkIdle();
