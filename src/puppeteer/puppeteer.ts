@@ -25,7 +25,6 @@ export class Puppeteer {
         if (process.env.ENVIRONMENT != 'LOCAL')
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
         this.browser = await chromium.puppeteer.launch({
-            //executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath
             executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : normalize('/opt/build/repo/node_modules/chromium/lib/chromium/chrome-linux/chrome'),
             args,
             ignoreDefaultArgs: ["--enable-automation"],
