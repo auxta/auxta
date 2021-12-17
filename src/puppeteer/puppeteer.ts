@@ -41,7 +41,7 @@ export class Puppeteer {
                     width: config.screenWidth,
                     height: config.screenHeight
                 },
-                headless: chromium.headless
+                headless: true
             });
         }
         this.defaultPage = (await this.browser.pages())[0];
