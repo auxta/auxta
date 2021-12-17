@@ -25,7 +25,7 @@ export class Puppeteer {
         if (process.env.ENVIRONMENT != 'LOCAL')
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
         this.browser = await chromium.puppeteer.launch({
-            executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath,
+            executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : process.env.CHROME_PATH,
             args,
             ignoreDefaultArgs: ["--enable-automation"],
             defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
