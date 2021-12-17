@@ -8,6 +8,7 @@ import {UploadModel} from "../auxta/models/upload.model";
 import puppeteer_core from 'puppeteer-core';
 import {config} from "./../auxta/configs/config";
 import {postNotificationsOnFail} from "../auxta/services/report.service";
+import {normalize} from 'path';
 
 export class Puppeteer {
     public defaultPage!: puppeteer_core.Page;
@@ -33,7 +34,7 @@ export class Puppeteer {
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
             this.browser = await puppeteer_core.launch({
                 //executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath
-                executablePath: process.env.CHROME_PATH,
+                executablePath: normalize('/opt/build/repo/node_modules/chromium/lib/chromium/chrome-linux/chrome'),
                 args,
                 ignoreDefaultArgs: ["--enable-automation"],
                 defaultViewport: {
