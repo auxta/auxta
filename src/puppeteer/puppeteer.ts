@@ -91,6 +91,7 @@ export class Puppeteer {
         } finally {
             log.clear();
         }
+        return {statusCode: 200}
     }
 
     public async runRPA(event: any, callback: any, close?: boolean) {
@@ -127,7 +128,7 @@ export class Puppeteer {
         } finally {
             log.clear();
         }
-        return true;
+        return {statusCode: 200}
     }
 
     private static setupHeader(event: any, uploadModel: UploadModel) {

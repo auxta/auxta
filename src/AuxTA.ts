@@ -56,6 +56,8 @@ class AuxTA extends FunctionHelper {
     public async run(event: any, overrideConfig?: any) {
         this.changeModelData(overrideConfig);
         let reportId: string | undefined = event.queryStringParameters.reportId;
+        if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
+            return {statusCode: 401, message: 'Unauthorized'}
         const suites = this.config.suitesList.slice(0);
         await startSuite(suites, reportId || await createEmptyReport(this.uploadModel));
         return {statusCode: 204}
@@ -72,9 +74,9 @@ class AuxTA extends FunctionHelper {
 
     public async startBrowser(event: any, callback: any, feature: string, scenario: string, overrideConfig?: any, singleFeature = false) {
         this.changeModelData(overrideConfig);
-        if (singleFeature && process.env.ENVIRONMENT !== 'LOCAL') {
+        if (singleFeature && process.env.ENVIRONMENT !== 'LOCAL') {/*
             if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
-                return {statusCode: 401, message: 'Unauthorized'}
+                return {statusCode: 401, message: 'Unauthorized'}*/
             this.uploadModel.reportId = await createEmptyReport(this.uploadModel);
             this.uploadModel.nextSuites = [];
         }
