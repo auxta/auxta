@@ -1,3 +1,4 @@
+// @ts-ignore
 import chromium from 'chrome-aws-lambda';
 import log from "../auxta/services/log.service";
 import {captureScreenshot} from "../auxta/utilities/screenshot.helper";
@@ -8,16 +9,12 @@ import {UploadModel} from "../auxta/models/upload.model";
 import puppeteer_core from 'puppeteer-core';
 import {config} from "./../auxta/configs/config";
 import {postNotificationsOnFail} from "../auxta/services/report.service";
-import dotEnvExtended from 'dotenv-extended';
-dotEnvExtended.load();
 
 export class Puppeteer {
     public defaultPage!: puppeteer_core.Page;
     private browser!: puppeteer_core.Browser;
 
     public async startBrowser() {
-        console.log(process.env.CHROME_PATH);
-        console.log(process.env);
         let args = [
             '--start-maximized',
             '--no-sandbox',
@@ -25,28 +22,20 @@ export class Puppeteer {
             '--disable-dev-shm-usage',
             '--single-process'
         ];
-        if (process.env.ENVIRONMENT == 'LOCAL') {
-            this.browser = await chromium.puppeteer.launch({
-                executablePath: undefined,
-                args,
-                ignoreDefaultArgs: ["--enable-automation"],
-                defaultViewport: null,
-                headless: false
-            });
-        } else {
+        if (process.env.ENVIRONMENT != 'LOCAL')
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
-            this.browser = await puppeteer_core.launch({
-                //executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath
-                executablePath: process.env.CHROME_PATH,
-                args,
-                ignoreDefaultArgs: ["--enable-automation"],
-                defaultViewport: {
-                    width: config.screenWidth,
-                    height: config.screenHeight
-                },
-                headless: chromium.headless
-            });
-        }
+        this.browser = await chromium.puppeteer.launch({
+            //executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath
+            executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : process.env.CHROME_PATH,
+            args,
+            ignoreDefaultArgs: ["--enable-automation"],
+            defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
+                width: config.screenWidth,
+                height: config.screenHeight
+            },
+            // Return back to headless for netlify
+            headless: process.env.ENVIRONMENT == 'LOCAL' ? false : chromium.headless
+        });
         this.defaultPage = (await this.browser.pages())[0];
         await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle0'})
         await this.defaultPage.waitForNetworkIdle();
