@@ -25,8 +25,7 @@ export class Puppeteer {
         if (process.env.ENVIRONMENT != 'LOCAL')
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
         this.browser = await chromium.puppeteer.launch({
-            //executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath
-            executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : process.env.CHROME_PATH,
+            executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath,
             args,
             ignoreDefaultArgs: ["--enable-automation"],
             defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
@@ -91,7 +90,6 @@ export class Puppeteer {
         } finally {
             log.clear();
         }
-        return {statusCode: 200}
     }
 
     public async runRPA(event: any, callback: any, close?: boolean) {

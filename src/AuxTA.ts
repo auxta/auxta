@@ -74,13 +74,14 @@ class AuxTA extends FunctionHelper {
 
     public async startBrowser(event: any, callback: any, feature: string, scenario: string, overrideConfig?: any, singleFeature = false) {
         this.changeModelData(overrideConfig);
-        if (singleFeature && process.env.ENVIRONMENT !== 'LOCAL') {/*
+        if (singleFeature && process.env.ENVIRONMENT !== 'LOCAL') {
             if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
-                return {statusCode: 401, message: 'Unauthorized'}*/
+                return {statusCode: 401, message: 'Unauthorized'}
             this.uploadModel.reportId = await createEmptyReport(this.uploadModel);
             this.uploadModel.nextSuites = [];
         }
-        return this.puppeteer.run(event, callback, feature, scenario)
+        this.puppeteer.run(event, callback, feature, scenario)
+        return {statusCode: 204}
     }
 
     public async startBrowserRPA(event: any, callback: any, baseURL: string) {
