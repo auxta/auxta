@@ -1,6 +1,6 @@
 {
   "name": "@auxcode/auxta",
-  "version": "0.7.8",
+  "version": "0.7.9",
   "description": "",
   "main": "./build/cjs/AuxTA.js",
   "module": "./build/esm/AuxTA.js",
