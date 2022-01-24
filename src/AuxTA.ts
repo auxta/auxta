@@ -55,7 +55,12 @@ class AuxTA extends FunctionHelper {
 
     public async run(event: any, overrideConfig?: any) {
         this.changeModelData(overrideConfig);
-        let reportId: string | undefined = event.queryStringParameters.reportId;
+        let reportId;
+        try {
+            if (event.queryStringParameters.reportId) {
+                reportId = event.queryStringParameters.reportId;
+            }
+        } catch (e) {}
         if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
             return {statusCode: 401, message: 'Unauthorized'}
         const suites = this.config.suitesList.slice(0);
