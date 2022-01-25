@@ -18,7 +18,8 @@ export async function startSuite(suites: string[], reportId?: string) {
         }
 
     } catch (e){
+        console.log(e);
         // skip the suite if not found
-        await startSuite(suites, reportId);
+        //await startSuite(suites, reportId);
     }
 }
