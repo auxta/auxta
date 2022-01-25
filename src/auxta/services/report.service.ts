@@ -168,22 +168,26 @@ export async function getLastDayResults(): Promise<any> {
 }
 
 export async function postNotifications( body: UploadModel) {
+    console.log(body);
+    /*
     let token = await auth();
     await axios.post(`${config.auxtaURL}post-notification-after-run-background`, {
         environmentName: body.environment,
         digitalProductName: body.digitalProduct,
         organizationName: body.organization,
         reportId: body.reportId,
-    }, headers(token));
+    }, headers(token));*/
 }
 
 
 export async function postNotificationsOnFail( body: UploadModel) {
+    console.log(body);
+    /*
     let token = await auth();
     await axios.post(`${config.auxtaURL}post-notifications-after-case-fail-background`, {
         environmentName: body.environment,
         digitalProductName: body.digitalProduct,
         organizationName: body.organization,
         reportId: body.reportId,
-    }, headers(token));
+    }, headers(token));*/
 }

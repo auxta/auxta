@@ -61,6 +61,7 @@ class AuxTA extends FunctionHelper {
                 reportId = event.queryStringParameters.reportId;
             }
         } catch (e) {
+            reportId = undefined;
             console.log(e);
         }
         if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
