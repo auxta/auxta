@@ -18,7 +18,7 @@ export async function startSuite(suites: string[], reportId?: string) {
         }
 
     } catch (e){
-        console.log(e);
+        console.log(e.response.status);
         // skip the suite if not found
         //await startSuite(suites, reportId);
     }
