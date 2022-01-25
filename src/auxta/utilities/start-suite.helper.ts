@@ -6,6 +6,7 @@ export async function startSuite(suites: string[], reportId?: string) {
     const next = suites.shift();
     console.log('Starting next suite: ' + next);
     console.log(suites)
+
     try{
         if (config.netlifyPath.includes('amazonaws')) {
             await axios.post(
@@ -18,6 +19,7 @@ export async function startSuite(suites: string[], reportId?: string) {
         }
 
     } catch (e){
+        // @ts-ignore
         console.log(e.response.status);
         // skip the suite if not found
         //await startSuite(suites, reportId);
