@@ -2,6 +2,8 @@ import axios from 'axios';
 import { config } from "../configs/config";
 
 export async function startSuite(suites: string[], reportId?: string) {
+    console.log(reportId);
+    console.log(suites);
     if (suites.length === 0) return;
     const next = suites.shift();
     console.log('Starting next suite: ' + next);

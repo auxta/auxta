@@ -60,7 +60,9 @@ class AuxTA extends FunctionHelper {
             if (event.queryStringParameters.reportId) {
                 reportId = event.queryStringParameters.reportId;
             }
-        } catch (e) {}
+        } catch (e) {
+            console.log(e);
+        }
         if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
             return {statusCode: 401, message: 'Unauthorized'}
         const suites = this.config.suitesList.slice(0);
