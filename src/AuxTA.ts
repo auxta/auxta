@@ -87,8 +87,7 @@ class AuxTA extends FunctionHelper {
             this.uploadModel.reportId = await createEmptyReport(this.uploadModel);
             this.uploadModel.nextSuites = [];
         }
-        this.puppeteer.run(event, callback, feature, scenario)
-        return {statusCode: 204}
+        return this.puppeteer.run(event, callback, feature, scenario)
     }
 
     public async startBrowserRPA(event: any, callback: any, baseURL: string) {
