@@ -5,8 +5,10 @@ export async function startSuite(suites: string[], reportId?: string) {
     if (suites.length === 0) return;
     const next = suites.shift();
     console.log('Starting next suite: ' + next);
+    console.log(config.netlifyPath);
     try{
         if (config.netlifyPath.includes('amazonaws')) {
+            console.log(config.netlifyPath);
             await axios.post(
                 `${config.netlifyPath}${next}?token=${config.token}`,
                 {nextSuites: suites, reportId: reportId})
