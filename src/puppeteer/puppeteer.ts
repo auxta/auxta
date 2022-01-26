@@ -133,10 +133,15 @@ export class Puppeteer {
             const body = JSON.parse(event.body)
             uploadModel.reportId = body.reportId;
             uploadModel.nextSuites = body.nextSuites;
-        } else if (event.queryStringParameters.close) {
-            close = event.queryStringParameters.close === "true";
         }
-        return close;
+        try {
+            if (event.queryStringParameters.close) {
+                close = event.queryStringParameters.close === "true";
+            }
+            return close;
+        } catch (e) {
+            return true
+        }
     }
 }
 
