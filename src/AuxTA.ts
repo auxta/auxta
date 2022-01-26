@@ -64,7 +64,7 @@ class AuxTA extends FunctionHelper {
             reportId = undefined;
             console.log(e);
         }
-        if (this.config.netlifyPath.includes("amazonaws")) {
+        if (!this.config.netlifyPath.includes("amazonaws")) {
             if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
                 return {statusCode: 401, message: 'Unauthorized'}
         }
@@ -85,7 +85,7 @@ class AuxTA extends FunctionHelper {
     public async startBrowser(event: any, callback: any, feature: string, scenario: string, overrideConfig?: any, singleFeature = false) {
         this.changeModelData(overrideConfig);
         if (singleFeature && process.env.ENVIRONMENT !== 'LOCAL') {
-            if (this.config.netlifyPath.includes("amazonaws")) {
+            if (!this.config.netlifyPath.includes("amazonaws")) {
                 if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
                     return {statusCode: 401, message: 'Unauthorized'}
             }
