@@ -64,8 +64,10 @@ class AuxTA extends FunctionHelper {
             reportId = undefined;
             console.log(e);
         }
-        if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
-            return {statusCode: 401, message: 'Unauthorized'}
+        if (this.config.netlifyPath.includes("amazonaws")) {
+            if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
+                return {statusCode: 401, message: 'Unauthorized'}
+        }
         const suites = this.config.suitesList.slice(0);
         await startSuite(suites, reportId || await createEmptyReport(this.uploadModel));
         return {statusCode: 204}
@@ -83,8 +85,10 @@ class AuxTA extends FunctionHelper {
     public async startBrowser(event: any, callback: any, feature: string, scenario: string, overrideConfig?: any, singleFeature = false) {
         this.changeModelData(overrideConfig);
         if (singleFeature && process.env.ENVIRONMENT !== 'LOCAL') {
-            if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
-                return {statusCode: 401, message: 'Unauthorized'}
+            if (this.config.netlifyPath.includes("amazonaws")) {
+                if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
+                    return {statusCode: 401, message: 'Unauthorized'}
+            }
             this.uploadModel.reportId = await createEmptyReport(this.uploadModel);
             this.uploadModel.nextSuites = [];
         }
