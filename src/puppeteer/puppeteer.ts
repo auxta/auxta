@@ -94,10 +94,14 @@ export class Puppeteer {
         let errMessage: any;
         try {
             if (close === undefined) {
-                if (event.queryStringParameters.close) {
-                    close = event.queryStringParameters.close === "true";
-                } else {
-                    close = true
+                try{
+                    if (event.queryStringParameters.close) {
+                        close = event.queryStringParameters.close === "true";
+                    } else {
+                        close = true
+                    }
+                } catch (e) {
+                    close = true;
                 }
             }
             let consoleStack: any[] = [];
