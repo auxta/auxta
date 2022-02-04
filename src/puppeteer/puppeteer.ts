@@ -38,14 +38,16 @@ export class Puppeteer {
                     headless: process.env.ENVIRONMENT == 'LOCAL' ? false : chromium.headless
                 });
                 this.defaultPage = (await this.browser.pages())[0];
+                await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle0'})
+                await this.defaultPage.waitForNetworkIdle();
                 browser_start_retry = false;
             } catch (e) {
+                console.log('error')
                 // @ts-ignore
                 browser_start_retry = e.toString().includes("Failed to launch the browser process!");
             }
         }
-        await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle0'})
-        await this.defaultPage.waitForNetworkIdle();
+
     }
 
     public async close() {
