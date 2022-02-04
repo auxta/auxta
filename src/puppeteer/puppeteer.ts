@@ -14,27 +14,36 @@ export class Puppeteer {
     private browser!: puppeteer_core.Browser;
 
     public async startBrowser() {
-        let args = [
-            '--start-maximized',
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--single-process'
-        ];
-        if (process.env.ENVIRONMENT != 'LOCAL')
-            args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
-        this.browser = await chromium.puppeteer.launch({
-            executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath,
-            args,
-            ignoreDefaultArgs: ["--enable-automation"],
-            defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
-                width: config.screenWidth,
-                height: config.screenHeight
-            },
-            // Return back to headless for netlify
-            headless: process.env.ENVIRONMENT == 'LOCAL' ? false : chromium.headless
-        });
-        this.defaultPage = (await this.browser.pages())[0];
+        let browser_start_retry = false;
+        while (browser_start_retry) {
+            try {
+                let args = [
+                    '--start-maximized',
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--single-process'
+                ];
+                if (process.env.ENVIRONMENT != 'LOCAL')
+                    args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
+                this.browser = await chromium.puppeteer.launch({
+                    executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath,
+                    args,
+                    ignoreDefaultArgs: ["--enable-automation"],
+                    defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
+                        width: config.screenWidth,
+                        height: config.screenHeight
+                    },
+                    // Return back to headless for netlify
+                    headless: process.env.ENVIRONMENT == 'LOCAL' ? false : chromium.headless
+                });
+                this.defaultPage = (await this.browser.pages())[0];
+                browser_start_retry = false;
+            } catch (e) {
+                // @ts-ignore
+                browser_start_retry = e.toString().includes("Failed to launch the browser process!");
+            }
+        }
         await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle0'})
         await this.defaultPage.waitForNetworkIdle();
     }
@@ -48,58 +57,45 @@ export class Puppeteer {
     }
 
     public async run(event: any, callback: any, featureName = 'Test feature', scenarioName = 'Test scenario', uploadModel?: UploadModel, close?: boolean) {
-        let loop = false;
-        while (loop) {
+        try {
+            if (uploadModel === undefined) uploadModel = auxta.getUploadModel();
+            if (close === undefined) close = Puppeteer.setupHeader(event, uploadModel)
+            let screenshotBuffer: Buffer | undefined;
+            let errMessage: any;
+            let statusCode: number = 200;
+
+            let consoleStack: any[] = [];
             try {
-                if (uploadModel === undefined) uploadModel = auxta.getUploadModel();
-                if (close === undefined) close = Puppeteer.setupHeader(event, uploadModel)
-                let screenshotBuffer: Buffer | undefined;
-                let errMessage: any;
-                let statusCode: number = 200;
-
-                let consoleStack: any[] = [];
-                try {
-                    await log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
-                    await this.startBrowser()
-                    this.defaultPage.on('console', message =>
-                        consoleStack.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
-                        .on('pageerror', ({message}) => consoleStack.push(message))
-                        .on('response', response =>
-                            consoleStack.push(`${response.status()} ${response.url()}`))
-                        .on('requestfailed', request =>
-                            consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
-                    await callback(event)
-                    loop = false;
-                    log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
-                } catch (err) {
-                    console.log("Error", err);
-                    // @ts-ignore
-                    if (err.toString().includes("Failed to launch the browser process!")) {
-                        continue;
-                    } else {
-                        loop = false;
-                    }
-                    errMessage = err;
-                    statusCode = 500;
-                    screenshotBuffer = await captureScreenshot();
-                    log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
-                }
-                loop = false;
-                let url = this.defaultPage.url();
-                if (close) await this.close();
-
-                await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
-                    currentPageUrl: url,
-                    console: consoleStack,
-                    error: errMessage
-                });
-            } catch (e) {
-                loop = false;
-                console.log("Lib error:", e);
-            } finally {
-                loop = false;
-                log.clear();
+                await log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
+                await this.startBrowser()
+                this.defaultPage.on('console', message =>
+                    consoleStack.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
+                    .on('pageerror', ({message}) => consoleStack.push(message))
+                    .on('response', response =>
+                        consoleStack.push(`${response.status()} ${response.url()}`))
+                    .on('requestfailed', request =>
+                        consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
+                await callback(event)
+                log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
+            } catch (err) {
+                console.log("Error", err);
+                errMessage = err;
+                statusCode = 500;
+                screenshotBuffer = await captureScreenshot();
+                log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
             }
+            let url = this.defaultPage.url();
+            if (close) await this.close();
+
+            await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
+                currentPageUrl: url,
+                console: consoleStack,
+                error: errMessage
+            });
+        } catch (e) {
+            console.log("Lib error:", e);
+        } finally {
+            log.clear();
         }
     }
 
@@ -107,7 +103,7 @@ export class Puppeteer {
         let errMessage: any;
         try {
             if (close === undefined) {
-                try{
+                try {
                     if (event.queryStringParameters.close) {
                         close = event.queryStringParameters.close === "true";
                     } else {
