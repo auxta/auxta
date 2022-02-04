@@ -48,7 +48,7 @@ export class Puppeteer {
     }
 
     public async run(event: any, callback: any, featureName = 'Test feature', scenarioName = 'Test scenario', uploadModel?: UploadModel, close?: boolean) {
-        let loop = true;
+        let loop = false;
         while (loop) {
             try {
                 if (uploadModel === undefined) uploadModel = auxta.getUploadModel();
@@ -69,6 +69,7 @@ export class Puppeteer {
                         .on('requestfailed', request =>
                             consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
                     await callback(event)
+                    loop = false;
                     log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
                 } catch (err) {
                     console.log("Error", err);
@@ -83,6 +84,7 @@ export class Puppeteer {
                     screenshotBuffer = await captureScreenshot();
                     log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
                 }
+                loop = false;
                 let url = this.defaultPage.url();
                 if (close) await this.close();
 
@@ -92,8 +94,10 @@ export class Puppeteer {
                     error: errMessage
                 });
             } catch (e) {
+                loop = false;
                 console.log("Lib error:", e);
             } finally {
+                loop = false;
                 log.clear();
             }
         }

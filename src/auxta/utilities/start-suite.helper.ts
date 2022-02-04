@@ -20,10 +20,8 @@ export async function startSuite(suites: string[], reportId?: string) {
 
     } catch (e) {
         // @ts-ignore
-        console.log(e.response.status);
-        /*
         if (e.response.status != 504) {
             await startSuite(suites, reportId);
-        }*/
+        }
     }
 }
