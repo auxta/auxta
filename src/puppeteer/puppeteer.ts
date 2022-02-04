@@ -14,8 +14,6 @@ export class Puppeteer {
     private browser!: puppeteer_core.Browser;
 
     public async startBrowser() {
-        let browser_start_retry = false;
-        while (browser_start_retry) {
             try {
                 let args = [
                     '--start-maximized',
@@ -40,14 +38,14 @@ export class Puppeteer {
                 this.defaultPage = (await this.browser.pages())[0];
                 await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle0'})
                 await this.defaultPage.waitForNetworkIdle();
-                browser_start_retry = false;
             } catch (e) {
-                console.log('error')
+                console.log(e);
                 // @ts-ignore
-                browser_start_retry = e.toString().includes("Failed to launch the browser process!");
+                let browser_start_retry = e.toString().includes("Failed to launch the browser process!");
+                if (browser_start_retry) {
+                    await this.startBrowser();
+                }
             }
-        }
-
     }
 
     public async close() {
