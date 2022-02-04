@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { config } from "../configs/config";
+import {config} from "../configs/config";
 
 export async function startSuite(suites: string[], reportId?: string) {
     if (suites.length === 0) return;
@@ -7,7 +7,7 @@ export async function startSuite(suites: string[], reportId?: string) {
     console.log('Starting next suite: ' + next);
     console.log(suites)
 
-    try{
+    try {
         if (config.netlifyPath.includes('amazonaws')) {
             await axios.post(
                 `${config.netlifyPath}${next}?token=${config.token}`,
@@ -18,10 +18,10 @@ export async function startSuite(suites: string[], reportId?: string) {
                 {nextSuites: suites, reportId: reportId})
         }
 
-    } catch (e){
+    } catch (e) {
         // @ts-ignore
-        console.log(e.response.status);
-        // skip the suite if not found
-        //await startSuite(suites, reportId);
+        if (e.response.status != 504) {
+            await startSuite(suites, reportId);
+        }
     }
 }
