@@ -20,8 +20,8 @@ export async function startSuite(suites: string[], reportId?: string) {
 
     } catch (e) {
         // @ts-ignore
-        if (e.response.status != 504) {
-            await startSuite(suites, reportId);
-        }
+        const status = e.response.status
+        console.log(status);
+        console.log(typeof status);
     }
 }
