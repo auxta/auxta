@@ -21,9 +21,12 @@ export async function startSuite(suites: string[], reportId?: string) {
     } catch (e) {
         // @ts-ignore
         const response = e.response
-        console.log(response.data);
+        console.log(response.data.message);
         console.log(response.status);
         console.log(typeof response.status);
+        if (response.status == 403) {
+            await startSuite(suites, reportId);
+        }
     }
 }
 
