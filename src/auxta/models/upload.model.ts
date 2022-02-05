@@ -6,14 +6,34 @@ export class UploadModel {
     private _baseUrl: string;
     private readonly _organization: string;
     private _environment: string;
+    private _currentSuite: string
+    private _retries: number
 
     constructor(org: string, baseUrl: string, digitalProduct: string, environment: string) {
         this._reportId = '';
         this._nextSuites = [];
+        this._currentSuite = '';
+        this._retries = 0
         this._organization = org;
         this._digitalProduct = digitalProduct;
         this._environment = environment;
         this._baseUrl = baseUrl;
+    }
+
+    set currentSuite(value: string) {
+        this._currentSuite = value;
+    }
+
+    set retries(value: number) {
+        this._retries = value;
+    }
+
+    get currentSuite(): string {
+        return this._currentSuite;
+    }
+
+    get retries(): number {
+        return this._retries;
     }
 
     get reportId(): string {

@@ -62,7 +62,6 @@ class AuxTA extends FunctionHelper {
             }
         } catch (e) {
             reportId = undefined;
-            console.log(e);
         }
         if (!this.config.netlifyPath.includes("amazonaws")) {
             if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)

@@ -8,44 +8,36 @@ import {StatusOfStep} from "../auxta/enums/status-of.step";
 import {UploadModel} from "../auxta/models/upload.model";
 import puppeteer_core from 'puppeteer-core';
 import {config} from "./../auxta/configs/config";
+import {retrySuite} from "../auxta/utilities/start-suite.helper";
 
 export class Puppeteer {
     public defaultPage!: puppeteer_core.Page;
     private browser!: puppeteer_core.Browser;
 
     public async startBrowser() {
-            try {
-                let args = [
-                    '--start-maximized',
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--single-process'
-                ];
-                if (process.env.ENVIRONMENT != 'LOCAL')
-                    args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
-                this.browser = await chromium.puppeteer.launch({
-                    executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath,
-                    args,
-                    ignoreDefaultArgs: ["--enable-automation"],
-                    defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
-                        width: config.screenWidth,
-                        height: config.screenHeight
-                    },
-                    // Return back to headless for netlify
-                    headless: process.env.ENVIRONMENT == 'LOCAL' ? false : chromium.headless
-                });
-                this.defaultPage = (await this.browser.pages())[0];
-                await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle0'})
-                await this.defaultPage.waitForNetworkIdle();
-            } catch (e) {
-                console.log(e);
-                // @ts-ignore
-                let browser_start_retry = e.toString().includes("Failed to launch the browser process!");
-                if (browser_start_retry) {
-                    await this.startBrowser();
-                }
-            }
+        let args = [
+            '--start-maximized',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--single-process'
+        ];
+        if (process.env.ENVIRONMENT != 'LOCAL')
+            args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
+        this.browser = await chromium.puppeteer.launch({
+            executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath,
+            args,
+            ignoreDefaultArgs: ["--enable-automation"],
+            defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
+                width: config.screenWidth,
+                height: config.screenHeight
+            },
+            // Return back to headless for netlify
+            headless: process.env.ENVIRONMENT == 'LOCAL' ? false : chromium.headless
+        });
+        this.defaultPage = (await this.browser.pages())[0];
+        await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle0'})
+        await this.defaultPage.waitForNetworkIdle();
     }
 
     public async close() {
@@ -78,7 +70,20 @@ export class Puppeteer {
                 await callback(event)
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
             } catch (err) {
-                console.log("Error", err);
+                console.log("Error message: \n", err);
+                // @ts-ignore
+                let browser_start_retry = JSON.stringify(err).includes("Failed to launch the browser process!");
+                if (browser_start_retry) {
+                    const result = await retrySuite(uploadModel.nextSuites, uploadModel.reportId, uploadModel.currentSuite, uploadModel.retries);
+                    if (!result) {
+                        await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
+                            currentPageUrl: 'undefined',
+                            console: consoleStack,
+                            error: 'Browser did not open'
+                        });
+                    }
+                    return {statusCode: 204}
+                }
                 errMessage = err;
                 statusCode = 500;
                 screenshotBuffer = await captureScreenshot();
@@ -146,6 +151,8 @@ export class Puppeteer {
             const body = JSON.parse(event.body)
             uploadModel.reportId = body.reportId;
             uploadModel.nextSuites = body.nextSuites;
+            uploadModel.currentSuite = body.currentSuite;
+            uploadModel.retries = Number(body.retries);
         }
         try {
             if (event.queryStringParameters.close) {
