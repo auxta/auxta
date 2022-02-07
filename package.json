@@ -1,6 +1,6 @@
 {
   "name": "@auxcode/auxta",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "./build/cjs/AuxTA.js",
   "module": "./build/esm/AuxTA.js",
@@ -16,6 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^17.0.9",
+    "@types/puppeteer-core": "^5.4.0",
     "axios": "^0.24.0",
     "dotenv": "^10.0.0",
     "dotenv-extended": "^2.9.0",
