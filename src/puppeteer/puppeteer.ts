@@ -7,9 +7,8 @@ import auxta from "../AuxTA";
 import {StatusOfStep} from "../auxta/enums/status-of.step";
 import {UploadModel} from "../auxta/models/upload.model";
 import puppeteer_core from 'puppeteer-core';
-import {config} from "./../auxta/configs/config";
+import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
-
 export class Puppeteer {
     public defaultPage!: puppeteer_core.Page;
     private browser!: puppeteer_core.Browser;
@@ -72,7 +71,10 @@ export class Puppeteer {
             } catch (err) {
                 console.log("Error message: \n", err);
                 // @ts-ignore
+                console.log(typeof err);
+                console.log(JSON.stringify(err));
                 let browser_start_retry = JSON.stringify(err).includes("Failed to launch the browser process!");
+
                 if (browser_start_retry) {
                     const result = await retrySuite(uploadModel.nextSuites, uploadModel.reportId, uploadModel.currentSuite, uploadModel.retries);
                     if (!result) {
