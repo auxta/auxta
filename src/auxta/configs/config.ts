@@ -11,8 +11,8 @@ export function setupConfig(jsonConfig: any) {
     config.token = process.env.token;
     if (!jsonConfig.email) throw new Error("email");
     config.auxtaCredentials.email = jsonConfig.email;
-    if (!process.env.password) throw new Error("password");
-    config.auxtaCredentials.password = process.env.password;
+    if (!process.env.auxta_password) throw new Error("password");
+    config.auxtaCredentials.password = process.env.auxta_password;
     if (!jsonConfig.suitesList) throw new Error("suitesList");
     config.suitesList = jsonConfig.suitesList;
     if (jsonConfig.timeout) config.timeout = jsonConfig.timeout;
