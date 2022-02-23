@@ -2,6 +2,8 @@ import log from "../../auxta/services/log.service";
 import puppeteer from "../../puppeteer/puppeteer";
 import { StatusOfStep } from "../../auxta/enums/status-of.step";
 import { config } from "../../auxta/configs/config";
+import {extend_page_functions} from "../extend-default-page";
+import {StepStatus} from "../../AuxTA";
 
 export class FunctionHelper {
     public readonly defaultTimeout: number = config.timeout;
@@ -125,34 +127,36 @@ export class FunctionHelper {
         await pages[pages.length - 1].close();
     }
 
-    //TODO work in progress
-    /*
-    private async microsoftLogin(button: string, email: string, password: string) {
+    public async microsoftLogin(button: string, email: string, password: string) {
         const email_input = 'input[type="email"]';
         const password_input = 'input[type="password"]';
-        const no_button = 'input[type="button"]';
-        // click on login button
-        const nav = new Promise(res => puppeteer.defaultPage.browser().on('targetcreated', res));
-        await this.click(button);
-        await nav;
+        const next_button = 'input[value="Next"]';
+        const sign_in_button = 'input[value="Sign in"]';
+        const no_button = 'input.ext-secondary';
+        await this.clickAndWaitForPageToBeCreated(button);
         const pages = await puppeteer.defaultPage.browser().pages();
         const loginPage = pages[pages.length - 1];
-        // enter password and submit
-        await this.waitForSelector('visible', email_input, 60000, loginPage);
-        await this.type(email_input, email, loginPage);
-        await this.pressEnter(loginPage);
-        await this.waitForNetwork(loginPage);
-        // enter password and submit
-        await this.waitForSelector('visible', password_input, 60000, loginPage);
-        await this.type(password_input, password, loginPage);
-        await this.pressEnter(loginPage);
-        await this.waitForNetwork(loginPage);
-        // press no
+        await extend_page_functions(loginPage);
+        await loginPage.waitForNetworkIdle();
+        await this.waitForSelector('visible', next_button, 60000, loginPage);
+        await loginPage.type(email_input, email);
+        await loginPage.keyboard.press('Enter');
+        await loginPage.waitForNetworkIdle();
+        await this.waitForSelector('visible', sign_in_button, 60000, loginPage);
+        await this.waitForSelector('visible', password_input, 6000, loginPage);
+        try {
+            await loginPage.type(password_input, password);
+            await this.log('Then', `I type password into the ${password_input}`, StepStatus.PASSED);
+        } catch (e) {
+            await this.log('Then', `I type password into the ${password_input}`, StepStatus.FAILED);
+            throw new Error(`I type password into the ${password_input}`)
+        }
+        await this.timeout(3000);
+        await loginPage.keyboard.press('Enter');
         await this.waitForSelector('visible', no_button, 60000, loginPage);
-        await this.click(no_button, true, loginPage);
-        await this.waitForNetwork(loginPage);
-    }*/
-
+        await loginPage.keyboard.press('Enter');
+        await loginPage.waitForNetworkIdle();
+    }
 }
 
 export default new FunctionHelper();
