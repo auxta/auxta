@@ -1,10 +1,10 @@
 import log from "../../auxta/services/log.service";
 import puppeteer from "../../puppeteer/puppeteer";
-import { StatusOfStep } from "../../auxta/enums/status-of.step";
+import {StatusOfStep} from "../../auxta/enums/status-of.step";
 import {StepStatus} from "../../AuxTA";
 import {ExtendDefaultPage} from "./extend-default-page";
 
-export class FunctionHelper extends ExtendDefaultPage{
+export class FunctionHelper extends ExtendDefaultPage {
 
     public log(keyword: string, name: string, status: StatusOfStep) {
         log.push(keyword, name, status)
@@ -34,6 +34,7 @@ export class FunctionHelper extends ExtendDefaultPage{
         log.push('Then', message, StatusOfStep.FAILED);
         throw new Error(message);
     }
+
     public async clickByTextWithClass(class_selector: string, class_name: string, selector: string, text: string, page = puppeteer.defaultPage, dotOrText = '.') {
         const message = `I click on the '${text}' '${selector}'`;
         try {
@@ -49,6 +50,7 @@ export class FunctionHelper extends ExtendDefaultPage{
         log.push('Then', message, StatusOfStep.FAILED);
         throw new Error(message);
     }
+
     //div[contains(@class,"mat-menu-content")]//button
     public async waitForSelectorWithText(selector: string, text: string, page = puppeteer.defaultPage, dotOrText = '.') {
         const message = `I check for '${text}' on the current page`;
@@ -114,7 +116,7 @@ export class FunctionHelper extends ExtendDefaultPage{
         await page.keyboard.press('Enter');
     }
 
-    public async clickAndWaitForPageToBeCreated(selector: string,page = puppeteer.defaultPage) {
+    public async clickAndWaitForPageToBeCreated(selector: string, page = puppeteer.defaultPage) {
         const nav = new Promise(res => page.browser().on('targetcreated', res));
         await page.click(selector);
         await nav;
@@ -143,7 +145,7 @@ export class FunctionHelper extends ExtendDefaultPage{
         await this.waitForSelector('visible', sign_in_button, 60000, loginPage);
         await this.waitForSelector('visible', password_input, 6000, loginPage);
         try {
-            await loginPage.type(password_input, password);
+            (await loginPage.$(password_input))?.type(password);
             await this.log('Then', `I type password into the ${password_input}`, StepStatus.PASSED);
         } catch (e) {
             await this.log('Then', `I type password into the ${password_input}`, StepStatus.FAILED);
