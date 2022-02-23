@@ -1,12 +1,10 @@
 import log from "../../auxta/services/log.service";
 import puppeteer from "../../puppeteer/puppeteer";
 import { StatusOfStep } from "../../auxta/enums/status-of.step";
-import { config } from "../../auxta/configs/config";
-import {extend_page_functions} from "../extend-default-page";
 import {StepStatus} from "../../AuxTA";
+import {ExtendDefaultPage} from "./extend-default-page";
 
-export class FunctionHelper {
-    public readonly defaultTimeout: number = config.timeout;
+export class FunctionHelper extends ExtendDefaultPage{
 
     public log(keyword: string, name: string, status: StatusOfStep) {
         log.push(keyword, name, status)
@@ -136,7 +134,7 @@ export class FunctionHelper {
         await this.clickAndWaitForPageToBeCreated(button);
         const pages = await puppeteer.defaultPage.browser().pages();
         const loginPage = pages[pages.length - 1];
-        await extend_page_functions(loginPage);
+        await this.extend_page_functions(loginPage);
         await loginPage.waitForNetworkIdle();
         await this.waitForSelector('visible', next_button, 60000, loginPage);
         await loginPage.type(email_input, email);
