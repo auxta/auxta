@@ -67,38 +67,6 @@ export class FunctionHelper {
         throw new Error(message);
     }
 
-    public async goto(url: string, page = puppeteer.defaultPage) {
-        await page.goto(url);
-        log.push('Then', `I go to the '${url}' page`, StatusOfStep.PASSED);
-    }
-
-    public async type(field: string, value: string, page = puppeteer.defaultPage) {
-        try {
-            await page.waitForSelector(field, {
-                timeout: this.defaultTimeout
-            });
-            await page.type(field, value);
-            let elementName = await page.$eval(field, (e) => e.textContent);
-            if (!elementName || elementName === ' ') elementName = field;
-            log.push('Then', `I type '${value}' into the '${elementName}' field`, StatusOfStep.PASSED);
-        } catch (e) {
-            const msg = `I type '${value}' into the '${field}' field`
-            log.push('Then', msg, StatusOfStep.FAILED);
-            throw new Error(msg)
-        }
-    }
-
-    public async waitForNetwork(page = puppeteer.defaultPage) {
-        let message = 'I wait for the page to load'
-        try {
-            await page.waitForNetworkIdle();
-            log.push('Then', message, StatusOfStep.PASSED);
-        } catch (e) {
-            log.push('Then', message, StatusOfStep.FAILED);
-            throw new Error(message)
-        }
-    }
-
     public async timeout(timeout = this.defaultTimeout, page = puppeteer.defaultPage) {
         await page.waitForTimeout(timeout);
     }
@@ -132,22 +100,6 @@ export class FunctionHelper {
         }
     }
 
-    public async click(selector: string, logMessages = true, page = puppeteer.defaultPage) {
-        try {
-            await page.waitForSelector(selector, {
-                timeout: this.defaultTimeout
-            });
-            let elementName = await page.$eval(selector, (e) => e.textContent);
-            if (!elementName || elementName === ' ') elementName = selector;
-            await page.click(selector);
-            log.push('Then', `I click on the '${elementName}'`, StatusOfStep.PASSED);
-        } catch (e) {
-            const msg = `I click on the '${selector}'`;
-            log.push('Then', msg, StatusOfStep.FAILED);
-            throw new Error(msg)
-        }
-    }
-
     public async urlContains(selector: string, page = puppeteer.defaultPage) {
         const url = page.url();
         let message = `I am on the ${selector} page`
@@ -164,7 +116,7 @@ export class FunctionHelper {
 
     public async clickAndWaitForPageToBeCreated(selector: string,page = puppeteer.defaultPage) {
         const nav = new Promise(res => page.browser().on('targetcreated', res));
-        await this.click(selector);
+        await page.click(selector);
         await nav;
     }
 

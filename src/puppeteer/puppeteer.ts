@@ -9,6 +9,7 @@ import {UploadModel} from "../auxta/models/upload.model";
 import puppeteer_core from 'puppeteer-core';
 import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
+import {extend_page_functions} from "../macros/extend-default-page";
 export class Puppeteer {
     public defaultPage!: puppeteer_core.Page;
     private browser!: puppeteer_core.Browser;
@@ -35,6 +36,7 @@ export class Puppeteer {
             headless: process.env.ENVIRONMENT == 'LOCAL' ? false : chromium.headless
         });
         this.defaultPage = (await this.browser.pages())[0];
+        await extend_page_functions(this.defaultPage);
         await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle0'})
         await this.defaultPage.waitForNetworkIdle();
     }
