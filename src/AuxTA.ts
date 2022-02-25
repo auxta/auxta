@@ -81,7 +81,7 @@ class AuxTA extends FunctionHelper {
         }
     }
 
-    public async startBrowser(event: any, callback: any, feature: string, scenario: string, overrideConfig?: any, singleFeature = false) {
+    public async startBrowser(event: any, callback: any, feature: string, scenario: string, overrideConfig?: any, singleFeature = false, fileName = '') {
         this.changeModelData(overrideConfig);
         if (singleFeature && process.env.ENVIRONMENT !== 'LOCAL') {
             if (!this.config.netlifyPath.includes("amazonaws")) {
@@ -89,6 +89,7 @@ class AuxTA extends FunctionHelper {
                     return {statusCode: 401, message: 'Unauthorized'}
             }
             this.uploadModel.reportId = await createEmptyReport(this.uploadModel);
+            this.uploadModel.currentSuite = fileName
             this.uploadModel.nextSuites = [];
         }
         return this.puppeteer.run(event, callback, feature, scenario)

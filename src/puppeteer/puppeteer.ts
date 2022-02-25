@@ -51,8 +51,6 @@ export class Puppeteer {
     public async run(event: any, callback: any, featureName = 'Test feature', scenarioName = 'Test scenario', uploadModel?: UploadModel, close?: boolean) {
         try {
             if (uploadModel === undefined) uploadModel = auxta.getUploadModel();
-            console.log(`event`)
-            console.log(event);
             if (close === undefined) close = Puppeteer.setupHeader(event, uploadModel)
             let screenshotBuffer: Buffer | undefined;
             let errMessage: any;
@@ -73,8 +71,6 @@ export class Puppeteer {
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
             } catch (err:any) {
                 console.log("Error message: \n", err);
-                console.log(typeof err);
-                console.log(err.toString());
                 let browser_start_retry = err.toString().includes("Failed to launch the browser process!");
 
                 if (browser_start_retry) {
@@ -151,7 +147,6 @@ export class Puppeteer {
 
     private static setupHeader(event: any, uploadModel: UploadModel) {
         let close = true;
-        console.log(event.body);
         if (process.env.ENVIRONMENT !== 'LOCAL' && event.body) {
             const body = JSON.parse(event.body)
             uploadModel.reportId = body.reportId;
