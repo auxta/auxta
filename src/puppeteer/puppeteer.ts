@@ -151,6 +151,7 @@ export class Puppeteer {
         let close = true;
         if (process.env.ENVIRONMENT !== 'LOCAL' && event.body) {
             const body = JSON.parse(event.body)
+            console.log(body);
             uploadModel.reportId = body.reportId;
             uploadModel.nextSuites = body.nextSuites;
             uploadModel.currentSuite = body.currentSuite;
