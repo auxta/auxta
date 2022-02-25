@@ -69,12 +69,11 @@ export class Puppeteer {
                         consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
                 await callback(event)
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
-            } catch (err) {
+            } catch (err:any) {
                 console.log("Error message: \n", err);
-                // @ts-ignore
                 console.log(typeof err);
-                console.log(JSON.stringify(err));
-                let browser_start_retry = JSON.stringify(err).includes("Failed to launch the browser process!");
+                console.log(err.toString());
+                let browser_start_retry = err.toString().includes("Failed to launch the browser process!");
 
                 if (browser_start_retry) {
                     const result = await retrySuite(uploadModel.nextSuites, uploadModel.reportId, uploadModel.currentSuite, uploadModel.retries);
