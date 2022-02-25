@@ -51,8 +51,8 @@ export class Puppeteer {
     public async run(event: any, callback: any, featureName = 'Test feature', scenarioName = 'Test scenario', uploadModel?: UploadModel, close?: boolean) {
         try {
             if (uploadModel === undefined) uploadModel = auxta.getUploadModel();
-            console.log(event.body);
-            console.log(close);
+            console.log(`event`)
+            console.log(event);
             if (close === undefined) close = Puppeteer.setupHeader(event, uploadModel)
             let screenshotBuffer: Buffer | undefined;
             let errMessage: any;
