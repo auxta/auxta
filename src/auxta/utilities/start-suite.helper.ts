@@ -9,10 +9,14 @@ export async function startSuite(suites: string[], reportId?: string) {
 
     try {
         if (config.netlifyPath.includes('amazonaws')) {
+            console.log('aws');
+            console.log(`${config.netlifyPath}${next}?token=${config.token}`)
             await axios.post(
                 `${config.netlifyPath}${next}?token=${config.token}`,
                 {nextSuites: suites, reportId: reportId, currentSuite: next, retries: "0"})
         } else {
+            console.log('netlify');
+            console.log(`${config.netlifyPath}.netlify/functions/${next}?token=${config.token}`)
             await axios.post(
                 `${config.netlifyPath}.netlify/functions/${next}?token=${config.token}`,
                 {nextSuites: suites, reportId: reportId, currentSuite: next, retries: "0"})
