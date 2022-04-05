@@ -3,7 +3,6 @@ import puppeteer from "../../puppeteer/puppeteer";
 import {StatusOfStep} from "../../auxta/enums/status-of.step";
 import {StepStatus} from "../../AuxTA";
 import {ExtendDefaultPage} from "./extend-default-page";
-const puppeteer_devices = require('puppeteer');
 
 export class FunctionHelper extends ExtendDefaultPage {
 
@@ -118,8 +117,14 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     public async emulate(phone_name: string,page = puppeteer.defaultPage) {
-        const phone = puppeteer_devices.devices[phone_name];
-        await page.emulate(phone);
+        /*
+        const phone = p.devices[phone_name];
+        await page.emulate(phone);*/
+    }
+
+    public async restartBrowser() {
+        await puppeteer.close();
+        await puppeteer.startBrowser();
     }
 
     public async clickAndWaitForPageToBeCreated(selector: string, page = puppeteer.defaultPage) {
