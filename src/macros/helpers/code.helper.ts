@@ -3,6 +3,7 @@ import puppeteer from "../../puppeteer/puppeteer";
 import {StatusOfStep} from "../../auxta/enums/status-of.step";
 import {StepStatus} from "../../AuxTA";
 import {ExtendDefaultPage} from "./extend-default-page";
+import chromium from 'chrome-aws-lambda';
 
 export class FunctionHelper extends ExtendDefaultPage {
 
@@ -117,9 +118,8 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     public async emulate(phone_name: string,page = puppeteer.defaultPage) {
-        /*
-        const phone = p.devices[phone_name];
-        await page.emulate(phone);*/
+        const phone = chromium.puppeteer.devices[phone_name];
+        await page.emulate(phone);
     }
 
     public async restartBrowser() {
