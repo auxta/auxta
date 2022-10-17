@@ -95,12 +95,13 @@ class AuxTA extends FunctionHelper {
         return this.puppeteer.run(event, callback, feature, scenario)
     }
 
-    public async startBrowserRPA(event: any, callback: any, baseURL: string) {
+    public async startBrowserRPA(event: any, callback: any, baseURL: string, fileName = '') {
         this.changeModelData({
             baseURL: baseURL,
             environment: '',
             digitalProduct: ''
         });
+        this.uploadModel.currentSuite = fileName
         return this.puppeteer.runRPA(event, callback)
     }
 

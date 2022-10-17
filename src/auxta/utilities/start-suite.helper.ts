@@ -22,8 +22,13 @@ export async function startSuite(suites: string[], reportId?: string) {
                 {nextSuites: suites, reportId: reportId, currentSuite: next, retries: "0"})
         }
 
-    } catch (e) {
-        // @ts-ignore
+    } catch (e:any) {
+        console.log(next);
+        console.log(config.token);
+        console.log(JSON.stringify({nextSuites: suites, reportId: reportId, currentSuite: next, retries: "0"}))
+        console.log('----------------------------------')
+        console.log(e);
+        console.log(JSON.stringify(e));
         const response = e.response
         console.log(response.data.message);
         console.log(response.status);
@@ -50,8 +55,13 @@ export async function retrySuite(suites: string[], reportId: string, currentSuit
                 {nextSuites: suites, reportId: reportId, currentSuite: currentSuite, retries: retries})
         }
 
-    } catch (e) {
-        // @ts-ignore
+    } catch (e:any) {
+        console.log(`currentSuite ${currentSuite}`);
+        console.log(config.token);
+        console.log(JSON.stringify({nextSuites: suites, reportId: reportId, currentSuite: currentSuite, retries: retries}))
+        console.log('----------------------------------')
+        console.log(e);
+        console.log(JSON.stringify(e));
         const status = e.response.status
         console.log(status);
         console.log(typeof status);

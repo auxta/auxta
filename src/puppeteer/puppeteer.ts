@@ -104,15 +104,20 @@ export class Puppeteer {
         }
     }
 
-    public async runRPA(event: any, callback: any, close?: boolean) {
+    public async runRPA(event: any, callback: any, uploadModel?: UploadModel, close?: boolean) {
         let errMessage: any;
         try {
+            if (uploadModel === undefined) uploadModel = auxta.getUploadModel();
             if (close === undefined) {
                 try {
                     if (event.queryStringParameters.close) {
                         close = event.queryStringParameters.close === "true";
                     } else {
                         close = true
+                    }
+                    if (event.queryStringParameters.retries) {
+                        const body = JSON.parse(event.body)
+                        uploadModel.retries = Number(body.retries)
                     }
                 } catch (e) {
                     close = true;
@@ -131,7 +136,14 @@ export class Puppeteer {
                         consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
                 await callback(event)
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
-            } catch (err) {
+            } catch (err:any) {
+                console.log("Error message: \n", err);
+                let browser_start_retry = err.toString().includes("Failed to launch the browser process!");
+
+                if (browser_start_retry) {
+                    await retrySuite([], '', uploadModel.currentSuite, uploadModel.retries);
+                    return {statusCode: 204}
+                }
                 errMessage = err;
                 log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
                 return errMessage;
