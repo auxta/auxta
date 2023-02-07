@@ -91,6 +91,8 @@ class AuxTA extends FunctionHelper {
             this.uploadModel.reportId = await createEmptyReport(this.uploadModel);
             this.uploadModel.currentSuite = fileName
             this.uploadModel.nextSuites = [];
+            this.uploadModel.featureName = feature;
+            this.uploadModel.scenarioName = scenario;
         }
         return this.puppeteer.run(event, callback, feature, scenario)
     }

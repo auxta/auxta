@@ -6,8 +6,10 @@ export class UploadModel {
     private _baseUrl: string;
     private readonly _organization: string;
     private _environment: string;
-    private _currentSuite: string
-    private _retries: number
+    private _currentSuite: string;
+    private _retries: number;
+    private _featureName: string;
+    private _scenarioName: string;
 
     constructor(org: string, baseUrl: string, digitalProduct: string, environment: string) {
         this._reportId = '';
@@ -18,6 +20,8 @@ export class UploadModel {
         this._digitalProduct = digitalProduct;
         this._environment = environment;
         this._baseUrl = baseUrl;
+        this._featureName = '';
+        this._scenarioName = '';
     }
 
     set currentSuite(value: string) {
@@ -78,5 +82,20 @@ export class UploadModel {
 
     set environment(value: string) {
         this._environment = value;
+    }
+    get featureName(): string {
+        return this._featureName;
+    }
+
+    set featureName(value: string) {
+        this._featureName = value;
+    }
+
+    get scenarioName(): string {
+        return this._scenarioName;
+    }
+
+    set scenarioName(value: string) {
+        this._scenarioName = value;
     }
 }

@@ -185,5 +185,7 @@ export async function postNotificationsOnFail( body: UploadModel) {
         digitalProductName: body.digitalProduct,
         organizationName: body.organization,
         reportId: body.reportId,
+        featureName: body.featureName,
+        scenarioName: body.scenarioName
     }, headers(token));
 }

@@ -9,6 +9,7 @@ import {UploadModel} from "../auxta/models/upload.model";
 import puppeteer_core from 'puppeteer-core';
 import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
+import {postNotificationsOnFail} from "../auxta/services/report.service";
 export class Puppeteer {
     public defaultPage!: puppeteer_core.Page;
     private browser!: puppeteer_core.Browser;
@@ -88,6 +89,7 @@ export class Puppeteer {
                 statusCode = 500;
                 screenshotBuffer = await captureScreenshot();
                 log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
+                await postNotificationsOnFail(uploadModel);
             }
             let url = this.defaultPage.url();
             if (close) await this.close();
