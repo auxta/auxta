@@ -10,6 +10,7 @@ import puppeteer_core from 'puppeteer-core';
 import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
 import {postNotificationsOnFail} from "../auxta/services/report.service";
+
 export class Puppeteer {
     public defaultPage!: puppeteer_core.Page;
     private browser!: puppeteer_core.Browser;
@@ -51,7 +52,11 @@ export class Puppeteer {
 
     public async run(event: any, callback: any, featureName = 'Test feature', scenarioName = 'Test scenario', uploadModel?: UploadModel, close?: boolean) {
         try {
-            if (uploadModel === undefined) uploadModel = auxta.getUploadModel();
+            if (uploadModel === undefined) {
+                uploadModel = auxta.getUploadModel();
+                uploadModel.featureName = featureName;
+                uploadModel.scenarioName = scenarioName;
+            }
             if (close === undefined) close = Puppeteer.setupHeader(event, uploadModel)
             let screenshotBuffer: Buffer | undefined;
             let errMessage: any;
@@ -70,7 +75,7 @@ export class Puppeteer {
                         consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
                 await callback(event)
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
-            } catch (err:any) {
+            } catch (err: any) {
                 console.log("Error message: \n", err);
                 let browser_start_retry = err.toString().includes("Failed to launch the browser process!");
 
@@ -138,7 +143,7 @@ export class Puppeteer {
                         consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
                 await callback(event)
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
-            } catch (err:any) {
+            } catch (err: any) {
                 console.log("Error message: \n", err);
                 let browser_start_retry = err.toString().includes("Failed to launch the browser process!");
 
