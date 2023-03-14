@@ -1,6 +1,7 @@
 # AuxTA
 
-# Content
+## Table of Contents
+
 * [puppeteer](#puppeteer)
 * [install](#install)
 * [setup](#setup)
@@ -16,7 +17,7 @@ https://github.com/puppeteer/puppeteer
 
 npm i
 
-## setup
+## Setup
 
 ```
 {
@@ -47,7 +48,13 @@ npm i
 
 ```
 
-## running
+## Implement
+
+The main thing is a `scenario`.
+
+`Scenarios` consts of `steps.
+
+## Running
 
 * Create a main function that calls the run() function which starts all tests
 * Create a function for each test that calls the `auxtaPuppeteer.run(event, callback, featureName, scenarioName)` function
