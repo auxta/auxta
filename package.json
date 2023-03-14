@@ -1,6 +1,6 @@
 {
   "name": "@auxcode/auxta",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "",
   "main": "./build/cjs/AuxTA.js",
   "module": "./build/esm/AuxTA.js",
@@ -20,6 +20,7 @@
     "axios": "^0.24.0",
     "dotenv": "^10.0.0",
     "dotenv-extended": "^2.9.0",
+    "node-2fa": "^2.0.3",
     "puppeteer-core": "^13.3.2",
     "typescript": "^4.5.2"
   },

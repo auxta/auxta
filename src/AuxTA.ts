@@ -8,6 +8,7 @@ import * as dotenv from "dotenv";
 import {setupConfig, config as c, setupOverrideConfig} from "./auxta/configs/config";
 import {startSuite} from "./auxta/utilities/start-suite.helper";
 import {createEmptyReport} from "./auxta/services/report.service";
+import Aux2fa from "./macros/helpers/aux2fa";
 
 dotenv.config();
 
@@ -111,6 +112,8 @@ class AuxTA extends FunctionHelper {
 }
 
 export const StepStatus = StatusOfStep;
+
+export const aux2fe = Aux2fa
 
 const auxta: AuxTA = new AuxTA();
 
