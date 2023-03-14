@@ -1,9 +1,6 @@
 const twofactor = require("node-2fa");
 
-export class Aux2fa {
-
-    constructor() {
-    }
+export class Aux2faAuth {
 
     public authenticator() {
         const aux2fe_secret = this.getSecret();
@@ -30,4 +27,4 @@ export class Aux2fa {
     }
 }
 
-export default new Aux2fa();
+export default new Aux2faAuth();

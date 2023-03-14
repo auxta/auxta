@@ -8,12 +8,13 @@ import * as dotenv from "dotenv";
 import {setupConfig, config as c, setupOverrideConfig} from "./auxta/configs/config";
 import {startSuite} from "./auxta/utilities/start-suite.helper";
 import {createEmptyReport} from "./auxta/services/report.service";
-import Aux2fa from "./macros/helpers/aux2fa";
+import Aux2faAuth from "./macros/helpers/Aux2faAuth";
 
 dotenv.config();
 
 class AuxTA extends FunctionHelper {
     public puppeteer: Puppeteer = puppeteer;
+    public aux2fa = Aux2faAuth;
     public config = c;
 
     private readonly uploadModel: UploadModel;
@@ -112,8 +113,6 @@ class AuxTA extends FunctionHelper {
 }
 
 export const StepStatus = StatusOfStep;
-
-export const aux2fa = Aux2fa
 
 const auxta: AuxTA = new AuxTA();
 
