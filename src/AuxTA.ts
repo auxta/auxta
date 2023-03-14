@@ -113,7 +113,7 @@ class AuxTA extends FunctionHelper {
 
 export const StepStatus = StatusOfStep;
 
-export const aux2fe = Aux2fa
+export const aux2fa = Aux2fa
 
 const auxta: AuxTA = new AuxTA();
 
