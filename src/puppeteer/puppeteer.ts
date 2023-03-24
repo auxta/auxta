@@ -1,19 +1,19 @@
 // @ts-ignore
-import chromium from 'chrome-aws-lambda';
 import log from "../auxta/services/log.service";
 import {captureScreenshot} from "../auxta/utilities/screenshot.helper";
 import {onTestEnd} from "../auxta/hooks/report.hook";
 import auxta from "../AuxTA";
 import {StatusOfStep} from "../auxta/enums/status-of.step";
 import {UploadModel} from "../auxta/models/upload.model";
-import puppeteer_core from 'puppeteer-core';
 import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
 import {postNotificationsOnFail} from "../auxta/services/report.service";
+// @ts-ignore
+import puppeteer = require('puppeteer');
 
 export class Puppeteer {
-    public defaultPage!: puppeteer_core.Page;
-    private browser!: puppeteer_core.Browser;
+    public defaultPage!: puppeteer.Page;
+    private browser!: puppeteer.Browser;
 
     public async startBrowser() {
         let args = [
@@ -21,12 +21,12 @@ export class Puppeteer {
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
-            '--single-process'
+            '--single-process',
+            ' --test-type ',
         ];
         if (process.env.ENVIRONMENT != 'LOCAL')
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
-        this.browser = await chromium.puppeteer.launch({
-            executablePath: process.env.ENVIRONMENT === 'LOCAL' ? undefined : await chromium.executablePath,
+        this.browser = await puppeteer.launch({
             args,
             ignoreDefaultArgs: ["--enable-automation"],
             defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
@@ -34,7 +34,7 @@ export class Puppeteer {
                 height: config.screenHeight
             },
             // Return back to headless for netlify
-            headless: process.env.ENVIRONMENT == 'LOCAL' ? false : chromium.headless
+            headless: process.env.ENVIRONMENT != 'LOCAL'
         });
         this.defaultPage = (await this.browser.pages())[0];
         await auxta.extend_page_functions(this.defaultPage);
