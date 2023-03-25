@@ -3,7 +3,7 @@ import puppeteer from "../../puppeteer/puppeteer";
 import {StatusOfStep} from "../../auxta/enums/status-of.step";
 import {StepStatus} from "../../AuxTA";
 import {ExtendDefaultPage} from "./extend-default-page";
-import {KnownDevices} from "puppeteer";
+import {KnownDevices} from "puppeteer-core";
 
 export class FunctionHelper extends ExtendDefaultPage {
 

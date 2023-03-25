@@ -1,4 +1,3 @@
-// @ts-ignore
 import log from "../auxta/services/log.service";
 import {captureScreenshot} from "../auxta/utilities/screenshot.helper";
 import {onTestEnd} from "../auxta/hooks/report.hook";
@@ -8,12 +7,13 @@ import {UploadModel} from "../auxta/models/upload.model";
 import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
 import {postNotificationsOnFail} from "../auxta/services/report.service";
+import puppeteer from "puppeteer";
 // @ts-ignore
-import puppeteer = require('puppeteer');
+import puppeteer_core = require("puppeteer-core");
 
 export class Puppeteer {
-    public defaultPage!: puppeteer.Page;
-    private browser!: puppeteer.Browser;
+    public defaultPage!: puppeteer_core.Page;
+    private browser!: puppeteer_core.Browser;
 
     public async startBrowser() {
         let args = [
@@ -26,7 +26,8 @@ export class Puppeteer {
         ];
         if (process.env.ENVIRONMENT != 'LOCAL')
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
-        this.browser = await puppeteer.launch({
+        this.browser = await puppeteer_core.launch({
+            executablePath: puppeteer.executablePath(),
             args,
             ignoreDefaultArgs: ["--enable-automation"],
             defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
@@ -66,12 +67,13 @@ export class Puppeteer {
             try {
                 await log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
                 await this.startBrowser()
-                this.defaultPage.on('console', message =>
+                this.defaultPage.on('console', (message:any) =>
                     consoleStack.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
+                    // @ts-ignore
                     .on('pageerror', ({message}) => consoleStack.push(message))
-                    .on('response', response =>
+                    .on('response', (response:any) =>
                         consoleStack.push(`${response.status()} ${response.url()}`))
-                    .on('requestfailed', request =>
+                    .on('requestfailed', (request:any) =>
                         consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
                 await callback(event)
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
@@ -134,12 +136,13 @@ export class Puppeteer {
             try {
                 await log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
                 await this.startBrowser()
-                this.defaultPage.on('console', message =>
+                this.defaultPage.on('console', (message:any) =>
                     consoleStack.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
+                    // @ts-ignore
                     .on('pageerror', ({message}) => consoleStack.push(message))
-                    .on('response', response =>
+                    .on('response', (response:any) =>
                         consoleStack.push(`${response.status()} ${response.url()}`))
-                    .on('requestfailed', request =>
+                    .on('requestfailed', (request:any) =>
                         consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
                 await callback(event)
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
