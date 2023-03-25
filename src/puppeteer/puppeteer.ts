@@ -22,7 +22,6 @@ export class Puppeteer {
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
             '--single-process',
-            ' --test-type ',
         ];
         if (process.env.ENVIRONMENT != 'LOCAL')
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
