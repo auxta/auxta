@@ -59,19 +59,14 @@ class AuxTA extends FunctionHelper {
         this.changeModelData(overrideConfig);
         let reportId;
         try {
-            if (event.queryStringParameters.reportId) {
-                reportId = event.queryStringParameters.reportId;
+            if (event.reportId) {
+                reportId = event.reportId;
             }
         } catch (e) {
             reportId = undefined;
         }
-        if (!this.config.netlifyPath.includes("amazonaws")) {
-            if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
-                return {statusCode: 401, message: 'Unauthorized'}
-        }
         const suites = this.config.suitesList.slice(0);
-        await startSuite(suites, reportId || await createEmptyReport(this.uploadModel));
-        return {statusCode: 204}
+        return startSuite(suites, reportId || await createEmptyReport(this.uploadModel));
     }
 
     private changeModelData(overrideConfig?: any) {
@@ -86,10 +81,6 @@ class AuxTA extends FunctionHelper {
     public async startBrowser(event: any, callback: any, feature: string, scenario: string, overrideConfig?: any, singleFeature = false, fileName = '') {
         this.changeModelData(overrideConfig);
         if (singleFeature && process.env.ENVIRONMENT !== 'LOCAL') {
-            if (!this.config.netlifyPath.includes("amazonaws")) {
-                if (process.env.ENVIRONMENT === 'LIVE' && event.queryStringParameters.token !== this.config.token)
-                    return {statusCode: 401, message: 'Unauthorized'}
-            }
             this.uploadModel.reportId = await createEmptyReport(this.uploadModel);
             this.uploadModel.currentSuite = fileName
             this.uploadModel.nextSuites = [];

@@ -7,13 +7,13 @@ import {UploadModel} from "../auxta/models/upload.model";
 import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
 import {postNotificationsOnFail} from "../auxta/services/report.service";
-import puppeteer from "puppeteer";
 // @ts-ignore
-import puppeteer_core = require("puppeteer-core");
+import puppeteer= require("puppeteer");
+import chromium from "@sparticuz/chromium";
 
 export class Puppeteer {
-    public defaultPage!: puppeteer_core.Page;
-    private browser!: puppeteer_core.Browser;
+    public defaultPage!: puppeteer.Page;
+    private browser!: puppeteer.Browser;
 
     public async startBrowser() {
         let args = [
@@ -25,8 +25,8 @@ export class Puppeteer {
         ];
         if (process.env.ENVIRONMENT != 'LOCAL')
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
-        this.browser = await puppeteer_core.launch({
-            executablePath: puppeteer.executablePath(),
+        this.browser = await puppeteer.launch({
+            executablePath: process.env.ENVIRONMENT === 'LOCAL' ? puppeteer.executablePath() : await chromium.executablePath(),
             args,
             ignoreDefaultArgs: ["--enable-automation"],
             defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
@@ -118,14 +118,13 @@ export class Puppeteer {
             if (uploadModel === undefined) uploadModel = auxta.getUploadModel();
             if (close === undefined) {
                 try {
-                    if (event.queryStringParameters.close) {
-                        close = event.queryStringParameters.close === "true";
+                    if (event.close) {
+                        close = event.close === "true";
                     } else {
                         close = true
                     }
-                    if (event.queryStringParameters.retries) {
-                        const body = JSON.parse(event.body)
-                        uploadModel.retries = Number(body.retries)
+                    if (event.retries) {
+                        uploadModel.retries = Number(event.retries)
                     }
                 } catch (e) {
                     close = true;
@@ -168,16 +167,15 @@ export class Puppeteer {
 
     private static setupHeader(event: any, uploadModel: UploadModel) {
         let close = true;
-        if (process.env.ENVIRONMENT !== 'LOCAL' && event.body) {
-            const body = JSON.parse(event.body)
-            uploadModel.reportId = body.reportId;
-            uploadModel.nextSuites = body.nextSuites;
-            uploadModel.currentSuite = body.currentSuite;
-            uploadModel.retries = Number(body.retries);
+        if (process.env.ENVIRONMENT !== 'LOCAL' && event) {
+            uploadModel.reportId = event.reportId;
+            uploadModel.nextSuites = event.nextSuites;
+            uploadModel.currentSuite = event.currentSuite;
+            uploadModel.retries = Number(event.retries);
         }
         try {
-            if (event.queryStringParameters.close) {
-                close = event.queryStringParameters.close === "true";
+            if (event.close) {
+                close = event.close === "true";
             }
             return close;
         } catch (e) {

@@ -1,42 +1,7 @@
-import axios from 'axios';
-import {config} from "../configs/config";
-
 export async function startSuite(suites: string[], reportId?: string) {
     if (suites.length === 0) return;
     const next = suites.shift();
-    console.log('Starting next suite: ' + next);
-    console.log(suites)
-
-    try {
-        if (config.netlifyPath.includes('amazonaws')) {
-            console.log('aws');
-            console.log(`${config.netlifyPath}${next}?token=${config.token}`)
-            await axios.post(
-                `${config.netlifyPath}${next}?token=${config.token}`,
-                {nextSuites: suites, reportId: reportId, currentSuite: next, retries: "0"})
-        } else {
-            console.log('netlify');
-            console.log(`${config.netlifyPath}.netlify/functions/${next}?token=${config.token}`)
-            await axios.post(
-                `${config.netlifyPath}.netlify/functions/${next}?token=${config.token}`,
-                {nextSuites: suites, reportId: reportId, currentSuite: next, retries: "0"})
-        }
-
-    } catch (e:any) {
-        console.log(next);
-        console.log(config.token);
-        console.log(JSON.stringify({nextSuites: suites, reportId: reportId, currentSuite: next, retries: "0"}))
-        console.log('----------------------------------')
-        console.log(e);
-        console.log(JSON.stringify(e));
-        const response = e.response
-        console.log(response.data.message);
-        console.log(response.status);
-        console.log(typeof response.status);
-        if (response.status == 403) {
-            await startSuite(suites, reportId);
-        }
-    }
+    return {nextSuites: suites, reportId: reportId, currentSuite: next, retries: "0"};
 }
 
 export async function retrySuite(suites: string[], reportId: string, currentSuite: string, retries: number) {
@@ -44,27 +9,5 @@ export async function retrySuite(suites: string[], reportId: string, currentSuit
     if (retries >= 2) {
         return false;
     }
-    try {
-        if (config.netlifyPath.includes('amazonaws')) {
-            await axios.post(
-                `${config.netlifyPath}${currentSuite}?token=${config.token}`,
-                {nextSuites: suites, reportId: reportId, currentSuite: currentSuite, retries: retries})
-        } else {
-            await axios.post(
-                `${config.netlifyPath}.netlify/functions/${currentSuite}?token=${config.token}`,
-                {nextSuites: suites, reportId: reportId, currentSuite: currentSuite, retries: retries})
-        }
-
-    } catch (e:any) {
-        console.log(`currentSuite ${currentSuite}`);
-        console.log(config.token);
-        console.log(JSON.stringify({nextSuites: suites, reportId: reportId, currentSuite: currentSuite, retries: retries}))
-        console.log('----------------------------------')
-        console.log(e);
-        console.log(JSON.stringify(e));
-        const status = e.response.status
-        console.log(status);
-        console.log(typeof status);
-    }
-    return true;
+    return {nextSuites: suites, reportId: reportId, currentSuite: currentSuite, retries: retries}
 }
