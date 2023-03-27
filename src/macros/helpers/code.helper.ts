@@ -1,9 +1,9 @@
 import log from "../../auxta/services/log.service";
 import puppeteer from "../../puppeteer/puppeteer";
-import {StatusOfStep} from "../../auxta/enums/status-of.step";
-import {StepStatus} from "../../AuxTA";
-import {ExtendDefaultPage} from "./extend-default-page";
-import {KnownDevices} from "puppeteer-core";
+import { StatusOfStep } from "../../auxta/enums/status-of.step";
+import { StepStatus } from "../../AuxTA";
+import { ExtendDefaultPage } from "./extend-default-page";
+import { KnownDevices } from "puppeteer-core";
 
 export class FunctionHelper extends ExtendDefaultPage {
 
@@ -23,10 +23,9 @@ export class FunctionHelper extends ExtendDefaultPage {
     public async clickByText(selector: string, text: string, page = puppeteer.defaultPage, dotOrText = '.') {
         const message = `I click on the '${text}' '${selector}'`;
         try {
-            const [linkHandlers] = await page.$x(`//${selector}[${dotOrText} = ${this.getEscapedText(text)}]`);
+            const [linkHandlers] = await (await page.$x(`//${selector}[contains(text(),${text})]`))
 
             if (linkHandlers) {
-                // @ts-ignore
                 await linkHandlers.click();
                 log.push('Then', message, StatusOfStep.PASSED);
                 return;
@@ -40,7 +39,7 @@ export class FunctionHelper extends ExtendDefaultPage {
     public async clickByTextWithClass(class_selector: string, class_name: string, selector: string, text: string, page = puppeteer.defaultPage, dotOrText = '.') {
         const message = `I click on the '${text}' '${selector}'`;
         try {
-            const [linkHandlers] = await page.$x(`//${class_selector}[contains(@class,${this.getEscapedText(class_name)})]//${selector}[${dotOrText} = ${this.getEscapedText(text)}]`);
+            const [linkHandlers] = await page.$x(`//${class_selector}[contains(@class,${this.getEscapedText(class_name)})]//${selector}[contains(text(),${text})]`);
 
             if (linkHandlers) {
                 // @ts-ignore
@@ -61,7 +60,7 @@ export class FunctionHelper extends ExtendDefaultPage {
             await page.waitForSelector(selector, {
                 timeout: this.defaultTimeout
             });
-            const linkHandlers = await page.$x(`//${selector}[${dotOrText} = ${this.getEscapedText(text)}]`);
+            const linkHandlers = await page.$x(`//${selector}[contains(text(),${text})]`);
             if (linkHandlers.length > 0) {
                 log.push('And', message, StatusOfStep.PASSED);
                 return true;
@@ -119,7 +118,7 @@ export class FunctionHelper extends ExtendDefaultPage {
         await page.keyboard.press('Enter');
     }
 
-    public async emulate(phone_name: string,page = puppeteer.defaultPage) {
+    public async emulate(phone_name: string, page = puppeteer.defaultPage) {
         const phone = KnownDevices['iPhone 6']
         await page.emulate(phone);
     }
