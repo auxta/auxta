@@ -20,10 +20,10 @@ export class FunctionHelper extends ExtendDefaultPage {
         return `concat('${splitedQuotes}', '')`;
     }
 
-    public async clickByText(selector: string, text: string, page = puppeteer.defaultPage, dotOrText = '.') {
+    public async clickByText(selector: string, text: string, dotOrText = '.', page = puppeteer.defaultPage) {
         const message = `I click on the '${text}' '${selector}'`;
         try {
-            const [linkHandlers]:any = await page.$x(`//${selector}[contains(text(),${text})]`);
+            const [linkHandlers]: any = await page.$x(`//${selector}[contains(${dotOrText},${text})]`);
 
             if (linkHandlers) {
                 await linkHandlers.click();
@@ -36,10 +36,10 @@ export class FunctionHelper extends ExtendDefaultPage {
         throw new Error(message);
     }
 
-    public async clickByTextWithClass(class_selector: string, class_name: string, selector: string, text: string, page = puppeteer.defaultPage, dotOrText = '.') {
+    public async clickByTextWithClass(class_selector: string, class_name: string, selector: string, text: string, dotOrText = '.', page = puppeteer.defaultPage) {
         const message = `I click on the '${text}' '${selector}'`;
         try {
-            const [linkHandlers]:any = await page.$x(`//${class_selector}[contains(@class,${this.getEscapedText(class_name)})]//${selector}[contains(text(),${text})]`);
+            const [linkHandlers]: any = await page.$x(`//${class_selector}[contains(@class,${this.getEscapedText(class_name)})]//${selector}[contains(${dotOrText},${text})]`);
 
             if (linkHandlers) {
                 await linkHandlers.click();
@@ -53,13 +53,13 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     //div[contains(@class,"mat-menu-content")]//button
-    public async waitForSelectorWithText(selector: string, text: string, page = puppeteer.defaultPage, dotOrText = '.') {
+    public async waitForSelectorWithText(selector: string, text: string, dotOrText = '.', page = puppeteer.defaultPage) {
         const message = `I check for '${text}' on the current page`;
         try {
             await page.waitForSelector(selector, {
                 timeout: this.defaultTimeout
             });
-            const linkHandlers = await page.$x(`//${selector}[contains(text(),${text})]`);
+            const linkHandlers = await page.$x(`//${selector}[contains(${dotOrText},${text})]`);
             if (linkHandlers.length > 0) {
                 log.push('And', message, StatusOfStep.PASSED);
                 return true;
