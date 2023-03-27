@@ -9,7 +9,6 @@ import {retrySuite} from "../auxta/utilities/start-suite.helper";
 import {postNotificationsOnFail} from "../auxta/services/report.service";
 // @ts-ignore
 import puppeteer= require("puppeteer");
-import chromium from "@sparticuz/chromium";
 
 export class Puppeteer {
     public defaultPage!: puppeteer.Page;
@@ -26,7 +25,7 @@ export class Puppeteer {
         if (process.env.ENVIRONMENT != 'LOCAL')
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
         this.browser = await puppeteer.launch({
-            executablePath: process.env.ENVIRONMENT === 'LOCAL' ? puppeteer.executablePath() : await chromium.executablePath(),
+            executablePath: puppeteer.executablePath(),
             args,
             ignoreDefaultArgs: ["--enable-automation"],
             defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
