@@ -23,7 +23,7 @@ export class FunctionHelper extends ExtendDefaultPage {
     public async clickByText(selector: string, text: string, dotOrText = '.', page = puppeteer.defaultPage) {
         const message = `I click on the '${text}' '${selector}'`;
         try {
-            const [linkHandlers]: any = await page.$x(`//${selector}[contains(${dotOrText},${text})]`);
+            const [linkHandlers]: any = await page.$x(`//${selector}[contains(${dotOrText},"${text}")]`);
 
             if (linkHandlers) {
                 await linkHandlers.click();
@@ -39,7 +39,7 @@ export class FunctionHelper extends ExtendDefaultPage {
     public async clickByTextWithClass(class_selector: string, class_name: string, selector: string, text: string, dotOrText = '.', page = puppeteer.defaultPage) {
         const message = `I click on the '${text}' '${selector}'`;
         try {
-            const [linkHandlers]: any = await page.$x(`//${class_selector}[contains(@class,${this.getEscapedText(class_name)})]//${selector}[contains(${dotOrText},${text})]`);
+            const [linkHandlers]: any = await page.$x(`//${class_selector}[contains(@class,${this.getEscapedText(class_name)})]//${selector}[contains(${dotOrText},"${text}")]`);
 
             if (linkHandlers) {
                 await linkHandlers.click();
@@ -59,7 +59,7 @@ export class FunctionHelper extends ExtendDefaultPage {
             await page.waitForSelector(selector, {
                 timeout: this.defaultTimeout
             });
-            const linkHandlers = await page.$x(`//${selector}[contains(${dotOrText},${text})]`);
+            const linkHandlers = await page.$x(`//${selector}[contains(${dotOrText},"${text}")]`);
             if (linkHandlers.length > 0) {
                 log.push('And', message, StatusOfStep.PASSED);
                 return true;
