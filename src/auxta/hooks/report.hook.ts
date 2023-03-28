@@ -15,7 +15,6 @@ import { UploadModel } from "../models/upload.model";
 export async function onTestEnd(body: any, featureName: string, scenarioName: string, statusCode: number, screenshotBuffer?: Buffer, errMessage?: object) {
     let isFinal: boolean = false;
     if (process.env.ENVIRONMENT == "LIVE") {
-        console.log('asc ' + errMessage);
         console.log('--- Uploading scenario and feature for AUXTA report ---');
         const stepsArr = log.returnScenarioReport();
         try {
