@@ -86,7 +86,7 @@ export class FunctionHelper extends ExtendDefaultPage {
      */
 
     public async waitForSelector(option: string, selector: string, time: number = this.defaultTimeout, page = puppeteer.defaultPage, log_message = true) {
-        const message = `I check for the '${selector}' element to be ${option}`;
+        const message = `I checked for the '${selector}' element to be ${option}`;
         try {
             await page.waitForSelector(selector, {
                 [option]: true,
@@ -94,7 +94,7 @@ export class FunctionHelper extends ExtendDefaultPage {
             });
         } catch (e) {
             if (log_message) {
-                log.push('And', message, StatusOfStep.FAILED);
+                log.push('And', `${message}, but it didn't appear in ${time/1000} seconds.`, StatusOfStep.FAILED);
             }
             throw new Error(message)
         }
