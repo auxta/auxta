@@ -49,14 +49,15 @@ export class Puppeteer {
         }
     }
 
-    public async run(event: any, callback: any, featureName = 'Test feature', scenarioName = 'Test scenario', uploadModel?: UploadModel, close?: boolean) {
+    public async run(event: any, callback: any, featureName = 'Test feature', scenarioName = 'Test scenario', uploadModel?: UploadModel) {
+        let close;
         try {
             if (uploadModel === undefined) {
                 uploadModel = auxta.getUploadModel();
                 uploadModel.featureName = featureName;
                 uploadModel.scenarioName = scenarioName;
             }
-            if (close === undefined) close = Puppeteer.setupHeader(event, uploadModel)
+            if (event.close === undefined) close = Puppeteer.setupHeader(event, uploadModel)
             let screenshotBuffer: Buffer | undefined;
             let errMessage: any;
             let statusCode: number = 200;
