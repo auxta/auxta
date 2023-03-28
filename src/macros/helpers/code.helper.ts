@@ -3,7 +3,7 @@ import puppeteer from "../../puppeteer/puppeteer";
 import { StatusOfStep } from "../../auxta/enums/status-of.step";
 import { StepStatus } from "../../AuxTA";
 import { ExtendDefaultPage } from "./extend-default-page";
-import { KnownDevices } from "puppeteer-core";
+import { KnownDevices } from "puppeteer";
 
 export class FunctionHelper extends ExtendDefaultPage {
 
@@ -118,7 +118,8 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     public async emulate(phone_name: string, page = puppeteer.defaultPage) {
-        const phone = KnownDevices['iPhone 6']
+        // @ts-ignore
+        const phone = KnownDevices[phone_name]
         await page.emulate(phone);
     }
 
