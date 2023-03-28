@@ -33,7 +33,7 @@ export class Puppeteer {
                 height: config.screenHeight
             },
             // Return back to headless for netlify
-            headless: process.env.ENVIRONMENT != 'LOCAL'
+            headless: process.env.ENVIRONMENT === 'LOCAL' ? process.env.headless === 'true' : true
         });
         this.defaultPage = (await this.browser.pages())[0];
         await auxta.extend_page_functions(this.defaultPage);
