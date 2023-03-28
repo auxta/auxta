@@ -39,7 +39,7 @@ export let config = {
     token: "",
     screenWidth: 1920,
     screenHeight: 1080,
-    timeout: 10000,
+    timeout: 60000,
     suitesList: [],
     auxtaCredentials: {
         email: "",
