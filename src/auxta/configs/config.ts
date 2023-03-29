@@ -7,8 +7,6 @@ export function setupConfig(jsonConfig: any) {
     config.netlifyPath = (process.env.ENVIRONMENT == 'LOCAL') ? 'http://localhost:9999/' : jsonConfig.testsURL;
     if (!jsonConfig.organization) throw new Error("organization");
     config.organization = jsonConfig.organization;
-    if (!process.env.token) throw new Error("token");
-    config.token = process.env.token;
     if (!jsonConfig.email) throw new Error("email");
     config.auxtaCredentials.email = jsonConfig.email;
     if (!process.env.auxta_password) throw new Error("password");
