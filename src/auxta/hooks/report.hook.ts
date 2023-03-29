@@ -1,4 +1,4 @@
-import { basename } from 'path'
+import {basename} from 'path'
 import log from "../services/log.service";
 import {
     Feature,
@@ -8,9 +8,9 @@ import {
     uploadFeature,
     uploadScenario
 } from '../services/report.service';
-import { startSuite } from '../utilities/start-suite.helper';
-import { StatusOfStep } from "../enums/status-of.step";
-import { UploadModel } from "../models/upload.model";
+import {startSuite} from '../utilities/start-suite.helper';
+import {StatusOfStep} from "../enums/status-of.step";
+import {UploadModel} from "../models/upload.model";
 
 export async function onTestEnd(body: any, featureName: string, scenarioName: string, statusCode: number, screenshotBuffer?: Buffer, errMessage?: object) {
     let isFinal: boolean = false;
@@ -42,7 +42,9 @@ export async function onTestEnd(body: any, featureName: string, scenarioName: st
         }
     }
     if (isFinal) await afterComplete(body);
-    else if (body && body.nextSuites) await startSuite(body.nextSuites, body.reportId);
+    else if (body && body.nextSuites) {
+       return await startSuite(body.nextSuites, body.reportId);
+    }
 }
 
 export async function afterComplete(body: UploadModel) {

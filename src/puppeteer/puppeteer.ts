@@ -83,7 +83,7 @@ export class Puppeteer {
                 if (browser_start_retry) {
                     const result = await retrySuite(uploadModel.nextSuites, uploadModel.reportId, uploadModel.currentSuite, uploadModel.retries);
                     if (!result) {
-                        await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
+                        return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
                             currentPageUrl: 'undefined',
                             console: consoleStack,
                             error: 'Browser did not open'
@@ -100,7 +100,7 @@ export class Puppeteer {
             let url = this.defaultPage.url();
             if (close) await this.close();
 
-            await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
+            return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
                 currentPageUrl: url,
                 console: consoleStack,
                 error: errMessage

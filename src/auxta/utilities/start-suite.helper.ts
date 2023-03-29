@@ -1,5 +1,5 @@
 export async function startSuite(suites: string[], reportId?: string) {
-    if (suites.length === 0) return;
+    if (suites.length === 0) return {};
     const next = suites.shift();
     return {nextSuites: suites, reportId: reportId, currentSuite: next, retries: "0"};
 }
