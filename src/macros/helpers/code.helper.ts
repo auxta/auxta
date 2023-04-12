@@ -20,7 +20,22 @@ export class FunctionHelper extends ExtendDefaultPage {
         return `concat('${splitedQuotes}', '')`;
     }
 
-    private async waitClick(message: string, xPath: string, page: Page) {
+    public async click(selector: string, page = puppeteer.defaultPage, selectorElement: number = 0) {
+        const message = `I clicked on the '${selector}'`;
+
+        const findElement = (await page.$$(selector))[selectorElement]
+
+        if (findElement) {
+            await findElement.click()
+            log.push('Then', message, StatusOfStep.PASSED);
+        }
+        else {
+            log.push('Then', message + `, but it didn't appear in ${this.defaultTimeout / 1000}`, StatusOfStep.FAILED);
+            throw Error(message + `, but it didn't appear in ${this.defaultTimeout / 1000}`)
+        }
+    }
+
+    public async waitClick(message: string, xPath: string, page: Page) {
         const findElement = await page.waitForXPath(xPath, { visible: true, timeout: this.defaultTimeout })
 
         if (findElement) {
@@ -29,8 +44,8 @@ export class FunctionHelper extends ExtendDefaultPage {
             log.push('Then', message, StatusOfStep.PASSED);
         }
         else {
-            log.push('Then', message + ", but it didn't appear in ${time / 1000}", StatusOfStep.FAILED);
-            throw Error(message + ", but it didn't appear in ${time / 1000}")
+            log.push('Then', message + `, but it didn't appear in ${this.defaultTimeout / 1000}`, StatusOfStep.FAILED);
+            throw Error(message + `, but it didn't appear in ${this.defaultTimeout / 1000}`)
         }
     }
 
@@ -55,7 +70,15 @@ export class FunctionHelper extends ExtendDefaultPage {
 
         const xPath = `//${selector}[contains(${dotOrText},"${text}")]`
 
-        await this.waitClick(message, xPath, page)
+        const findElement = await page.waitForXPath(xPath, { visible: true, timeout: this.defaultTimeout })
+
+        if (findElement) {
+            log.push('Then', message, StatusOfStep.PASSED);
+        }
+        else {
+            log.push('Then', message + ", but it didn't appear in ${time / 1000}", StatusOfStep.FAILED);
+            throw Error(message + ", but it didn't appear in ${time / 1000}")
+        }
     }
 
     // TODO: deprecated, FIX!
@@ -77,7 +100,7 @@ export class FunctionHelper extends ExtendDefaultPage {
     public async waitForSelector(option: string, selector: string, time: number = this.defaultTimeout, page = puppeteer.defaultPage, log_message = true) {
         const message = `I checked for the '${selector}' element to be ${option}`;
 
-        const findSelector = await page.waitForSelector(selector, {
+        const findSelector = await page.waitForSelector(`${selector}`, {
             [option]: true,
             timeout: time
         });
