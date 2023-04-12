@@ -12,11 +12,13 @@ All clicks wait for the selector by default and timeout w/ the standard timeout 
 
 `timeout` It is recommended to have a standard timeout for the whole scenario and not to define spefici. `TODO` 
 
-clickByText `TO BE FIXED BY GEORGE TO ADD THE WAIT FOR SELECTOR WHICH IS MISSING`
+auxta.clickByText `TO BE FIXED BY GEORGE TO ADD THE WAIT FOR SELECTOR WHICH IS MISSING`
 
-clickByXPath
+auxta.clickByXPath
 
-clickByClass
+auxta.clickByClass
+
+auxta.click() `THINK TO MAKE` `TODO`
 
 waitforseelctorbytext `depreciated` 
 
