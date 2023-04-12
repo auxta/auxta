@@ -1,11 +1,29 @@
 # AuxTA
 
-## Table of Contents
+## Implement
 
-* [puppeteer](#puppeteer)
-* [install](#install)
-* [setup](#setup)
-* [running](#running)
+The main thing is a `scenario`.
+
+`Scenarios` consts of `steps.
+
+### Clicking
+
+All clicks wait for the selector by default and timeout w/ the standard timeout unless different is specified.
+
+`timeout` It is recommended to have a standard timeout for the whole scenario and not to define spefici. `TODO` 
+
+clickByText `TO BE FIXED BY GEORGE TO ADD THE WAIT FOR SELECTOR WHICH IS MISSING`
+
+clickByXPath
+
+clickByClass
+
+waitforseelctorbytext `depreciated` 
+
+## Running
+
+* Create a main function that calls the run() function which starts all tests
+* Create a function for each test that calls the `auxtaPuppeteer.run(event, callback, featureName, scenarioName)` function
 
 ## Puppeteer
 
@@ -47,14 +65,3 @@ npm i
 }
 
 ```
-
-## Implement
-
-The main thing is a `scenario`.
-
-`Scenarios` consts of `steps.
-
-## Running
-
-* Create a main function that calls the run() function which starts all tests
-* Create a function for each test that calls the `auxtaPuppeteer.run(event, callback, featureName, scenarioName)` function
