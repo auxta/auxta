@@ -24,8 +24,8 @@ export class FunctionHelper extends ExtendDefaultPage {
         const findElement = await page.waitForXPath(xPath, { visible: true, timeout: this.defaultTimeout })
 
         if (findElement) {
-            const linkHandlers: any = await page.$x(xPath);
-            await linkHandlers.click()
+            const [linkHandler]: any = await page.$x(xPath);
+            await linkHandler.click()
             log.push('Then', message, StatusOfStep.PASSED);
         }
         else {
