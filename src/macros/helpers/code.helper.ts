@@ -20,8 +20,10 @@ export class FunctionHelper extends ExtendDefaultPage {
         return `concat('${splitedQuotes}', '')`;
     }
 
-    public async click(selector: string, page = puppeteer.defaultPage, selectorElement: number = 0) {
+    public async click(selector: string, selectorElement: number = 0, page = puppeteer.defaultPage) {
         const message = `I clicked on the '${selector}'`;
+
+        await this.waitForSelector('visible', selector, this.defaultTimeout)
 
         const findElement = (await page.$$(selector))[selectorElement]
 
