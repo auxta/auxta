@@ -147,7 +147,7 @@ export class FunctionHelper extends ExtendDefaultPage {
      * @param dotOrText 
      * @param page 
      */
-    public async waitForSelectorWithText(selector: string, text: string, dotOrText = '.', page = puppeteer.defaultPage) {
+    public async waitForSelectorWithText(selector: string, text: string, dotOrText = '.', timeout: number = this.defaultTimeout, page = puppeteer.defaultPage) {
         const message = `I check for '${text}' on the current page`;
 
         const xPath = `//${selector}[contains(${dotOrText},"${text}")]`
@@ -157,8 +157,8 @@ export class FunctionHelper extends ExtendDefaultPage {
             log.push('Then', message, StatusOfStep.PASSED);
         }
         catch {
-            log.push('Then', message + ", but it didn't appear in ${time / 1000}", StatusOfStep.FAILED);
-            throw Error(message + ", but it didn't appear in ${time / 1000}")
+            log.push('Then', message + `, but it did not appear in ${timeout / 1000}`, StatusOfStep.FAILED);
+            throw Error(message + `, but it did not appear in ${timeout / 1000}`)
         }
     }
 
