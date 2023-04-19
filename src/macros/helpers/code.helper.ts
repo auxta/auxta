@@ -20,13 +20,13 @@ export class FunctionHelper extends ExtendDefaultPage {
         return `concat('${splitedQuotes}', '')`;
     }
 
-    public async clickByText(selector: string, text: string, dotOrText = '.', page = puppeteer.defaultPage, time: number = this.defaultTimeout, log_message = true) {
+    public async clickByText(selector: string, text: string, dotOrText = '.', options = {}, page = puppeteer.defaultPage, time: number = this.defaultTimeout, log_message = true) {
         const message = `I clicked on the '${text}' '${selector}'`;
         try {
             const [linkHandlers]: any = await page.$x(`//${selector}[contains(${dotOrText},"${text}")]`);
 
             if (linkHandlers) {
-                await linkHandlers.click();
+                await linkHandlers.click(options);
                 log.push('Then', message, StatusOfStep.PASSED);
             }
         } catch (e) {
