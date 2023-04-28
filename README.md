@@ -40,6 +40,7 @@ waitforseelctorbytext `depreciated`
     * Must have _subject_ (substring)
     * Must cotnain _body_text_ (substring)
     * Quality of Service, if the email does not arrive w/in eg. 5 minutes we return an error w/ timeout.
+* * `auxta.clickInMail(_from_name_, _from_email_, _subject_, _click_on_)`
 
 ## Running
 
