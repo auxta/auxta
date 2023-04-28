@@ -1,6 +1,8 @@
 const fs = require('fs');
 const readline = require('readline');
-const {google} = require('googleapis');
+// @ts-ignore
+import googleType = require("googleapis");
+const {google} = require("googleapis");
 
 const SCOPES = [
     'https://www.googleapis.com/auth/gmail.addons.current.action.compose',
@@ -19,9 +21,10 @@ const SCOPES = [
 const TOKEN_PATH = 'token.json';
 
 export class GoogleAuthHelper {
-    private static _oAuth2Client: any;
+    // @ts-ignore
+    private _oAuth2Client: googleType.Auth.OAuth2Client
 
-    private static credentialsJson = {
+    private credentialsJson = {
         "installed": {
             "client_id": "120362272213-usevfijf76jj5nsr502i2lai6nu71oq8.apps.googleusercontent.com",
             "project_id": "auxta-library",
@@ -33,11 +36,20 @@ export class GoogleAuthHelper {
         }
     };
 
-    static get oAuth2Client(): any {
+    get oAuth2Client(): googleType.Auth.OAuth2Client {
         return this._oAuth2Client;
     }
 
-    public static async setup() {
+    get googleClient(): googleType.GoogleApis {
+        return google;
+    }
+
+    get gmailClient(): googleType.gmail_v1.Gmail {
+        return google.gmail({version: 'v1', auth: this._oAuth2Client});
+
+    }
+
+    public async setup() {
         await this.authorize(this.credentialsJson);
     }
 
@@ -46,7 +58,7 @@ export class GoogleAuthHelper {
      * given callback function.
      * @param {Object} credentials The authorization client credentials.
      */
-    private static async authorize(credentials: any) {
+    private async authorize(credentials: any) {
         const {client_secret, client_id, redirect_uris} = credentials.installed;
         const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
@@ -70,7 +82,7 @@ export class GoogleAuthHelper {
      * execute the given callback with the authorized OAuth2 client.
      * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
      */
-    private static async getNewToken(oAuth2Client: any) {
+    private async getNewToken(oAuth2Client: any) {
         const authUrl = oAuth2Client.generateAuthUrl({
             access_type: 'offline',
             prompt: 'consent',
@@ -86,7 +98,6 @@ export class GoogleAuthHelper {
             oAuth2Client.getToken(code, (err: any, token:any) => {
                 if (err) return console.error('Error retrieving access token', err);
                 oAuth2Client.setCredentials(token);
-
                 // Store the token to disk for later program executions
                 fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err: any) => {
                     if (err) return console.error(err);
@@ -97,3 +108,5 @@ export class GoogleAuthHelper {
         });
     }
 }
+
+export default new GoogleAuthHelper();
