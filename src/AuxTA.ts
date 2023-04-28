@@ -9,7 +9,7 @@ import {setupConfig, config as c, setupOverrideConfig} from "./auxta/configs/con
 import {startSuite} from "./auxta/utilities/start-suite.helper";
 import {createEmptyReport} from "./auxta/services/report.service";
 import Aux2faAuth from "./macros/helpers/Aux2faAuth";
-import GoogleAuthHelper from "./macros/helpers/GoogleAuthHelper";
+import {AuxGoogleAuth} from "./macros/helpers/AuxGoogleAuth";
 
 
 dotenv.config();
@@ -17,7 +17,7 @@ dotenv.config();
 class AuxTA extends FunctionHelper {
     public puppeteer: Puppeteer = puppeteer;
     public aux2fa = Aux2faAuth;
-    public googleAuth = GoogleAuthHelper
+    public google = AuxGoogleAuth
     public config = c;
 
     private readonly uploadModel: UploadModel;

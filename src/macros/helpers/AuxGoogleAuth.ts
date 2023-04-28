@@ -15,16 +15,15 @@ const SCOPES = [
     'https://www.googleapis.com/auth/gmail.modify',
     'https://www.googleapis.com/auth/gmail.compose',
     'https://www.googleapis.com/auth/gmail.readonly',
-    'https://www.googleapis.com/auth/gmail.metadata',
     'https://www.googleapis.com/auth/gmail.insert',
 ];
 const TOKEN_PATH = 'token.json';
 
-export class GoogleAuthHelper {
+export class AuxGoogleAuth {
     // @ts-ignore
-    private _oAuth2Client: googleType.Auth.OAuth2Client
+    private static _oAuth2Client: googleType.Auth.OAuth2Client
 
-    private credentialsJson = {
+    private static credentialsJson = {
         "installed": {
             "client_id": "120362272213-usevfijf76jj5nsr502i2lai6nu71oq8.apps.googleusercontent.com",
             "project_id": "auxta-library",
@@ -36,20 +35,20 @@ export class GoogleAuthHelper {
         }
     };
 
-    get oAuth2Client(): googleType.Auth.OAuth2Client {
+    static get oAuth2Client(): googleType.Auth.OAuth2Client {
         return this._oAuth2Client;
     }
 
-    get googleClient(): googleType.GoogleApis {
+    static get googleClient(): googleType.GoogleApis {
         return google;
     }
 
-    get gmailClient(): googleType.gmail_v1.Gmail {
+   static get gmailClient(): googleType.gmail_v1.Gmail {
         return google.gmail({version: 'v1', auth: this._oAuth2Client});
 
     }
 
-    public async setup() {
+    public static async setup() {
         await this.authorize(this.credentialsJson);
     }
 
@@ -58,7 +57,7 @@ export class GoogleAuthHelper {
      * given callback function.
      * @param {Object} credentials The authorization client credentials.
      */
-    private async authorize(credentials: any) {
+    private static async authorize(credentials: any) {
         const {client_secret, client_id, redirect_uris} = credentials.installed;
         const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
@@ -82,7 +81,7 @@ export class GoogleAuthHelper {
      * execute the given callback with the authorized OAuth2 client.
      * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
      */
-    private async getNewToken(oAuth2Client: any) {
+    private static async getNewToken(oAuth2Client: any) {
         const authUrl = oAuth2Client.generateAuthUrl({
             access_type: 'offline',
             prompt: 'consent',
@@ -109,4 +108,4 @@ export class GoogleAuthHelper {
     }
 }
 
-export default new GoogleAuthHelper();
+export default new AuxGoogleAuth();
