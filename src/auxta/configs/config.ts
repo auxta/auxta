@@ -13,6 +13,7 @@ export function setupConfig(jsonConfig: any) {
     config.auxtaCredentials.password = process.env.auxta_password;
     if (!jsonConfig.suitesList) throw new Error("suitesList");
     config.suitesList = jsonConfig.suitesList;
+    config.googleEmail = jsonConfig.googleEmail;
     if (jsonConfig.timeout) config.timeout = jsonConfig.timeout;
     if (jsonConfig.screenWidth) config.screenWidth = jsonConfig.screenWidth;
     if (jsonConfig.screenHeight) config.screenHeight = jsonConfig.screenHeight;
@@ -39,6 +40,7 @@ export let config = {
     screenHeight: 1080,
     timeout: 60000,
     suitesList: [],
+    googleEmail: "",
     auxtaCredentials: {
         email: "",
         password: "",
