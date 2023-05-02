@@ -22,6 +22,10 @@ auxta.click() `THINK TO MAKE` `TODO`
 
 waitforseelctorbytext `depreciated`
 
+### Working with Tab
+
+...
+
 ### Complex Workflows
 
 #### Email
