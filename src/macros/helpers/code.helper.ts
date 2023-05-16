@@ -5,6 +5,8 @@ import {StepStatus} from "../../AuxTA";
 import {ExtendDefaultPage} from "./extend-default-page";
 import {KnownDevices} from "puppeteer";
 import {AuxGoogleAuth} from "./AuxGoogleAuth";
+import {atob} from "buffer";
+import {gmail_v1} from "googleapis";
 
 export class FunctionHelper extends ExtendDefaultPage {
 
@@ -176,7 +178,7 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     //_from_name_, _from_email_, _subject_, _click_on_
-    public async clickInMail(from_name: string, from_email: string, subject: string) {
+    public async clickInMail(from_name: string, from_email: string, subject: string, body: string) {
         await AuxGoogleAuth.setup();
         const res = await AuxGoogleAuth.gmailClient.users.messages.list({
             userId: "me",
@@ -192,16 +194,18 @@ export class FunctionHelper extends ExtendDefaultPage {
         while (timeoutCount <= 60000) {
             for (const messageId of messagesIds) {
                 if (messageId.id) {
-                    const message = await AuxGoogleAuth.gmailClient.users.messages.get({
+                    const gmailResponse = await AuxGoogleAuth.gmailClient.users.messages.get({
                         userId: "me",
                         id: messageId.id.toString(),
                         format: 'FULL'
                     })
-                    if (message.data.payload) {
-                        const message_sender = this.getHeader('from', message.data.payload.headers);
-                        const message_subject = this.getHeader('subject', message.data.payload.headers);
-                        if (message_sender.includes(from_email) && message_sender.includes(from_name.toLocaleLowerCase()) && message_subject.includes(subject.toLocaleLowerCase())) {
-                            await this.log('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} is found`, StepStatus.PASSED);
+                    if (gmailResponse.data.payload) {
+                        const message_sender = this.getHeader('from', gmailResponse.data.payload.headers);
+                        const message_subject = this.getHeader('subject', gmailResponse.data.payload.headers);
+                        const message_body = this.getBody(from_name,from_email,subject, gmailResponse);
+                        if (message_sender.includes(from_email) && message_sender.includes(from_name.toLocaleLowerCase()) &&
+                            message_subject.includes(subject.toLocaleLowerCase()) && message_body.includes(body.toLocaleLowerCase())) {
+                            await this.log('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.PASSED);
                             return true;
                         }
                     }
@@ -222,6 +226,18 @@ export class FunctionHelper extends ExtendDefaultPage {
             }
         }
     }
+
+    private getBody(from_name: string,from_email: string,subject: string,gmailResponse: any) {
+        // @ts-ignore
+        const body = gmailResponse.data.payload.parts[0].body.data;
+        if (body) {
+            return atob(body).toLocaleLowerCase();
+        } else {
+            throw new Error(`Email from: ${from_name} ${from_email} with subject: ${subject} body is empty`)
+        }
+    }
 }
+
+export interface gmailResponse extends gmail_v1.Gmail{}
 
 export default new FunctionHelper();
