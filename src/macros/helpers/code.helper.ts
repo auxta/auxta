@@ -5,7 +5,6 @@ import {StepStatus} from "../../AuxTA";
 import {ExtendDefaultPage} from "./extend-default-page";
 import {KnownDevices} from "puppeteer";
 import {AuxGoogleAuth} from "./AuxGoogleAuth";
-import {config} from "../../auxta/configs/config";
 
 export class FunctionHelper extends ExtendDefaultPage {
 
@@ -180,7 +179,7 @@ export class FunctionHelper extends ExtendDefaultPage {
     public async clickInMail(from_name: string, from_email: string, subject: string) {
         await AuxGoogleAuth.setup();
         const res = await AuxGoogleAuth.gmailClient.users.messages.list({
-            userId: config.googleEmail,
+            userId: "me",
             maxResults: 3
         });
 
@@ -193,10 +192,14 @@ export class FunctionHelper extends ExtendDefaultPage {
         while (timeoutCount <= 60000) {
             for (const messageId of messagesIds) {
                 if (messageId.id) {
-                    const message = await AuxGoogleAuth.gmailClient.users.messages.get({userId:config.googleEmail,id:messageId.id.toString(),format:'FULL'})
+                    const message = await AuxGoogleAuth.gmailClient.users.messages.get({
+                        userId: "me",
+                        id: messageId.id.toString(),
+                        format: 'FULL'
+                    })
                     if (message.data.payload) {
-                        const message_sender = this.getHeader('from',message.data.payload.headers);
-                        const message_subject = this.getHeader('subject',message.data.payload.headers);
+                        const message_sender = this.getHeader('from', message.data.payload.headers);
+                        const message_subject = this.getHeader('subject', message.data.payload.headers);
                         if (message_sender.includes(from_email) && message_sender.includes(from_name.toLocaleLowerCase()) && message_subject.includes(subject.toLocaleLowerCase())) {
                             await this.log('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} is found`, StepStatus.PASSED);
                             return true;
@@ -212,7 +215,7 @@ export class FunctionHelper extends ExtendDefaultPage {
         throw new Error(`Email from: ${from_name} ${from_email} with subject: ${subject} is found`)
     }
 
-    private getHeader(value: string , headers: any) {
+    private getHeader(value: string, headers: any) {
         for (const header of headers) {
             if (header.name.toLocaleLowerCase() === value.toLocaleLowerCase()) {
                 return header.value.toLocaleLowerCase();
