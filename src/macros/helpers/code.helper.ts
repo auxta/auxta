@@ -215,8 +215,7 @@ export class FunctionHelper extends ExtendDefaultPage {
             await this.timeout(12000);
             timeoutCount += 12000;
         }
-        await this.log('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} is found`, StepStatus.PASSED);
-        throw new Error(`Email from: ${from_name} ${from_email} with subject: ${subject} is found`)
+        await this.log('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.FAILED);
     }
 
     private getHeader(value: string, headers: any) {
