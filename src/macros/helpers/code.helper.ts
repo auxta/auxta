@@ -1,12 +1,12 @@
 import log from "../../auxta/services/log.service";
 import puppeteer from "../../puppeteer/puppeteer";
-import {StatusOfStep} from "../../auxta/enums/status-of.step";
-import {StepStatus} from "../../AuxTA";
-import {ExtendDefaultPage} from "./extend-default-page";
-import {KnownDevices} from "puppeteer";
-import {AuxGoogleAuth} from "./AuxGoogleAuth";
-import {atob} from "buffer";
-import {gmail_v1} from "googleapis";
+import { StatusOfStep } from "../../auxta/enums/status-of.step";
+import { StepStatus } from "../../AuxTA";
+import { ExtendDefaultPage } from "./extend-default-page";
+import { KnownDevices } from "puppeteer";
+import { AuxGoogleAuth } from "./AuxGoogleAuth";
+import { atob } from "buffer";
+import { gmail_v1 } from "googleapis";
 
 export class FunctionHelper extends ExtendDefaultPage {
 
@@ -161,6 +161,15 @@ export class FunctionHelper extends ExtendDefaultPage {
         await loginPage.type(email_input, email);
         await loginPage.keyboard.press('Enter');
         await loginPage.waitForNetworkIdle();
+        // if() here check is container with asking Work or Personal is account?
+        let isWorkOrPersonalVisible = await puppeteer.defaultPage.$('div.table');
+        if (!!isWorkOrPersonalVisible) {
+            await (await puppeteer.defaultPage.$$('div.table'))[0].click();
+            console.log('Then', 'I clicked Work or school account', StepStatus.PASSED);
+            await puppeteer.defaultPage.waitForNetworkIdle();
+        } else {
+            await puppeteer.defaultPage.waitForNetworkIdle();
+        }
         await this.waitForSelector('visible', sign_in_button, 60000, loginPage);
         await this.waitForSelector('visible', password_input, 6000, loginPage);
         try {
@@ -202,7 +211,7 @@ export class FunctionHelper extends ExtendDefaultPage {
                     if (gmailResponse.data.payload) {
                         const message_sender = this.getHeader('from', gmailResponse.data.payload.headers);
                         const message_subject = this.getHeader('subject', gmailResponse.data.payload.headers);
-                        const message_body = this.getBody(from_name,from_email,subject, gmailResponse);
+                        const message_body = this.getBody(from_name, from_email, subject, gmailResponse);
                         if (message_sender.includes(from_email) && message_sender.includes(from_name.toLocaleLowerCase()) &&
                             message_subject.includes(subject.toLocaleLowerCase()) && message_body.includes(body.toLocaleLowerCase())) {
                             await this.log('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.PASSED);
@@ -226,7 +235,7 @@ export class FunctionHelper extends ExtendDefaultPage {
         }
     }
 
-    private getBody(from_name: string,from_email: string,subject: string,gmailResponse: any) {
+    private getBody(from_name: string, from_email: string, subject: string, gmailResponse: any) {
         // @ts-ignore
         const body = gmailResponse.data.payload.parts[0].body.data;
         if (body) {
@@ -237,6 +246,6 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 }
 
-export interface gmailResponse extends gmail_v1.Gmail{}
+export interface gmailResponse extends gmail_v1.Gmail { }
 
 export default new FunctionHelper();
