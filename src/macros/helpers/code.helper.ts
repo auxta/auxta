@@ -158,7 +158,7 @@ export class FunctionHelper extends ExtendDefaultPage {
         await this.extend_page_functions(loginPage);
         await loginPage.waitForNetworkIdle();
         await this.waitForSelector('visible', next_button, 60000, loginPage);
-        await loginPage.type(email_input, email);
+        await loginPage.type(email_input, email, {delay: 0});
         await loginPage.keyboard.press('Enter');
         await loginPage.waitForNetworkIdle();
         // if() here check is container with asking Work or Personal is account?
