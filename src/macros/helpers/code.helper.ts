@@ -7,6 +7,7 @@ import {KnownDevices} from "puppeteer";
 import {AuxGoogleAuth} from "./AuxGoogleAuth";
 import {atob} from "buffer";
 import {gmail_v1} from "googleapis";
+const MailComposer = require('nodemailer/lib/mail-composer');
 
 export class FunctionHelper extends ExtendDefaultPage {
 
@@ -178,13 +179,12 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     //_from_name_, _from_email_, _subject_, _click_on_
-    public async clickInMail(from_name: string, from_email: string, subject: string, body: string) {
+    public async verifyEmail(from_name: string, from_email: string, subject: string, body: string) {
         await AuxGoogleAuth.setup();
         const res = await AuxGoogleAuth.gmailClient.users.messages.list({
             userId: "me",
             maxResults: 3
         });
-
         const messagesIds = res.data.messages;
         if (!messagesIds || messagesIds.length === 0) {
             throw new Error('No messagesIds found.')
@@ -206,7 +206,8 @@ export class FunctionHelper extends ExtendDefaultPage {
                         if (message_sender.includes(from_email) && message_sender.includes(from_name.toLocaleLowerCase()) &&
                             message_subject.includes(subject.toLocaleLowerCase()) && message_body.includes(body.toLocaleLowerCase())) {
                             await this.log('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.PASSED);
-                            return true;
+                            // @ts-ignore
+                            return {id: gmailResponse.data.id.toString(), threadId: gmailResponse.data.threadId.toString()};
                         }
                     }
                     break;
@@ -216,6 +217,40 @@ export class FunctionHelper extends ExtendDefaultPage {
             timeoutCount += 12000;
         }
         await this.log('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.FAILED);
+    }
+
+    async replyEmail(ids: { id: string, threadId: string }, body: string) {
+        await AuxGoogleAuth.setup();
+        const gmailResponse = await AuxGoogleAuth.gmailClient.users.messages.get({
+            userId: "me",
+            id: ids.id,
+            format: 'FULL'
+        });
+        if (gmailResponse.data.payload) {
+            //const message_to = this.getHeader('to', gmailResponse.data.payload.headers);
+            const message_sender = this.getHeader('from', gmailResponse.data.payload.headers);
+            const message_subject = this.getHeader('subject', gmailResponse.data.payload.headers);
+            const message_messageID = this.getHeader('Message-ID', gmailResponse.data.payload.headers);
+            const reply_to = this.getHeader('Reply-To', gmailResponse.data.payload.headers);
+            const options = {
+                "to": reply_to,
+                "from": message_sender,
+                "subject": `Re: ${message_subject}`,
+                "Reference": message_messageID,
+                "Reply-To": reply_to,
+                "threadId": ids.threadId,
+                "html": body
+            }
+            const mailComposer = new MailComposer(options);
+            const message = await mailComposer.compile().build();
+            const encodeMessage = Buffer.from(message).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            await AuxGoogleAuth.gmailClient.users.messages.send({
+                userId: "me",
+                requestBody: {
+                    raw: encodeMessage
+                }
+            });
+        }
     }
 
     private getHeader(value: string, headers: any) {
