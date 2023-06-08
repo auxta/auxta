@@ -68,6 +68,29 @@ export class EmailHelper {
         await log.push('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.FAILED);
     }
 
+
+    /**
+     * @remarks
+     * Sends email to the given email with subject and body
+     *
+     * @function sendEmail
+     * @param {string} to
+     * @param {string} subject
+     * @param {string} body
+     */
+
+
+    public async sendEmail(to: string, subject: string, body: string) {
+        await AuxGoogleAuth.setup();
+        const options = {
+            to: to,
+            from: this.getCurrentUserEmail(),
+            subject: subject,
+            html: body
+        };
+        await EmailHelper.send(options);
+    }
+
     /**
      * @remarks
      * Reply's to email with data from verifyEmail with the given body
@@ -97,17 +120,21 @@ export class EmailHelper {
                 inReplyTo: [message_messageID],
                 html: body
             };
-            const mailComposer = new MailComposer(options);
-            const message = await mailComposer.compile().build();
-            const encodeMessage = Buffer.from(message).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-            await AuxGoogleAuth.gmailClient.users.messages.send({
-                userId: "me",
-                requestBody: {
-                    threadId: threadId,
-                    raw: encodeMessage
-                }
-            });
+            await EmailHelper.send(options, threadId);
         }
+    }
+
+    private static async send(options: object, threadId?: string) {
+        const mailComposer = new MailComposer(options);
+        const message = await mailComposer.compile().build();
+        const encodeMessage = Buffer.from(message).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        await AuxGoogleAuth.gmailClient.users.messages.send({
+            userId: "me",
+            requestBody: {
+                threadId: threadId,
+                raw: encodeMessage
+            }
+        });
     }
 
     private getHeader(value: string, headers: any) {
