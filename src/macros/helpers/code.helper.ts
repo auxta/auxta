@@ -75,7 +75,7 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     public async timeout(timeout = this.defaultTimeout, page = puppeteer.defaultPage) {
-        new Promise(r => setTimeout(r, timeout));
+        await new Promise(r => setTimeout(r, timeout));
     }
 
     /**
