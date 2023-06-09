@@ -59,7 +59,7 @@ export class EmailHelper {
                                 const html_link = await this.getUrl(message_body);
                                 return {id: gmailResponse.data.id, threadId: gmailResponse.data.threadId, link: html_link};
                             }
-                            return {id: gmailResponse.data.id, threadId: gmailResponse.data.threadId, link: undefined}
+                            return {id: gmailResponse.data.id, threadId: gmailResponse.data.threadId, link: ''}
                         }
                     }
                     break;
