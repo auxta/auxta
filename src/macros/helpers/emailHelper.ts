@@ -19,10 +19,9 @@ export class EmailHelper {
      * @param {string} from_email
      * @param {string} subject
      * @param {string} body
-     * @param reply
-     * @param reply_body
+     * @param link
      */
-    public async verifyEmail(from_name: string, from_email: string, subject: string, body: string, reply: boolean = false, reply_body?: string) {
+    public async verifyEmail(from_name: string, from_email: string, subject: string, body: string, link: boolean = false) {
         await AuxGoogleAuth.setup();
         const res = await AuxGoogleAuth.gmailClient.users.messages.list({
             userId: "me",
@@ -56,7 +55,11 @@ export class EmailHelper {
                                     'removeLabelIds': ['UNREAD']
                                 }
                             })
-                            return {id: gmailResponse.data.id, threadId: gmailResponse.data.threadId}
+                            if (link) {
+                                const html_link = await this.getUrl(message_body);
+                                return {id: gmailResponse.data.id, threadId: gmailResponse.data.threadId, link: html_link};
+                            }
+                            return {id: gmailResponse.data.id, threadId: gmailResponse.data.threadId, link: undefined}
                         }
                     }
                     break;
@@ -149,7 +152,7 @@ export class EmailHelper {
         // @ts-ignore
         const body = gmailResponse.data.payload.parts[0].body.data;
         if (body) {
-            return atob(body).toLocaleLowerCase();
+            return atob(body);
         } else {
             throw new Error(`Email with subject: ${subject} body is empty`)
         }
@@ -159,6 +162,23 @@ export class EmailHelper {
         await AuxGoogleAuth.setup();
         const profile = await AuxGoogleAuth.gmailClient.users.getProfile({userId: "me"});
         return profile.data.emailAddress;
+    }
+
+    private async getUrl(body: string) {
+        const links = [];
+        const split = body.split('\r\n');
+        for (const splitElement of split) {
+            if (splitElement.toString().startsWith('https')) {
+                links.push(splitElement);
+            }
+        }
+        if (links.length > 1) {
+            return links.sort(function (a, b) {
+                return b.length - a.length;
+            })[0];
+        } else {
+            return links[0];
+        }
     }
 }
 
