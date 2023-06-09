@@ -45,7 +45,6 @@ export class AuxGoogleAuth {
 
    static get gmailClient(): googleType.gmail_v1.Gmail {
         return google.gmail({version: 'v1', auth: this._oAuth2Client});
-
     }
 
     public static async setup() {
@@ -60,7 +59,6 @@ export class AuxGoogleAuth {
     private static async authorize(credentials: any) {
         const {client_secret, client_id, redirect_uris} = credentials.installed;
         const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-
         // Check if we have previously stored a token.
         try {
             let token = fs.readFileSync(TOKEN_PATH);
@@ -109,3 +107,8 @@ export class AuxGoogleAuth {
 }
 
 export default new AuxGoogleAuth();
+
+export interface currentUser{
+    name: string,
+    email: string
+}

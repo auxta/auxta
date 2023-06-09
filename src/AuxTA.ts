@@ -10,6 +10,7 @@ import {startSuite} from "./auxta/utilities/start-suite.helper";
 import {createEmptyReport} from "./auxta/services/report.service";
 import Aux2faAuth from "./macros/helpers/Aux2faAuth";
 import {AuxGoogleAuth} from "./macros/helpers/AuxGoogleAuth";
+import emailHelper from "./macros/helpers/emailHelper";
 
 
 dotenv.config();
@@ -19,6 +20,7 @@ class AuxTA extends FunctionHelper {
     public aux2fa = Aux2faAuth;
     public google = AuxGoogleAuth
     public config = c;
+    public email = emailHelper
 
     private readonly uploadModel: UploadModel;
 
