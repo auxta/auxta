@@ -91,3 +91,7 @@ npm i
 }
 
 ```
+
+##backlog
+Implement a way to scout the skipped steps w/ $failed=true, $skipped=++
+control click go to source directory
