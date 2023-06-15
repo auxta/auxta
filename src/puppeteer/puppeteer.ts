@@ -16,13 +16,20 @@ export class Puppeteer {
 
     public async startBrowser() {
         let args = [
-            '--start-maximized',
+            '--start-maximized'
         ];
-        if (process.env.ENVIRONMENT != 'LOCAL')
+        let env = {};
+        if (process.env.ENVIRONMENT != 'LOCAL') {
             args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
+            args.push("--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu")
+            env = {
+                DISPLAY: ":10.0"
+            }
+        }
         this.browser = await puppeteer.launch({
             executablePath: puppeteer.executablePath(),
             args,
+            env,
             ignoreDefaultArgs: ["--enable-automation"],
             defaultViewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
                 width: config.screenWidth,
