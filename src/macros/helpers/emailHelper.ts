@@ -1,6 +1,6 @@
 import log from "../../auxta/services/log.service";
 import {AuxGoogleAuth} from "./AuxGoogleAuth";
-import {atob} from "buffer";
+const base64 = require('js-base64');
 import {gmail_v1} from "googleapis";
 import {StepStatus} from "../../AuxTA";
 
@@ -149,13 +149,19 @@ export class EmailHelper {
     }
 
     private getBody(subject: string, gmailResponse: any) {
-        // @ts-ignore
-        const body = gmailResponse.data.payload.parts[0].body.data;
-        if (body) {
-            return atob(body);
-        } else {
-            throw new Error(`Email with subject: ${subject} body is empty`)
+        try {
+            // @ts-ignore
+            const body = gmailResponse.data.payload.parts[0].body.data;
+            if (body) {
+                return base64.decode(body);
+            } else {
+                return '';
+            }
+        } catch (e) {
+            console.log(e);
+            throw new Error(`Email with subject: ${subject} body ${gmailResponse.data.payload.parts[0].body.data} is empty`);
         }
+
     }
 
     private async getCurrentUserEmail() {
@@ -166,7 +172,7 @@ export class EmailHelper {
 
     private async getUrl(body: string) {
         const links = [];
-        const split = body.split('\r\n');
+        const split = body.split('\r\n\r\n');
         for (const splitElement of split) {
             if (splitElement.toString().startsWith('https')) {
                 links.push(splitElement);
