@@ -5,18 +5,20 @@ export class UploadModel {
     private _digitalProduct: string;
     private _baseUrl: string;
     private readonly _organization: string;
+    private _bucket: string;
     private _environment: string;
     private _currentSuite: string;
     private _retries: number;
     private _featureName: string;
     private _scenarioName: string;
 
-    constructor(org: string, baseUrl: string, digitalProduct: string, environment: string) {
+    constructor(org: string, baseUrl: string, digitalProduct: string, environment: string, bucket: string) {
         this._reportId = '';
         this._nextSuites = [];
         this._currentSuite = '';
         this._retries = 0
         this._organization = org;
+        this._bucket = bucket
         this._digitalProduct = digitalProduct;
         this._environment = environment;
         this._baseUrl = baseUrl;
@@ -34,6 +36,14 @@ export class UploadModel {
 
     get currentSuite(): string {
         return this._currentSuite;
+    }
+
+    get bucket(): string {
+        return this._bucket;
+    }
+
+    set bucket(value: string) {
+        this._bucket = value;
     }
 
     get retries(): number {

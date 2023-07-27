@@ -59,6 +59,7 @@ export async function createEmptyReport(body: any): Promise<string> {
         {
             environment: body.environment,
             digitalProductName: body.digitalProduct,
+            bucket: body.bucket,
             start: new Date(),
             url: body.baseUrl
         },
