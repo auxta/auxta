@@ -1,8 +1,9 @@
 import log from "../../auxta/services/log.service";
 import {AuxGoogleAuth} from "./AuxGoogleAuth";
-const base64 = require('js-base64');
 import {gmail_v1} from "googleapis";
 import {StepStatus} from "../../AuxTA";
+
+const base64 = require('js-base64');
 
 const MailComposer = require('nodemailer/lib/mail-composer');
 
@@ -23,16 +24,16 @@ export class EmailHelper {
      */
     public async verifyEmail(from_name: string, from_email: string, subject: string, body: string, link: boolean = false) {
         await AuxGoogleAuth.setup();
-        const res = await AuxGoogleAuth.gmailClient.users.messages.list({
-            userId: "me",
-            maxResults: 3
-        });
-        const messagesIds = res.data.messages;
-        if (!messagesIds || messagesIds.length === 0) {
-            throw new Error('No messagesIds found.')
-        }
         let timeoutCount = 12000;
         while (timeoutCount <= 60000) {
+            const res = await AuxGoogleAuth.gmailClient.users.messages.list({
+                userId: "me",
+                maxResults: 1
+            });
+            const messagesIds = res.data.messages;
+            if (!messagesIds || messagesIds.length === 0) {
+                throw new Error('No messagesIds found.')
+            }
             for (const messageId of messagesIds) {
                 if (messageId.id) {
                     const gmailResponse = await AuxGoogleAuth.gmailClient.users.messages.get({
@@ -57,7 +58,11 @@ export class EmailHelper {
                             })
                             if (link) {
                                 const html_link = await this.getUrl(message_body);
-                                return {id: gmailResponse.data.id, threadId: gmailResponse.data.threadId, link: html_link};
+                                return {
+                                    id: gmailResponse.data.id,
+                                    threadId: gmailResponse.data.threadId,
+                                    link: html_link
+                                };
                             }
                             return {id: gmailResponse.data.id, threadId: gmailResponse.data.threadId, link: ''}
                         }
