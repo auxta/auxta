@@ -28,7 +28,7 @@ export class EmailHelper {
         while (timeoutCount <= 60000) {
             const res = await AuxGoogleAuth.gmailClient.users.messages.list({
                 userId: "me",
-                maxResults: 1
+                maxResults: 3
             });
             const messagesIds = res.data.messages;
             if (!messagesIds || messagesIds.length === 0) {
