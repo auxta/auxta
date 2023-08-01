@@ -95,3 +95,11 @@ npm i
 ##backlog
 Implement a way to scout the skipped steps w/ $failed=true, $skipped=++
 control click go to source directory
+
+
+##Improvements
+* introduce the new headless mode, by Puppeteer.
+
+### platform improvements
+Also some improvements to the platform in general:
+* get the console state after a fail, this would increase the value of each failed report.
