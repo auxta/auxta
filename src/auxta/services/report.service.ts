@@ -58,7 +58,8 @@ export async function createEmptyReport(body: any): Promise<string> {
         config.auxtaURL + "create-empty-report",
         {
             environment: body.environment,
-            digitalProductName: body.digitalProduct,
+            digitalProductToken: body.digitalProduct,
+            bucket: body.bucket,
             start: new Date(),
             url: body.baseUrl
         },
@@ -171,7 +172,7 @@ export async function postNotifications( body: UploadModel) {
     let token = await auth();
     await axios.post(`${config.auxtaURL}post-notification-after-run-background`, {
         environmentName: body.environment,
-        digitalProductName: body.digitalProduct,
+        digitalProductToken: body.digitalProduct,
         organizationName: body.organization,
         reportId: body.reportId,
     }, headers(token));
@@ -182,7 +183,7 @@ export async function postNotificationsOnFail( body: UploadModel) {
     let token = await auth();
     await axios.post(`${config.auxtaURL}post-notifications-after-case-fail-background`, {
         environmentName: body.environment,
-        digitalProductName: body.digitalProduct,
+        digitalProductToken: body.digitalProduct,
         organizationName: body.organization,
         reportId: body.reportId,
         featureName: body.featureName,

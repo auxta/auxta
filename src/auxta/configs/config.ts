@@ -4,6 +4,8 @@ export function setupConfig(jsonConfig: any) {
     if (!jsonConfig.digitalProduct) throw new Error("digitalProduct");
     config.digitalProduct = jsonConfig.digitalProduct;
     if (!jsonConfig.testsURL) throw new Error("testsURL");
+    config.bucket = jsonConfig.bucket;
+    if (!jsonConfig.testsURL) throw new Error("testsURL");
     config.netlifyPath = (process.env.ENVIRONMENT == 'LOCAL') ? 'http://localhost:9999/' : jsonConfig.testsURL;
     if (!jsonConfig.organization) throw new Error("organization");
     config.organization = jsonConfig.organization;
@@ -29,12 +31,13 @@ export function setupOverrideConfig(overrideConfig: any){
 }
 
 export let config = {
-    auxtaURL: "https://auxta.live/.netlify/functions/",
+    auxtaURL: "https://acceptance--auxta.netlify.app/.netlify/functions/",
     baseURL: "",
     siteURL: "",
     organization: "",
     netlifyPath: "",
     digitalProduct: "",
+    bucket:"",
     token: "",
     screenWidth: 1920,
     screenHeight: 1080,
