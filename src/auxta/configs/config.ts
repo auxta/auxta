@@ -31,7 +31,7 @@ export function setupOverrideConfig(overrideConfig: any){
 }
 
 export let config = {
-    auxtaURL: "https://acceptance--auxta.netlify.app/.netlify/functions/",
+    auxtaURL: "https://auxta.live/.netlify/functions/",
     baseURL: "",
     siteURL: "",
     organization: "",
