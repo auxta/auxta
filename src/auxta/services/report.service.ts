@@ -174,6 +174,7 @@ export async function postNotifications( body: UploadModel) {
         environmentName: body.environment,
         digitalProductToken: body.digitalProduct,
         organizationName: body.organization,
+        bucketName: body.bucket,
         reportId: body.reportId,
     }, headers(token));
 }
@@ -185,6 +186,7 @@ export async function postNotificationsOnFail( body: UploadModel) {
         environmentName: body.environment,
         digitalProductToken: body.digitalProduct,
         organizationName: body.organization,
+        bucketName: body.bucket,
         reportId: body.reportId,
         featureName: body.featureName,
         scenarioName: body.scenarioName
