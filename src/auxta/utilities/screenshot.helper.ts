@@ -23,6 +23,7 @@ export async function captureScreenshot() {
         console.log(pages.length);
         console.log(e);
         log.push('When', e.toString(), StatusOfStep.FAILED);
+        return undefined
     }
     return undefined
 }

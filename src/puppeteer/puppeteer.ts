@@ -97,6 +97,9 @@ export class Puppeteer {
                 errMessage = err;
                 statusCode = 500;
                 screenshotBuffer = await captureScreenshot();
+                if (screenshotBuffer == undefined) {
+                    screenshotBuffer = await captureScreenshot();
+                }
                 log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
                 await postNotificationsOnFail(uploadModel);
             }
