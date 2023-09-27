@@ -27,6 +27,7 @@ export class Puppeteer {
             }
         }
         this.browser = await puppeteer.launch({
+            slowMo: process.env.slowMo ? Number(process.env.slowMo) : 0,
             executablePath: puppeteer.executablePath(),
             args,
             env,
