@@ -4,11 +4,19 @@ import { StatusOfStep } from "../../auxta/enums/status-of.step";
 import { StepStatus } from "../../AuxTA";
 import { ExtendDefaultPage } from "./extend-default-page";
 import { KnownDevices } from "puppeteer";
+import {captureScreenshot} from "../../auxta/utilities/screenshot.helper";
 
 export class FunctionHelper extends ExtendDefaultPage {
 
-    public log(keyword: string, name: string, status: StatusOfStep) {
-        log.push(keyword, name, status)
+    public log(keyword: string, name: string, status: StatusOfStep, screenshot?: string) {
+        log.push(keyword, name, status, screenshot)
+    }
+
+    public async screenshot() {
+        const screenshotBuffer = await captureScreenshot();
+        if (screenshotBuffer) {
+            return screenshotBuffer.toString('base64');
+        }
     }
 
     public suggest(name: string) {

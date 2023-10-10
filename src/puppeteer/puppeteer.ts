@@ -67,6 +67,7 @@ export class Puppeteer {
             let statusCode: number = 200;
 
             let consoleStack: any[] = [];
+            let httpsStack: any[] = [];
             try {
                 await log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
                 await this.startBrowser()
@@ -75,9 +76,9 @@ export class Puppeteer {
                     // @ts-ignore
                     .on('pageerror', ({message}) => consoleStack.push(message))
                     .on('response', (response:any) =>
-                        consoleStack.push(`${response.status()} ${response.url()}`))
+                        httpsStack.push(`${response.status()} ${response.url()}`))
                     .on('requestfailed', (request:any) =>
-                        consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
+                        httpsStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
                 await callback(event)
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
             } catch (err: any) {
@@ -90,6 +91,7 @@ export class Puppeteer {
                         return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
                             currentPageUrl: 'undefined',
                             console: consoleStack,
+                            https: httpsStack,
                             error: 'Browser did not open'
                         });
                     }

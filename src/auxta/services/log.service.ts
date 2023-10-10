@@ -1,4 +1,4 @@
-import { StatusOfStep } from "../enums/status-of.step";
+import {StatusOfStep} from "../enums/status-of.step";
 
 export interface Step {
     keyword: string,
@@ -6,6 +6,10 @@ export interface Step {
     result: {
         status: StatusOfStep,
         duration: number
+        embedding?: {
+            data: string,
+            mime_type: string
+        },
     }
 }
 
@@ -37,11 +41,24 @@ export class LogSteps {
         }
     }
 
-    public push(keyword: string, name: string, status: StatusOfStep) {
+    public push(keyword: string, name: string, status: StatusOfStep, screenshot = '') {
         console.log(`System log -- status: ${status} -- : ${name} `);
         this.statusCounter[status]++;
         const currentStep = new Date().getTime();
-        this.stepLog.push({keyword, name, result: {status, duration: currentStep - this.lastStepTime}});
+        if (screenshot != '') {
+            const embedding = {
+                data: screenshot,
+                mime_type: "image/png"
+            };
+            this.stepLog.push({
+                keyword,
+                name,
+                result: {status, duration: currentStep - this.lastStepTime, embedding: embedding}
+            });
+        } else {
+            this.stepLog.push({keyword, name, result: {status, duration: currentStep - this.lastStepTime}});
+        }
+
         this.lastStepTime = currentStep;
     }
 
