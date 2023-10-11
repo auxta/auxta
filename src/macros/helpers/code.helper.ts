@@ -1,10 +1,10 @@
 import log from "../../auxta/services/log.service";
 import puppeteer from "../../puppeteer/puppeteer";
-import { StatusOfStep } from "../../auxta/enums/status-of.step";
-import { StepStatus } from "../../AuxTA";
-import { ExtendDefaultPage } from "./extend-default-page";
-import { KnownDevices } from "puppeteer";
-import {captureScreenshot} from "../../auxta/utilities/screenshot.helper";
+import {StatusOfStep} from "../../auxta/enums/status-of.step";
+import {StepStatus} from "../../AuxTA";
+import {ExtendDefaultPage} from "./extend-default-page";
+import {KnownDevices} from "puppeteer";
+import {captureScreenshotPage} from "../../auxta/utilities/screenshot.helper";
 
 export class FunctionHelper extends ExtendDefaultPage {
 
@@ -12,8 +12,8 @@ export class FunctionHelper extends ExtendDefaultPage {
         log.push(keyword, name, status, screenshot)
     }
 
-    public async screenshot() {
-        const screenshotBuffer = await captureScreenshot();
+    public async screenshot(page = puppeteer.defaultPage) {
+        const screenshotBuffer = await captureScreenshotPage(page);
         if (screenshotBuffer) {
             return screenshotBuffer.toString('base64');
         }
