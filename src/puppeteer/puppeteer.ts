@@ -66,32 +66,34 @@ export class Puppeteer {
             let errMessage: any;
             let statusCode: number = 200;
 
-            let consoleStack: any[] = [];
-            let httpsStack: any[] = [];
+            let consoleMessage:any [] = [];
+            let httpsMessage:any [] = [];
             try {
-                await log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
+                log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
                 await this.startBrowser()
                 this.defaultPage.on('console', (message:any) =>
-                    consoleStack.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
+                    consoleMessage.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
                     // @ts-ignore
-                    .on('pageerror', ({message}) => consoleStack.push(message))
+                    .on('pageerror', ({message}) => consoleMessage.push(message))
                     .on('response', (response:any) =>
-                        httpsStack.push(`${response.status()} ${response.url()}`))
+                        httpsMessage.push(`${response.status()} ${response.url()}`))
                     .on('requestfailed', (request:any) =>
-                        httpsStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
+                        httpsMessage.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
                 await callback(event)
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
             } catch (err: any) {
                 console.log("Error message: \n", err);
                 let browser_start_retry = err.toString().includes("Failed to launch the browser process!");
-
+                const pages = await this.defaultPage.browser().pages();
+                consoleMessage.push('pages');
+                consoleMessage.push(pages.length);
                 if (browser_start_retry) {
                     const result = await retrySuite(uploadModel.nextSuites, uploadModel.reportId, uploadModel.currentSuite, uploadModel.retries);
                     if (!result) {
                         return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
                             currentPageUrl: 'undefined',
-                            console: consoleStack,
-                            https: httpsStack,
+                            console: consoleMessage,
+                            https: httpsMessage,
                             error: 'Browser did not open'
                         });
                     }
@@ -100,11 +102,6 @@ export class Puppeteer {
                 errMessage = err;
                 statusCode = 500;
                 screenshotBuffer = await captureScreenshot();
-                const pages = await this.defaultPage.browser().pages();
-                consoleStack.push('pages');
-                consoleStack.push(pages.length);
-                consoleStack.push('screenshotBuffer');
-                consoleStack.push(screenshotBuffer);
                 log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
                 await postNotificationsOnFail(uploadModel);
             }
@@ -113,7 +110,8 @@ export class Puppeteer {
 
             return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
                 currentPageUrl: url,
-                console: consoleStack,
+                console: consoleMessage,
+                https: httpsMessage,
                 error: errMessage
             });
         } catch (e) {

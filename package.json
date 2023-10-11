@@ -1,6 +1,6 @@
 {
   "name": "@auxcode/auxta",
-  "version": "1.3.39",
+  "version": "1.3.41",
   "description": "",
   "main": "./build/cjs/AuxTA.js",
   "module": "./build/esm/AuxTA.js",
@@ -24,9 +24,9 @@
     "js-base64": "^3.7.5",
     "node-2fa": "^2.0.3",
     "nodemailer": "^6.9.2",
-    "puppeteer": "^19.7.5",
+    "puppeteer": "^21.3.6",
     "readline": "^1.3.0",
-    "typescript": "^4.5.2"
+    "typescript": "^5.2.2"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.16.0"
