@@ -9,16 +9,8 @@ export interface Feature {
     featureUri: string,
     status: string,
     scenariosCount: number
+    lastFiveStepsHash: number
 }
-
-export interface Scenario {
-    featureId: string,
-    featureName: string,
-    featureUri: string,
-    status: string,
-    scenariosCount: number
-}
-
 export interface Steps {
     failedSteps: number,
     passedSteps: number,
@@ -142,7 +134,8 @@ export async function updateReport(reportId: string, feature: Feature, steps: St
                     name: feature.featureName,
                     uri: feature.featureUri,
                     status: feature.status,
-                    scenariosCount: feature.scenariosCount
+                    scenariosCount: feature.scenariosCount,
+                    lastFiveStepsHash: feature.lastFiveStepsHash
                 },
                 ...steps
             }

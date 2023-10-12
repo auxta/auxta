@@ -25,7 +25,8 @@ export async function onTestEnd(body: any, featureName: string, scenarioName: st
                 featureName: featureRes.name,
                 featureUri: featureRes.uri,
                 status: featureRes.status,
-                scenariosCount: featureRes.scenariosCount
+                scenariosCount: featureRes.scenariosCount,
+                lastFiveStepsHash: featureRes.lastFiveStepsHash
             }
             const stepCounts: Steps = {
                 failedSteps: log.getStatusCount(StatusOfStep.FAILED),
