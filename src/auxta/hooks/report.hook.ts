@@ -1,12 +1,12 @@
 import {basename} from 'path'
 import log from "../services/log.service";
 import {
-    Feature,
+    Scenarios,
     postNotifications,
     Steps,
     updateReport,
-    uploadFeature,
-    uploadScenario
+    uploadScenario,
+    uploadStep
 } from '../services/report.service';
 import {startSuite} from '../utilities/start-suite.helper';
 import {StatusOfStep} from "../enums/status-of.step";
@@ -18,15 +18,15 @@ export async function onTestEnd(body: any, featureName: string, scenarioName: st
         console.log('--- Uploading scenario and feature for AUXTA report ---');
         const stepsArr = log.returnScenarioReport();
         try {
-            const scenarioRes = await uploadScenario(stepsArr, scenarioName, screenshotBuffer, errMessage);
-            const featureRes = await uploadFeature(scenarioRes, featureName, basename(__filename), (statusCode != 200));
-            const feature: Feature = {
-                featureId: featureRes.featureRef,
-                featureName: featureRes.name,
-                featureUri: featureRes.uri,
-                status: featureRes.status,
-                scenariosCount: featureRes.scenariosCount,
-                lastFiveStepsHash: featureRes.lastFiveStepsHash
+            const stepRes = await uploadStep(stepsArr, scenarioName, screenshotBuffer, errMessage);
+            const scenarioRes = await uploadScenario(stepRes, featureName, basename(__filename), (statusCode != 200));
+            const scenario: Scenarios = {
+                scenarioId: scenarioRes.scenarioRef,
+                scenarioName: scenarioRes.name,
+                scenarioUri: scenarioRes.uri,
+                status: scenarioRes.status,
+                scenariosCount: scenarioRes.scenariosCount,
+                lastFiveStepsHash: scenarioRes.lastFiveStepsHash
             }
             const stepCounts: Steps = {
                 failedSteps: log.getStatusCount(StatusOfStep.FAILED),
@@ -35,7 +35,7 @@ export async function onTestEnd(body: any, featureName: string, scenarioName: st
                 suggestedSteps: log.getStatusCount(StatusOfStep.SUGGESTION)
             }
             isFinal = (!(body.nextSuites && body.nextSuites.length > 0));
-            await updateReport(body.reportId, feature, stepCounts, isFinal);
+            await updateReport(body.reportId, scenario, stepCounts, isFinal);
             console.log('--- Finished uploading report data to AUXTA ---');
         } catch (error) {
             console.log('--- Failed to update report in AUXTA ---')

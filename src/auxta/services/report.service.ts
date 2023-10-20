@@ -3,10 +3,10 @@ import { Step } from "./log.service";
 import { config } from "../configs/config";
 import { UploadModel } from "../models/upload.model";
 
-export interface Feature {
-    featureId: string,
-    featureName: string,
-    featureUri: string,
+export interface Scenarios {
+    scenarioId: string,
+    scenarioName: string,
+    scenarioUri: string,
     status: string,
     scenariosCount: number
     lastFiveStepsHash: number
@@ -59,14 +59,14 @@ export async function createEmptyReport(body: any): Promise<string> {
     )).data.reportId;
 }
 
-export async function uploadScenario(stepLog: Step[], scenarioName: string, screenshot?: Buffer, errMessage?: object) {
+export async function uploadStep(stepLog: Step[], scenarioName: string, screenshot?: Buffer, errMessage?: object) {
     let scenarios = [];
     let token = await auth();
     let lastStep = stepLog[stepLog.length - 1];
     const stepLogFormat = JSON.parse(JSON.stringify(stepLog));
     stepLogFormat.pop();
     let output = (await axios.post(
-        config.auxtaURL + "create-scenario",
+        config.auxtaURL + "create-steps",
         {
             json: {
                 name: scenarioName,
@@ -97,7 +97,7 @@ export async function uploadScenario(stepLog: Step[], scenarioName: string, scre
         headers(token)
     )).data.scenarios;
     scenarios.push({
-        scenarioRef: output.scenarioRef,
+        stepRef: output.stepRef,
         name: output.name,
         status: output.status,
         stepsCount: output.stepsCount
@@ -105,23 +105,23 @@ export async function uploadScenario(stepLog: Step[], scenarioName: string, scre
     return scenarios;
 }
 
-export async function uploadFeature(scenarioId: any[], scenarioName: string, uri: string, hasFailed: boolean) {
+export async function uploadScenario(stepRes: any[], scenarioName: string, uri: string, hasFailed: boolean) {
     let token = await auth();
     return (await axios.post(
-        config.auxtaURL + "create-feature",
+        config.auxtaURL + "create-scenario",
         {
             json: {
                 name: scenarioName,
                 uri: uri
             },
-            scenarios: scenarioId,
+            scenarios: stepRes,
             hasFailed: hasFailed
         },
         headers(token)
     )).data;
 }
 
-export async function updateReport(reportId: string, feature: Feature, steps: Steps, isFinal: boolean) {
+export async function updateReport(reportId: string, scenario: Scenarios, steps: Steps, isFinal: boolean) {
     let token = await auth();
     await axios.post(
         config.auxtaURL + "update-inprogress-report",
@@ -129,13 +129,13 @@ export async function updateReport(reportId: string, feature: Feature, steps: St
             reportId: reportId,
             isFinal: isFinal,
             data: {
-                feature: {
-                    featureRef: feature.featureId,
-                    name: feature.featureName,
-                    uri: feature.featureUri,
-                    status: feature.status,
-                    scenariosCount: feature.scenariosCount,
-                    lastFiveStepsHash: feature.lastFiveStepsHash
+                scenario: {
+                    scenarioRef: scenario.scenarioId,
+                    name: scenario.scenarioName,
+                    uri: scenario.scenarioUri,
+                    status: scenario.status,
+                    scenariosCount: scenario.scenariosCount,
+                    lastFiveStepsHash: scenario.lastFiveStepsHash
                 },
                 ...steps
             }
