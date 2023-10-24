@@ -188,7 +188,6 @@ export class FunctionHelper extends ExtendDefaultPage {
         await loginPage.keyboard.press('Enter');
         await this.waitForSelector('visible', no_button, 60000, loginPage);
         await loginPage.keyboard.press('Enter');
-        await loginPage.waitForNetworkIdle();
     }
 
 }
