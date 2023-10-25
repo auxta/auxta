@@ -151,14 +151,14 @@ export class FunctionHelper extends ExtendDefaultPage {
         await pages[pages.length - 1].close();
     }
 
-    public async microsoftLogin(button: string, email: string, password: string) {
+    public async microsoftLogin(button: string, email: string, password: string, page = puppeteer.defaultPage) {
         const email_input = 'input[type="email"]';
         const password_input = 'input[type="password"]';
         const next_button = 'input[value="Next"]';
         const sign_in_button = 'input[value="Sign in"]';
         const no_button = 'input.ext-secondary';
         await this.clickAndWaitForPageToBeCreated(button);
-        const pages = await puppeteer.defaultPage.browser().pages();
+        const pages = await page.browser().pages();
         const loginPage = pages[pages.length - 1];
         await this.extend_page_functions(loginPage);
         await loginPage.waitForNetworkIdle();
@@ -167,13 +167,13 @@ export class FunctionHelper extends ExtendDefaultPage {
         await loginPage.keyboard.press('Enter');
         await loginPage.waitForNetworkIdle();
         // if() here check is container with asking Work or Personal is account?
-        let isWorkOrPersonalVisible = await puppeteer.defaultPage.$('div.table');
+        let isWorkOrPersonalVisible = await page.$('div.table');
         if (!!isWorkOrPersonalVisible) {
-            await (await puppeteer.defaultPage.$$('div.table'))[0].click();
+            await (await page.$$('div.table'))[0].click();
             console.log('Then', 'I clicked Work or school account', StepStatus.PASSED);
-            await puppeteer.defaultPage.waitForNetworkIdle();
+            await page.waitForNetworkIdle();
         } else {
-            await puppeteer.defaultPage.waitForNetworkIdle();
+            await page.waitForNetworkIdle();
         }
         await this.waitForSelector('visible', sign_in_button, 60000, loginPage);
         await this.waitForSelector('visible', password_input, 6000, loginPage);
