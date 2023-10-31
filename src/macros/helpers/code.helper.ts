@@ -5,6 +5,7 @@ import {StepStatus} from "../../AuxTA";
 import {ExtendDefaultPage} from "./extend-default-page";
 import {KnownDevices} from "puppeteer";
 import {captureScreenshotPage} from "../../auxta/utilities/screenshot.helper";
+import {compareScreenshots} from "../../auxta/services/report.service";
 
 export class FunctionHelper extends ExtendDefaultPage {
 
@@ -16,6 +17,19 @@ export class FunctionHelper extends ExtendDefaultPage {
         const screenshotBuffer = await captureScreenshotPage(page);
         if (screenshotBuffer) {
             return screenshotBuffer.toString('base64');
+        }
+    }
+
+    public async screenshotCompare(key: string, page = puppeteer.defaultPage) {
+        if (process.env.ENVIRONMENT !== 'LOCAL') {
+            const screenshotBuffer = await captureScreenshotPage(page);
+            if (screenshotBuffer) {
+                const screenshot = screenshotBuffer.toString('base64');
+                await compareScreenshots(key, screenshot);
+                log.push('Then', `I compare screenshots with key ${key}`, StatusOfStep.PASSED, screenshot, key)
+            }
+        } else {
+            log.push('Then', `I compare screenshots with key ${key}`, StatusOfStep.PASSED, undefined, key)
         }
     }
 
@@ -157,7 +171,7 @@ export class FunctionHelper extends ExtendDefaultPage {
         const next_button = 'input[value="Next"]';
         const sign_in_button = 'input[value="Sign in"]';
         const no_button = 'input.ext-secondary';
-        await this.clickAndWaitForPageToBeCreated(button);
+        await this.clickAndWaitForPageToBeCreated(button, page);
         const pages = await page.browser().pages();
         const loginPage = pages[pages.length - 1];
         await this.extend_page_functions(loginPage);

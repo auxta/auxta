@@ -23,7 +23,7 @@ export class EmailHelper {
      * @param link
      */
     public async verifyEmail(from_name: string, from_email: string, subject: string, body: string, link: boolean = false) {
-        await AuxGoogleAuth.setup();
+        await AuxGoogleAuth.setupHeadless();
         let timeoutCount = 12000;
         while (timeoutCount <= 60000) {
             const res = await AuxGoogleAuth.gmailClient.users.messages.list({
@@ -89,7 +89,7 @@ export class EmailHelper {
 
 
     public async sendEmail(to: string, subject: string, body: string) {
-        await AuxGoogleAuth.setup();
+        await AuxGoogleAuth.setupHeadless();
         const options = {
             to: to,
             from: this.getCurrentUserEmail(),
@@ -110,7 +110,7 @@ export class EmailHelper {
      */
 
     public async replyEmail(id: string, threadId: string, body: string) {
-        await AuxGoogleAuth.setup();
+        await AuxGoogleAuth.setupHeadless();
         const gmailResponse = await AuxGoogleAuth.gmailClient.users.messages.get({
             userId: "me",
             id: id,
@@ -170,7 +170,7 @@ export class EmailHelper {
     }
 
     private async getCurrentUserEmail() {
-        await AuxGoogleAuth.setup();
+        await AuxGoogleAuth.setupHeadless();
         const profile = await AuxGoogleAuth.gmailClient.users.getProfile({userId: "me"});
         return profile.data.emailAddress;
     }

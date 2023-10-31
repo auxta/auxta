@@ -11,6 +11,7 @@ export async function captureScreenshot() {
 
         const screenshotBuffer = await lastPage.screenshot({
                 fullPage: true,
+                captureBeyondViewport: false,
                 encoding: 'binary'
             }
         );
@@ -27,6 +28,7 @@ export async function captureScreenshotPage(page: Page) {
     try{
         const screenshotBuffer = await page.screenshot({
                 fullPage: true,
+                captureBeyondViewport: false,
                 encoding: 'binary'
             }
         );

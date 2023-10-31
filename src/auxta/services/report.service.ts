@@ -161,6 +161,19 @@ export async function getLastDayResults(): Promise<any> {
     )).data.results;
 }
 
+export async function compareScreenshots(key: string, screenshot: string): Promise<any> {
+    let token = await auth();
+    const embedding = {
+        data: screenshot,
+        mime_type: "image/png"
+    };
+    return await axios.post(`${config.auxtaURL}save-compared-screenshot`, {
+        organization: config.organization,
+        key: key,
+        embedding: embedding,
+    }, headers(token));
+}
+
 export async function postNotifications( body: UploadModel) {
     let token = await auth();
     await axios.post(`${config.auxtaURL}post-notification-after-run-background`, {

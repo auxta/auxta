@@ -1,7 +1,13 @@
+import {config} from "../../auxta/configs/config";
+import puppeteer from "../../puppeteer/puppeteer";
+import FunctionHelper from "../helpers/code.helper";
+import StatusOfStep from "../../auxta/enums/status-of.step";
+
 const fs = require('fs');
 const readline = require('readline');
 // @ts-ignore
 import googleType = require("googleapis");
+
 const {google} = require("googleapis");
 
 const SCOPES = [
@@ -18,6 +24,11 @@ const SCOPES = [
     'https://www.googleapis.com/auth/gmail.insert',
 ];
 const TOKEN_PATH = 'token.json';
+
+let TOKEN = '';
+
+let EMAIL = '';
+let PASSWORD = '';
 
 export class AuxGoogleAuth {
     // @ts-ignore
@@ -43,12 +54,21 @@ export class AuxGoogleAuth {
         return google;
     }
 
-   static get gmailClient(): googleType.gmail_v1.Gmail {
+    static get gmailClient(): googleType.gmail_v1.Gmail {
         return google.gmail({version: 'v1', auth: this._oAuth2Client});
     }
 
-    public static async setup() {
+    public static async setupBrowser() {
         await this.authorize(this.credentialsJson);
+    }
+
+    public static async setEmailPassword(email: string, password: string) {
+        EMAIL = email
+        PASSWORD = password
+    }
+
+    public static async setupHeadless() {
+        await this.authorizeHeadless(this.credentialsJson);
     }
 
     /**
@@ -74,6 +94,23 @@ export class AuxGoogleAuth {
 
     }
 
+    private static async authorizeHeadless(credentials: any) {
+        const {client_secret, client_id, redirect_uris} = credentials.installed;
+        const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+        // Check if we have previously stored a token.
+        try {
+            if (TOKEN) {
+                oAuth2Client.setCredentials(TOKEN);
+                this._oAuth2Client = oAuth2Client;
+                return;
+            }
+            await this.getNewTokenHeadless(oAuth2Client);
+        } catch (e) {
+            await this.getNewTokenHeadless(oAuth2Client);
+        }
+
+    }
+
     /**
      * Get and store new token after prompting for user authorization, and then
      * execute the given callback with the authorized OAuth2 client.
@@ -92,7 +129,7 @@ export class AuxGoogleAuth {
         });
         rl.question('Enter the code from that page here: ', (code: string) => {
             rl.close();
-            oAuth2Client.getToken(code, (err: any, token:any) => {
+            oAuth2Client.getToken(code, (err: any, token: any) => {
                 if (err) return console.error('Error retrieving access token', err);
                 oAuth2Client.setCredentials(token);
                 // Store the token to disk for later program executions
@@ -104,11 +141,66 @@ export class AuxGoogleAuth {
             });
         });
     }
+
+    private static async getNewTokenHeadless(oAuth2Client: any) {
+        const authUrl = oAuth2Client.generateAuthUrl({
+            access_type: 'offline',
+            prompt: 'consent',
+            scope: SCOPES,
+        });
+
+        const code = await this.LogIn(authUrl);
+
+        this._oAuth2Client = await (new Promise(async (resolve, reject) => {
+            await oAuth2Client.getToken(code, (err: any, token: any) => {
+                if (err) return console.error('Error retrieving access token', err);
+                oAuth2Client.setCredentials(token);
+                TOKEN = token;
+                this._oAuth2Client = oAuth2Client;
+                FunctionHelper.log('Then', 'I login with the google account', StatusOfStep.PASSED);
+                resolve(oAuth2Client);
+            });
+        }));
+    }
+
+    private static async LogIn(authUrl: string) {
+        const context = await puppeteer.defaultPage.browser().createIncognitoBrowserContext();
+        const page = await context.newPage();
+        await page.goto(authUrl);
+        await FunctionHelper.waitForSelector( 'visible', '#identifierId', config.timeout, page);
+        await (await page.$('#identifierId'))?.type(EMAIL);
+        await (await page.$$('button'))[3].click();
+        await FunctionHelper.timeout(3000)
+        await FunctionHelper.waitForSelector( 'visible', 'input[type="password"]', config.timeout, page);
+        await (await page.$('input[type="password"]'))?.type(PASSWORD);
+        await (await page.$$('button'))[1].click();
+        await FunctionHelper.timeout(3000)
+        await FunctionHelper.waitForSelector('visible', '#headingText', config.timeout, page);
+        await (await page.$$('button'))[2].click();
+        await FunctionHelper.timeout(3000)
+        const checkbox = await page.$$('input[type="checkbox"]');
+        if (checkbox.length > 0) {
+            await FunctionHelper.waitForSelector('visible', 'input[type="checkbox"]', config.timeout, page);
+            await checkbox[0].click();
+            await (await page.$$('button'))[2].click();
+        } else {
+            await (await page.$$('button'))[2].click();
+        }
+        await FunctionHelper.timeout(3000)
+        const currentUrl = page.url()
+        const code = currentUrl.substring(
+            currentUrl.indexOf("code=") + 5,
+            currentUrl.lastIndexOf("&")
+        );
+        FunctionHelper.log('Then', 'I get the code form the url', StatusOfStep.PASSED);
+        await page.close();
+        return decodeURIComponent(code);
+    }
 }
 
 export default new AuxGoogleAuth();
 
-export interface currentUser{
+export interface currentUser {
     name: string,
     email: string
 }

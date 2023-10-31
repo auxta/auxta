@@ -8,27 +8,33 @@ import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
 import {postNotificationsOnFail} from "../auxta/services/report.service";
 // @ts-ignore
-import puppeteer= require("puppeteer");
+import puppeteer = require("puppeteer-extra");
+// @ts-ignore
+import puppeteerN = require("puppeteer");
 
 export class Puppeteer {
-    public defaultPage!: puppeteer.Page;
-    private browser!: puppeteer.Browser;
+    public defaultPage!: puppeteerN.Page;
+    private browser!: puppeteerN.Browser;
 
     public async startBrowser() {
-        let args = [
-            '--start-maximized'
-        ];
+        let args = [];
         let env = {};
+        if (process.env.ENVIRONMENT === 'LOCAL') {
+            args.push('--start-maximized');
+        }
+
         if (process.env.ENVIRONMENT != 'LOCAL') {
-            args.push(`--window-size=${config.screenWidth},${config.screenHeight}`)
+            args.push(`--window-size=${config.screenWidth ? config.screenWidth : 1920},${config.screenHeight? config.screenHeight : 1080}`)
             args.push("--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu")
             env = {
                 DISPLAY: ":10.0"
             }
         }
-        this.browser = await puppeteer.launch({
+        const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+        puppeteer.default.use(StealthPlugin());
+        this.browser = await puppeteer.default.launch({
             slowMo: process.env.slowMo ? Number(process.env.slowMo) : 0,
-            executablePath: puppeteer.executablePath(),
+            executablePath: puppeteer.default.executablePath(),
             args,
             env,
             ignoreDefaultArgs: ["--enable-automation"],
@@ -37,7 +43,7 @@ export class Puppeteer {
                 height: config.screenHeight
             },
             // Return back to headless for netlify
-            headless: process.env.ENVIRONMENT === 'LOCAL' ? process.env.headless === 'true' : true
+            headless: process.env.ENVIRONMENT === 'LOCAL' ? (process.env.headless === 'true' ? 'new' : false) : 'new'
         });
         this.defaultPage = (await this.browser.pages())[0];
         await auxta.extend_page_functions(this.defaultPage);
