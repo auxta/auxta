@@ -155,10 +155,16 @@ export class EmailHelper {
 
     private getBody(subject: string, gmailResponse: any) {
         try {
+            let decodedBody = '';
             // @ts-ignore
-            const body = gmailResponse.data.payload.parts[0].body.data;
-            if (body) {
-                return base64.decode(body);
+            for (let i = 0; i < gmailResponse.data.payload.parts.length; i++) {
+                const part = gmailResponse.data.payload.parts[i].body;
+                if (part.size > 0) {
+                    decodedBody += base64.decode(part.data);
+                }
+            }
+            if (decodedBody) {
+                return decodedBody;
             } else {
                 return '';
             }
@@ -176,20 +182,9 @@ export class EmailHelper {
     }
 
     private async getUrl(body: string) {
-        const links = [];
-        const split = body.split('\r\n\r\n');
-        for (const splitElement of split) {
-            if (splitElement.toString().startsWith('https')) {
-                links.push(splitElement);
-            }
-        }
-        if (links.length > 1) {
-            return links.sort(function (a, b) {
-                return b.length - a.length;
-            })[0];
-        } else {
-            return links[0];
-        }
+        const httpsStartIndex = body.indexOf('https');
+        const bodyHttpsStartIndexString = body.toString().substring(httpsStartIndex);
+        return bodyHttpsStartIndexString.substring(0, bodyHttpsStartIndexString.indexOf(' ')).replace('"', '')
     }
 }
 
