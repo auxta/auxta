@@ -7,6 +7,7 @@ const fs = require('fs');
 const readline = require('readline');
 // @ts-ignore
 import googleType = require("googleapis");
+import * as process from "process";
 
 const {google} = require("googleapis");
 
@@ -25,10 +26,10 @@ const SCOPES = [
 ];
 const TOKEN_PATH = 'token.json';
 
-let TOKEN = '';
+let TOKEN: string;
 
-let EMAIL = '';
-let PASSWORD = '';
+let EMAIL: string;
+let PASSWORD: string;
 
 export class AuxGoogleAuth {
     // @ts-ignore
@@ -164,37 +165,46 @@ export class AuxGoogleAuth {
     }
 
     private static async LogIn(authUrl: string) {
-        const context = await puppeteer.defaultPage.browser().createIncognitoBrowserContext();
-        const page = await context.newPage();
-        await page.goto(authUrl);
-        await FunctionHelper.waitForSelector( 'visible', '#identifierId', config.timeout, page);
-        await (await page.$('#identifierId'))?.type(EMAIL);
-        await (await page.$$('button'))[3].click();
-        await FunctionHelper.timeout(3000)
-        await FunctionHelper.waitForSelector( 'visible', 'input[type="password"]', config.timeout, page);
-        await (await page.$('input[type="password"]'))?.type(PASSWORD);
-        await (await page.$$('button'))[1].click();
-        await FunctionHelper.timeout(3000)
-        await FunctionHelper.waitForSelector('visible', '#headingText', config.timeout, page);
-        await (await page.$$('button'))[2].click();
-        await FunctionHelper.timeout(3000)
-        const checkbox = await page.$$('input[type="checkbox"]');
-        if (checkbox.length > 0) {
-            await FunctionHelper.waitForSelector('visible', 'input[type="checkbox"]', config.timeout, page);
-            await checkbox[0].click();
+        const email = EMAIL ? EMAIL : process.env.google_account;
+        const password = PASSWORD ? PASSWORD : process.env.google_password;
+        if (email && password) {
+            const context = await puppeteer.defaultPage.browser().createIncognitoBrowserContext();
+            const page = await context.newPage();
+            await page.goto(authUrl);
+            await FunctionHelper.waitForSelector( 'visible', '#identifierId', config.timeout, page);
+            await (await page.$('#identifierId'))?.type(email);
+            await (await page.$$('button'))[3].click();
+            await FunctionHelper.timeout(3000)
+            await FunctionHelper.waitForSelector( 'visible', 'input[type="password"]', config.timeout, page);
+            await (await page.$('input[type="password"]'))?.type(password);
+            await (await page.$$('button'))[1].click();
+            await FunctionHelper.timeout(3000)
+            await FunctionHelper.waitForSelector('visible', '#headingText', config.timeout, page);
             await (await page.$$('button'))[2].click();
+            await FunctionHelper.timeout(3000)
+            const checkbox = await page.$$('input[type="checkbox"]');
+            if (checkbox.length > 0) {
+                await FunctionHelper.waitForSelector('visible', 'input[type="checkbox"]', config.timeout, page);
+                await checkbox[0].click();
+                await (await page.$$('button'))[2].click();
+            } else {
+                await FunctionHelper.waitForSelector('visible', `div[data-email="${email.toLocaleLowerCase()}"]`, config.timeout, page);
+                await (await page.$$('button'))[2].click();
+            }
+            await FunctionHelper.timeout(3000)
+            await FunctionHelper.waitForSelector('visible', '#app', config.timeout, page);
+            const currentUrl = page.url()
+            const code = currentUrl.substring(
+                currentUrl.indexOf("code=") + 5,
+                currentUrl.lastIndexOf("&")
+            );
+            FunctionHelper.log('Then', 'I get the code form the url', StatusOfStep.PASSED);
+            await page.close();
+            return decodeURIComponent(code);
         } else {
-            await (await page.$$('button'))[2].click();
+            throw new Error('The email or password for the google account are empty');
         }
-        await FunctionHelper.timeout(3000)
-        const currentUrl = page.url()
-        const code = currentUrl.substring(
-            currentUrl.indexOf("code=") + 5,
-            currentUrl.lastIndexOf("&")
-        );
-        FunctionHelper.log('Then', 'I get the code form the url', StatusOfStep.PASSED);
-        await page.close();
-        return decodeURIComponent(code);
+
     }
 }
 
