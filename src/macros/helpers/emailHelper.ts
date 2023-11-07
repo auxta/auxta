@@ -24,23 +24,30 @@ export class EmailHelper {
      */
     public async verifyEmail(from_name: string, from_email: string, subject: string, body: string, link: boolean = false) {
         await AuxGoogleAuth.setupHeadless();
+        await new Promise(r => setTimeout(r, 35000));
         let timeoutCount = 12000;
         while (timeoutCount <= 60000) {
             const res = await AuxGoogleAuth.gmailClient.users.messages.list({
                 userId: "me",
-                maxResults: 3
+                maxResults: 20
             });
             const messagesIds = res.data.messages;
             if (!messagesIds || messagesIds.length === 0) {
                 throw new Error('No messagesIds found.')
             }
+            const runs = []
             for (const messageId of messagesIds) {
                 if (messageId.id) {
-                    const gmailResponse = await AuxGoogleAuth.gmailClient.users.messages.get({
+                    runs.push(await AuxGoogleAuth.gmailClient.users.messages.get({
                         userId: "me",
                         id: messageId.id.toString(),
                         format: 'FULL'
-                    })
+                    }))
+                }
+            }
+            await Promise.all(runs);
+            for (const gmailResponse of runs) {
+                if (gmailResponse) {
                     if (gmailResponse.data.payload && gmailResponse.data.id && gmailResponse.data.threadId) {
                         const message_sender = this.getHeader('from', gmailResponse);
                         const message_subject = this.getHeader('subject', gmailResponse);
@@ -56,8 +63,13 @@ export class EmailHelper {
                                     'removeLabelIds': ['UNREAD']
                                 }
                             })
+
                             if (link) {
                                 const html_link = await this.getUrl(message_body);
+                                await AuxGoogleAuth.gmailClient.users.messages.delete({
+                                    userId: "me",
+                                    id: gmailResponse.data.id,
+                                })
                                 return {
                                     id: gmailResponse.data.id,
                                     threadId: gmailResponse.data.threadId,
@@ -67,7 +79,6 @@ export class EmailHelper {
                             return {id: gmailResponse.data.id, threadId: gmailResponse.data.threadId, link: ''}
                         }
                     }
-                    break;
                 }
             }
             await new Promise(r => setTimeout(r, timeoutCount));

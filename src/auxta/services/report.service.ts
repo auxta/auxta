@@ -167,11 +167,11 @@ export async function compareScreenshots(key: string, screenshot: string): Promi
         data: screenshot,
         mime_type: "image/png"
     };
-    return await axios.post(`${config.auxtaURL}save-compared-screenshot`, {
+    return (await axios.post(`${config.auxtaURL}save-compared-screenshot`, {
         organization: config.organization,
         key: key,
         embedding: embedding,
-    }, headers(token));
+    }, headers(token))).data;
 }
 
 export async function postNotifications( body: UploadModel) {

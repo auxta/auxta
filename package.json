@@ -1,6 +1,6 @@
 {
   "name": "@auxcode/auxta",
-  "version": "1.3.53",
+  "version": "1.3.57",
   "description": "",
   "main": "./build/AuxTA.js",
   "types": "./build/AuxTA.d.ts",

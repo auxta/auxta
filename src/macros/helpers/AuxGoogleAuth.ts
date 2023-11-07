@@ -192,7 +192,7 @@ export class AuxGoogleAuth {
                 await (await page.$$('button'))[2].click();
             }
             await FunctionHelper.timeout(3000)
-            await FunctionHelper.waitForSelector('visible', '#app', config.timeout, page);
+            await FunctionHelper.waitForSelector('visible', 'body', config.timeout, page);
             const currentUrl = page.url()
             const code = currentUrl.substring(
                 currentUrl.indexOf("code=") + 5,
