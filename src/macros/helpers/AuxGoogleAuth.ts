@@ -183,12 +183,14 @@ export class AuxGoogleAuth {
             await (await page.$$('button'))[2].click();
             await FunctionHelper.timeout(3000)
             const checkbox = await page.$$('input[type="checkbox"]');
+            await FunctionHelper.timeout(3000)
             if (checkbox.length > 0) {
                 await FunctionHelper.waitForSelector('visible', 'input[type="checkbox"]', config.timeout, page);
                 await checkbox[0].click();
                 await (await page.$$('button'))[2].click();
             } else {
                 await FunctionHelper.waitForSelector('visible', `div[data-email="${email.toLocaleLowerCase()}"]`, config.timeout, page);
+                await FunctionHelper.timeout(6000)
                 await (await page.$$('button'))[2].click();
             }
             await FunctionHelper.timeout(3000)

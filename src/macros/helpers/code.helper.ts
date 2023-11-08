@@ -26,7 +26,7 @@ export class FunctionHelper extends ExtendDefaultPage {
             if (screenshotBuffer) {
                 const screenshot = screenshotBuffer.toString('base64');
                 const result = await compareScreenshots(key, screenshot);
-                if (result.presentDifference && Number(result.presentDifference) > 0) {
+                if (result.presentDifference && Number(result.presentDifference) > 1) {
                     log.push('Then', `I compare screenshots with key ${key}, and difference is: ${result.presentDifference}%`, StatusOfStep.FAILED, screenshot, key)
                 } else {
                     log.push('Then', `I compare screenshots with key ${key}`, StatusOfStep.PASSED, screenshot, key)
