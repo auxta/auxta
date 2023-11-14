@@ -1,6 +1,5 @@
 import log from "../../auxta/services/log.service";
 import {AuxGoogleAuth} from "./AuxGoogleAuth";
-import {gmail_v1} from "googleapis";
 import {StepStatus} from "../../AuxTA";
 
 const base64 = require('js-base64');
@@ -23,68 +22,87 @@ export class EmailHelper {
      * @param link
      */
     public async verifyEmail(from_name: string, from_email: string, subject: string, body: string, link: boolean = false) {
-        await AuxGoogleAuth.setupHeadless();
-        await new Promise(r => setTimeout(r, 35000));
-        let timeoutCount = 12000;
-        while (timeoutCount <= 60000) {
-            const res = await AuxGoogleAuth.gmailClient.users.messages.list({
-                userId: "me",
-                maxResults: 20
-            });
-            const messagesIds = res.data.messages;
-            if (!messagesIds || messagesIds.length === 0) {
-                throw new Error('No messagesIds found.')
-            }
-            const runs = []
-            for (const messageId of messagesIds) {
-                if (messageId.id) {
-                    runs.push(await AuxGoogleAuth.gmailClient.users.messages.get({
-                        userId: "me",
-                        id: messageId.id.toString(),
-                        format: 'FULL'
-                    }))
+        try {
+            log.push('Then', `Logging in two google or getting the token`, StepStatus.PASSED);
+            await AuxGoogleAuth.setupHeadless();
+            log.push('Then', `Done logging in and waiting 35 seconds`, StepStatus.PASSED);
+            await new Promise(r => setTimeout(r, 35000));
+            let timeoutCount = 12000;
+            while (timeoutCount <= 60000) {
+                const res = await AuxGoogleAuth.gmailClient.users.messages.list({
+                    userId: "me",
+                    maxResults: 20
+                });
+                log.push('Then', `Getting the last 20 emails`, StepStatus.PASSED);
+                const messagesIds = res.data.messages;
+                if (!messagesIds || messagesIds.length === 0) {
+                    throw new Error('No messagesIds found.')
                 }
-            }
-            await Promise.all(runs);
-            for (const gmailResponse of runs) {
-                if (gmailResponse) {
-                    if (gmailResponse.data.payload && gmailResponse.data.id && gmailResponse.data.threadId) {
-                        const message_sender = this.getHeader('from', gmailResponse);
-                        const message_subject = this.getHeader('subject', gmailResponse);
-                        const message_body = this.getBody(subject, gmailResponse);
-                        if (message_sender.toLocaleLowerCase().includes(from_email) && message_sender.toLocaleLowerCase().includes(from_name.toLocaleLowerCase()) &&
-                            message_subject.toLocaleLowerCase().includes(subject.toLocaleLowerCase()) && message_body.toLocaleLowerCase().includes(body.toLocaleLowerCase())) {
-                            log.push('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.PASSED);
-                            await AuxGoogleAuth.gmailClient.users.messages.modify({
+                log.push('Then', `Entering main for`, StepStatus.PASSED);
+                for (const messageId of messagesIds) {
+                    if (messageId.id) {
+                        let gmailResponse;
+                        try {
+                            gmailResponse = await AuxGoogleAuth.gmailClient.users.messages.get({
                                 userId: "me",
-                                id: gmailResponse.data.id,
-                                requestBody: {
-                                    'addLabelIds': [],
-                                    'removeLabelIds': ['UNREAD']
-                                }
+                                id: messageId.id.toString(),
+                                format: 'FULL'
                             })
+                        } catch (e) {
+                            continue;
+                        }
+                        if (gmailResponse) {
+                            log.push('Then', `I check payload && id && threadId`, StepStatus.PASSED);
+                            if (gmailResponse.data.payload && gmailResponse.data.id && gmailResponse.data.threadId) {
+                                const message_sender = this.getHeader('from', gmailResponse);
+                                log.push('Then', `I got message_sender`, StepStatus.PASSED);
 
-                            if (link) {
-                                const html_link = await this.getUrl(message_body);
-                                await AuxGoogleAuth.gmailClient.users.messages.delete({
-                                    userId: "me",
-                                    id: gmailResponse.data.id,
-                                })
-                                return {
-                                    id: gmailResponse.data.id,
-                                    threadId: gmailResponse.data.threadId,
-                                    link: html_link
-                                };
+                                const message_subject = this.getHeader('subject', gmailResponse);
+                                log.push('Then', `I got message_body`, StepStatus.PASSED);
+
+                                const message_body = this.getBody(subject, gmailResponse);
+                                log.push('Then', `I got message_body`, StepStatus.PASSED);
+
+                                if (message_sender.toLocaleLowerCase().includes(from_email) && message_sender.toLocaleLowerCase().includes(from_name.toLocaleLowerCase()) &&
+                                    message_subject.toLocaleLowerCase().includes(subject.toLocaleLowerCase()) && message_body.toLocaleLowerCase().includes(body.toLocaleLowerCase())) {
+                                    log.push('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.PASSED);
+                                    await AuxGoogleAuth.gmailClient.users.messages.modify({
+                                        userId: "me",
+                                        id: gmailResponse.data.id,
+                                        requestBody: {
+                                            'addLabelIds': [],
+                                            'removeLabelIds': ['UNREAD']
+                                        }
+                                    })
+                                    log.push('Then', `I got modify email`, StepStatus.PASSED);
+                                    if (link) {
+                                        const html_link = await this.getUrl(message_body);
+                                        log.push('Then', `I get html lik`, StepStatus.PASSED);
+                                        await AuxGoogleAuth.gmailClient.users.messages.delete({
+                                            userId: "me",
+                                            id: gmailResponse.data.id,
+                                        })
+                                        log.push('Then', `I deleted email`, StepStatus.PASSED);
+                                        return {
+                                            id: gmailResponse.data.id,
+                                            threadId: gmailResponse.data.threadId,
+                                            link: html_link
+                                        };
+                                    }
+                                    return {id: gmailResponse.data.id, threadId: gmailResponse.data.threadId, link: ''}
+                                }
                             }
-                            return {id: gmailResponse.data.id, threadId: gmailResponse.data.threadId, link: ''}
                         }
                     }
                 }
+                log.push('Then', `Failed two get the email with the given criteria and waiting 12 seconds`, StepStatus.PASSED);
+                await new Promise(r => setTimeout(r, timeoutCount));
+                timeoutCount += 12000;
             }
-            await new Promise(r => setTimeout(r, timeoutCount));
-            timeoutCount += 12000;
+            await log.push('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.FAILED);
+        } catch (e: any) {
+            throw new Error(e);
         }
-        await log.push('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.FAILED);
     }
 
 
@@ -198,9 +216,5 @@ export class EmailHelper {
         return bodyHttpsStartIndexString.substring(0, bodyHttpsStartIndexString.indexOf(' ')).replace('"', '')
     }
 }
-
-export interface gmailResponse extends gmail_v1.Gmail {
-}
-
 
 export default new EmailHelper();

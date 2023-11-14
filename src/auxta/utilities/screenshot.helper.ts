@@ -1,41 +1,59 @@
-import puppeteer  from "../../puppeteer/puppeteer";
+import puppeteer from "../../puppeteer/puppeteer";
 import log from "../services/log.service";
 import StatusOfStep from "../enums/status-of.step";
 import {Page} from "puppeteer";
 
-export async function captureScreenshot() {
-    try{
-        const pages = await puppeteer.defaultPage.browser().pages();
-        if (!pages.length) return undefined;
-        const lastPage = pages[pages.length - 1] || puppeteer.defaultPage;
 
-        const screenshotBuffer = await lastPage.screenshot({
-                fullPage: true,
-                captureBeyondViewport: false,
-                encoding: 'binary'
+const RETRY_NUMBERS = 10
+
+export async function captureScreenshot() {
+    let count = 0
+    while (count <= RETRY_NUMBERS) {
+        try {
+            const pages = await puppeteer.defaultPage.browser().pages();
+            if (!pages.length) return undefined;
+            const lastPage = pages[pages.length - 1] || puppeteer.defaultPage;
+
+            const screenshotBuffer = await lastPage.screenshot({
+                    fullPage: true,
+                    captureBeyondViewport: false,
+                    encoding: 'binary'
+                }
+            );
+            if (Buffer.isBuffer(screenshotBuffer))
+                return screenshotBuffer;
+        } catch (e: any) {
+            if (count == RETRY_NUMBERS) {
+                log.push('When', e.toString(), StatusOfStep.FAILED);
+                return undefined
             }
-        );
-        if (Buffer.isBuffer(screenshotBuffer))
-            return screenshotBuffer;
-    } catch (e:any){
-        log.push('When', e.toString(), StatusOfStep.FAILED);
-        return undefined
+            count++;
+        }
+
     }
     return undefined
 }
 
 export async function captureScreenshotPage(page: Page) {
-    try{
-        const screenshotBuffer = await page.screenshot({
-                fullPage: true,
-                captureBeyondViewport: false,
-                encoding: 'binary'
+    let count = 0
+    while (count <= RETRY_NUMBERS) {
+        try {
+            const screenshotBuffer = await page.screenshot({
+                    fullPage: true,
+                    captureBeyondViewport: false,
+                    encoding: 'binary'
+                }
+            );
+            if (Buffer.isBuffer(screenshotBuffer))
+                return screenshotBuffer;
+        } catch (e: any) {
+            if (count == RETRY_NUMBERS) {
+                log.push('When', e.toString(), StatusOfStep.FAILED);
+                return undefined
             }
-        );
-        if (Buffer.isBuffer(screenshotBuffer))
-            return screenshotBuffer;
-    } catch (e:any){
-        log.push('When', e.toString(), StatusOfStep.FAILED);
-        return undefined
+            count++;
+        }
+
     }
+    return undefined
 }

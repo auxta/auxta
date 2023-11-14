@@ -103,6 +103,7 @@ export class AuxGoogleAuth {
             if (TOKEN) {
                 oAuth2Client.setCredentials(TOKEN);
                 this._oAuth2Client = oAuth2Client;
+                FunctionHelper.log('Then', 'Getting the existing token', StatusOfStep.PASSED);
                 return;
             }
             await this.getNewTokenHeadless(oAuth2Client);
@@ -174,26 +175,25 @@ export class AuxGoogleAuth {
             await FunctionHelper.waitForSelector( 'visible', '#identifierId', config.timeout, page);
             await (await page.$('#identifierId'))?.type(email);
             await (await page.$$('button'))[3].click();
-            await FunctionHelper.timeout(3000)
+            await FunctionHelper.timeout(4000)
             await FunctionHelper.waitForSelector( 'visible', 'input[type="password"]', config.timeout, page);
             await (await page.$('input[type="password"]'))?.type(password);
             await (await page.$$('button'))[1].click();
-            await FunctionHelper.timeout(3000)
+            await FunctionHelper.timeout(4000)
             await FunctionHelper.waitForSelector('visible', '#headingText', config.timeout, page);
             await (await page.$$('button'))[2].click();
-            await FunctionHelper.timeout(3000)
+            await FunctionHelper.timeout(4000)
             const checkbox = await page.$$('input[type="checkbox"]');
-            await FunctionHelper.timeout(3000)
             if (checkbox.length > 0) {
                 await FunctionHelper.waitForSelector('visible', 'input[type="checkbox"]', config.timeout, page);
                 await checkbox[0].click();
                 await (await page.$$('button'))[2].click();
             } else {
                 await FunctionHelper.waitForSelector('visible', `div[data-email="${email.toLocaleLowerCase()}"]`, config.timeout, page);
-                await FunctionHelper.timeout(6000)
+                await FunctionHelper.timeout(4000)
                 await (await page.$$('button'))[2].click();
             }
-            await FunctionHelper.timeout(3000)
+            await FunctionHelper.timeout(4000)
             await FunctionHelper.waitForSelector('visible', 'body', config.timeout, page);
             const currentUrl = page.url()
             const code = currentUrl.substring(
