@@ -20,13 +20,13 @@ export class FunctionHelper extends ExtendDefaultPage {
         }
     }
 
-    public async screenshotCompare(key: string, page = puppeteer.defaultPage) {
+    public async screenshotCompare(key: string, threshold = 0.1, page = puppeteer.defaultPage) {
         if (process.env.ENVIRONMENT !== 'LOCAL') {
             const screenshotBuffer = await captureScreenshotPage(page);
             if (screenshotBuffer) {
                 const screenshot = screenshotBuffer.toString('base64');
                 const result = await compareScreenshots(key, screenshot);
-                if (result.presentDifference && Number(result.presentDifference) > 1) {
+                if (result.presentDifference && Number(result.presentDifference) > threshold) {
                     log.push('Then', `I compare screenshots with key ${key}, and difference is: ${result.presentDifference}%`, StatusOfStep.FAILED, screenshot, key)
                 } else {
                     log.push('Then', `I compare screenshots with key ${key}`, StatusOfStep.PASSED, screenshot, key)

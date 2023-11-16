@@ -25,6 +25,7 @@ export class Puppeteer {
 
         if (process.env.ENVIRONMENT != 'LOCAL') {
             args.push(`--window-size=${config.screenWidth ? config.screenWidth : 1920},${config.screenHeight? config.screenHeight : 1080}`)
+            // needed because without these tree tags in doesn't work
             args.push("--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu")
             env = {
                 DISPLAY: ":10.0"

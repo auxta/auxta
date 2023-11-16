@@ -13,9 +13,8 @@ export async function captureScreenshot() {
             const pages = await puppeteer.defaultPage.browser().pages();
             if (!pages.length) return undefined;
             const lastPage = pages[pages.length - 1] || puppeteer.defaultPage;
-
+            log.push('When', `Before the screenshot the number of pages are ${pages.length}`, StatusOfStep.PASSED);
             const screenshotBuffer = await lastPage.screenshot({
-                    fullPage: true,
                     captureBeyondViewport: false,
                     encoding: 'binary'
                 }
@@ -27,9 +26,8 @@ export async function captureScreenshot() {
                 log.push('When', e.toString(), StatusOfStep.FAILED);
                 return undefined
             }
-            count++;
         }
-
+        count++;
     }
     return undefined
 }
@@ -38,6 +36,8 @@ export async function captureScreenshotPage(page: Page) {
     let count = 0
     while (count <= RETRY_NUMBERS) {
         try {
+            const pages = await puppeteer.defaultPage.browser().pages();
+            log.push('When', `Before the screenshot the number of pages are ${pages.length}`, StatusOfStep.PASSED);
             const screenshotBuffer = await page.screenshot({
                     fullPage: true,
                     captureBeyondViewport: false,
@@ -51,9 +51,8 @@ export async function captureScreenshotPage(page: Page) {
                 log.push('When', e.toString(), StatusOfStep.FAILED);
                 return undefined
             }
-            count++;
         }
-
+        count++;
     }
     return undefined
 }
