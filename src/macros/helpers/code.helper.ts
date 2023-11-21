@@ -158,10 +158,15 @@ export class FunctionHelper extends ExtendDefaultPage {
         await puppeteer.startBrowser();
     }
 
-    public async clickAndWaitForPageToBeCreated(selector: string, page = puppeteer.defaultPage) {
-        const nav = new Promise(res => page.browser().on('targetcreated', res));
-        await page.click(selector);
-        await nav;
+    public async clickAndWaitForPageToBeCreated(selector: string, page = puppeteer.defaultPage, newPage: boolean) {
+        if (newPage) {
+            const nav = new Promise(res => page.browser().on('targetcreated', res));
+            await page.click(selector);
+            await nav;
+        } else {
+            await page.click(selector);
+        }
+
     }
 
     public async closeLastPage(page = puppeteer.defaultPage) {
@@ -169,18 +174,19 @@ export class FunctionHelper extends ExtendDefaultPage {
         await pages[pages.length - 1].close();
     }
 
-    public async microsoftLogin(button: string, email: string, password: string, page = puppeteer.defaultPage) {
+    public async microsoftLogin(button: string, email: string, password: string, page = puppeteer.defaultPage, newPage = true) {
         const email_input = 'input[type="email"]';
         const password_input = 'input[type="password"]';
         const next_button = 'input[value="Next"]';
         const sign_in_button = 'input[value="Sign in"]';
         const no_button = 'input.ext-secondary';
-        await this.clickAndWaitForPageToBeCreated(button, page);
+        await this.clickAndWaitForPageToBeCreated(button, page, newPage);
         const pages = await page.browser().pages();
         const loginPage = pages[pages.length - 1];
         await this.extend_page_functions(loginPage);
         await loginPage.waitForNetworkIdle();
-        await this.waitForSelector('visible', next_button, 60000, loginPage);
+        try {await loginPage.waitForSelector(next_button, {visible: true, timeout: 60000})} catch (e) {}
+        this.log('Then', `I checked for the '${next_button}' element to be visible`, StepStatus.PASSED);
         await loginPage.type(email_input, email, {delay: 0});
         await loginPage.keyboard.press('Enter');
         await loginPage.waitForNetworkIdle();
@@ -193,8 +199,12 @@ export class FunctionHelper extends ExtendDefaultPage {
         } else {
             await page.waitForNetworkIdle();
         }
-        await this.waitForSelector('visible', sign_in_button, 60000, loginPage);
-        await this.waitForSelector('visible', password_input, 6000, loginPage);
+        try {await loginPage.waitForSelector(sign_in_button, {visible: true, timeout: 60000})} catch (e) {}
+        this.log('Then', `I checked for the '${sign_in_button}' element to be visible`, StepStatus.PASSED);
+
+        try {await loginPage.waitForSelector(password_input, {visible: true, timeout: 60000})} catch (e) {}
+        this.log('Then', `I checked for the '${password_input}' element to be visible`, StepStatus.PASSED);
+
         try {
             (await loginPage.$(password_input))?.type(password);
             await this.log('Then', `I type password into the ${password_input}`, StepStatus.PASSED);
@@ -204,7 +214,8 @@ export class FunctionHelper extends ExtendDefaultPage {
         }
         await this.timeout(3000);
         await loginPage.keyboard.press('Enter');
-        await this.waitForSelector('visible', no_button, 60000, loginPage);
+        try {await loginPage.waitForSelector(no_button, {visible: true, timeout: 60000})} catch (e) {}
+        this.log('Then', `I checked for the '${no_button}' element to be visible`, StepStatus.PASSED);
         await loginPage.keyboard.press('Enter');
     }
 

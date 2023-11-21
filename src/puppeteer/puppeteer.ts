@@ -8,13 +8,13 @@ import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
 import {postNotificationsOnFail} from "../auxta/services/report.service";
 // @ts-ignore
-import puppeteer = require("puppeteer-extra");
+//import puppeteer = require("puppeteer-extra");
 // @ts-ignore
-import puppeteerN = require("puppeteer");
+import puppeteer = require("puppeteer");
 
 export class Puppeteer {
-    public defaultPage!: puppeteerN.Page;
-    private browser!: puppeteerN.Browser;
+    public defaultPage!: puppeteer.Page;
+    private browser!: puppeteer.Browser;
 
     public async startBrowser() {
         let args = [];
@@ -30,9 +30,9 @@ export class Puppeteer {
             env = {
                 DISPLAY: ":10.0"
             }
-        }
+        }/*
         const StealthPlugin = require('puppeteer-extra-plugin-stealth')
-        puppeteer.default.use(StealthPlugin());
+        puppeteer.default.use(StealthPlugin());*/
         this.browser = await puppeteer.default.launch({
             slowMo: process.env.slowMo ? Number(process.env.slowMo) : 0,
             executablePath: puppeteer.default.executablePath(),
@@ -44,7 +44,7 @@ export class Puppeteer {
                 height: config.screenHeight
             },
             // Return back to headless for netlify
-            headless: process.env.ENVIRONMENT === 'LOCAL' ? (process.env.headless === 'true' ? 'new' : false) : 'new'
+            headless: process.env.ENVIRONMENT === 'LOCAL' ? (process.env.headless === 'true' ? true : false) : true
         });
         this.defaultPage = (await this.browser.pages())[0];
         await auxta.extend_page_functions(this.defaultPage);

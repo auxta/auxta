@@ -1,5 +1,5 @@
 import {config} from "../../auxta/configs/config";
-import puppeteer from "../../puppeteer/puppeteer";
+import puppeteer_extra from "../../puppeteer/puppeteer-extra";
 import FunctionHelper from "../helpers/code.helper";
 import StatusOfStep from "../../auxta/enums/status-of.step";
 
@@ -30,6 +30,8 @@ let TOKEN: string;
 
 let EMAIL: string;
 let PASSWORD: string;
+
+let count = 0;
 
 export class AuxGoogleAuth {
     // @ts-ignore
@@ -168,33 +170,35 @@ export class AuxGoogleAuth {
     private static async LogIn(authUrl: string) {
         const email = EMAIL ? EMAIL : process.env.google_account;
         const password = PASSWORD ? PASSWORD : process.env.google_password;
+        await puppeteer_extra.startBrowser();
+        count++;
         if (email && password) {
-            const context = await puppeteer.defaultPage.browser().createIncognitoBrowserContext();
+            const context = await puppeteer_extra.defaultPage.browser().createIncognitoBrowserContext();
             const page = await context.newPage();
             await page.goto(authUrl);
-            await FunctionHelper.waitForSelector( 'visible', '#identifierId', config.timeout, page);
+            await FunctionHelper.waitForSelector( 'visible', '#identifierId', config.timeout, page, count >= 2);
             await (await page.$('#identifierId'))?.type(email);
             await (await page.$$('button'))[3].click();
             await FunctionHelper.timeout(4000)
-            await FunctionHelper.waitForSelector( 'visible', 'input[type="password"]', config.timeout, page);
+            await FunctionHelper.waitForSelector( 'visible', 'input[type="password"]', config.timeout, page, count >= 2);
             await (await page.$('input[type="password"]'))?.type(password);
             await (await page.$$('button'))[1].click();
             await FunctionHelper.timeout(4000)
-            await FunctionHelper.waitForSelector('visible', '#headingText', config.timeout, page);
+            await FunctionHelper.waitForSelector('visible', '#headingText', config.timeout, page, count >= 2);
             await (await page.$$('button'))[2].click();
             await FunctionHelper.timeout(4000)
             const checkbox = await page.$$('input[type="checkbox"]');
             if (checkbox.length > 0) {
-                await FunctionHelper.waitForSelector('visible', 'input[type="checkbox"]', config.timeout, page);
+                await FunctionHelper.waitForSelector('visible', 'input[type="checkbox"]', config.timeout, page, count >= 2);
                 await checkbox[0].click();
                 await (await page.$$('button'))[2].click();
             } else {
-                await FunctionHelper.waitForSelector('visible', `div[data-email="${email.toLocaleLowerCase()}"]`, config.timeout, page);
+                await FunctionHelper.waitForSelector('visible', `div[data-email="${email.toLocaleLowerCase()}"]`, config.timeout, page, count >= 2);
                 await FunctionHelper.timeout(4000)
                 await (await page.$$('button'))[2].click();
             }
             await FunctionHelper.timeout(4000)
-            await FunctionHelper.waitForSelector('visible', 'body', config.timeout, page);
+            await FunctionHelper.waitForSelector('visible', 'body', config.timeout, page, count >= 2);
             const currentUrl = page.url()
             const code = currentUrl.substring(
                 currentUrl.indexOf("code=") + 5,
@@ -202,11 +206,12 @@ export class AuxGoogleAuth {
             );
             FunctionHelper.log('Then', 'I get the code form the url', StatusOfStep.PASSED);
             await page.close();
+            await puppeteer_extra.close();
             return decodeURIComponent(code);
         } else {
+            await puppeteer_extra.close();
             throw new Error('The email or password for the google account are empty');
         }
-
     }
 }
 
