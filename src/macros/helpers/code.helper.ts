@@ -189,15 +189,15 @@ export class FunctionHelper extends ExtendDefaultPage {
         this.log('Then', `I checked for the '${next_button}' element to be visible`, StepStatus.PASSED);
         await loginPage.type(email_input, email, {delay: 0});
         await loginPage.keyboard.press('Enter');
-        await loginPage.waitForNetworkIdle();
+        await this.timeout(3000);
         // if() here check is container with asking Work or Personal is account?
         let isWorkOrPersonalVisible = await page.$('div.table');
         if (!!isWorkOrPersonalVisible) {
             await (await page.$$('div.table'))[0].click();
             console.log('Then', 'I clicked Work or school account', StepStatus.PASSED);
-            await page.waitForNetworkIdle();
+            await this.timeout(3000);
         } else {
-            await page.waitForNetworkIdle();
+            await this.timeout(3000);
         }
         try {await loginPage.waitForSelector(sign_in_button, {visible: true, timeout: 60000})} catch (e) {}
         this.log('Then', `I checked for the '${sign_in_button}' element to be visible`, StepStatus.PASSED);
