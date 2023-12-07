@@ -49,14 +49,14 @@ class AuxTA extends FunctionHelper {
                 } catch (e) {
                     console.log("Missing field in auxta.json:", e)
                 }
-                this.uploadModel = new UploadModel(jsonConfig.organization, jsonConfig.baseURL, jsonConfig.digitalProduct, jsonConfig.environment, jsonConfig.bucket);
+                this.uploadModel = new UploadModel(jsonConfig.organization, jsonConfig.baseURL, jsonConfig.digitalProduct, jsonConfig.environment, jsonConfig.bucket, true);
             } catch (e) {
                 console.log("Missing or corrupted config: auxta.json. Searching in location:", file)
                 console.log(e);
                 process.exit(1);
             }
         } else {
-            this.uploadModel = new UploadModel('', '', '', '','');
+            this.uploadModel = new UploadModel('', '', '', '','', true);
         }
     }
 
@@ -80,6 +80,7 @@ class AuxTA extends FunctionHelper {
             if (overrideConfig.environment) this.uploadModel.environment = overrideConfig.environment
             if (overrideConfig.baseURL) this.uploadModel.baseUrl = overrideConfig.baseURL
             if (overrideConfig.bucket) this.uploadModel.bucket = overrideConfig.bucket
+            if (overrideConfig.isOfficial !== undefined) this.uploadModel.isOfficial = overrideConfig.isOfficial
             this.config = setupOverrideConfig(overrideConfig)
         }
     }

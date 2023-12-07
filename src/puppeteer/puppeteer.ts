@@ -23,16 +23,13 @@ export class Puppeteer {
             args.push('--start-maximized');
         }
 
-        if (process.env.ENVIRONMENT != 'LOCAL') {
-            args.push(`--window-size=${config.screenWidth ? config.screenWidth : 1920},${config.screenHeight? config.screenHeight : 1080}`)
-            // needed because without these tree tags in doesn't work
-            args.push("--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu")
-            env = {
-                DISPLAY: ":10.0"
-            }
-        }/*
-        const StealthPlugin = require('puppeteer-extra-plugin-stealth')
-        puppeteer.default.use(StealthPlugin());*/
+        args.push(`--window-size=${config.screenWidth ? config.screenWidth : 1920},${config.screenHeight ? config.screenHeight : 1080}`)
+        // needed because without these tree tags in doesn't work
+        args.push("--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu")
+        env = {
+            DISPLAY: ":10.0"
+        }
+
         this.browser = await puppeteer.default.launch({
             slowMo: process.env.slowMo ? Number(process.env.slowMo) : 0,
             executablePath: puppeteer.default.executablePath(),
@@ -73,18 +70,18 @@ export class Puppeteer {
             let errMessage: any;
             let statusCode: number = 200;
 
-            let consoleMessage:any [] = [];
-            let httpsMessage:any [] = [];
+            let consoleMessage: any [] = [];
+            let httpsMessage: any [] = [];
             try {
                 log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
                 await this.startBrowser()
-                this.defaultPage.on('console', (message:any) =>
+                this.defaultPage.on('console', (message: any) =>
                     consoleMessage.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
                     // @ts-ignore
                     .on('pageerror', ({message}) => consoleMessage.push(message))
-                    .on('response', (response:any) =>
+                    .on('response', (response: any) =>
                         httpsMessage.push(`${response.status()} ${response.url()}`))
-                    .on('requestfailed', (request:any) =>
+                    .on('requestfailed', (request: any) =>
                         httpsMessage.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
                 await callback(event)
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
@@ -150,13 +147,13 @@ export class Puppeteer {
             try {
                 await log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
                 await this.startBrowser()
-                this.defaultPage.on('console', (message:any) =>
+                this.defaultPage.on('console', (message: any) =>
                     consoleStack.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
                     // @ts-ignore
                     .on('pageerror', ({message}) => consoleStack.push(message))
-                    .on('response', (response:any) =>
+                    .on('response', (response: any) =>
                         consoleStack.push(`${response.status()} ${response.url()}`))
-                    .on('requestfailed', (request:any) =>
+                    .on('requestfailed', (request: any) =>
                         consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
                 await callback(event)
                 log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);

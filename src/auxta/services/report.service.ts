@@ -182,6 +182,7 @@ export async function postNotifications( body: UploadModel) {
         organizationName: body.organization,
         bucketName: body.bucket,
         reportId: body.reportId,
+        isOfficial: body.isOfficial
     }, headers(token));
 }
 
@@ -195,6 +196,7 @@ export async function postNotificationsOnFail( body: UploadModel) {
         bucketName: body.bucket,
         reportId: body.reportId,
         featureName: body.featureName,
-        scenarioName: body.scenarioName
+        scenarioName: body.scenarioName,
+        isOfficial: body.isOfficial
     }, headers(token));
 }

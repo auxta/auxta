@@ -171,6 +171,7 @@ export class AuxGoogleAuth {
         const email = EMAIL ? EMAIL : process.env.google_account;
         const password = PASSWORD ? PASSWORD : process.env.google_password;
         await puppeteer_extra.startBrowser();
+        let screenshot;
         count++;
         if (email && password) {
             const context = await puppeteer_extra.defaultPage.browser().createIncognitoBrowserContext();
@@ -178,26 +179,50 @@ export class AuxGoogleAuth {
             await page.goto(authUrl);
             await FunctionHelper.waitForSelector( 'visible', '#identifierId', config.timeout, page, count >= 2);
             await (await page.$('#identifierId'))?.type(email);
+            if (count >= 2) {
+                screenshot = await FunctionHelper.screenshot(page);
+                FunctionHelper.log('Then', 'screenshot after #identifierId', StatusOfStep.PASSED, screenshot);
+            }
             await (await page.$$('button'))[3].click();
-            await FunctionHelper.timeout(4000)
+            await FunctionHelper.timeout(5000);
             await FunctionHelper.waitForSelector( 'visible', 'input[type="password"]', config.timeout, page, count >= 2);
             await (await page.$('input[type="password"]'))?.type(password);
+            if (count >= 2) {
+                screenshot = await FunctionHelper.screenshot(page);
+                FunctionHelper.log('Then', 'screenshot after #password', StatusOfStep.PASSED, screenshot);
+            }
             await (await page.$$('button'))[1].click();
-            await FunctionHelper.timeout(4000)
+            await FunctionHelper.timeout(5000);
             await FunctionHelper.waitForSelector('visible', '#headingText', config.timeout, page, count >= 2);
+            await FunctionHelper.timeout(5000)
+            if (count >= 2) {
+                screenshot = await FunctionHelper.screenshot(page);
+                FunctionHelper.log('Then', 'screenshot after #headingText', StatusOfStep.PASSED, screenshot);
+            }
+            await FunctionHelper.waitForSelector('visible', 'button', config.timeout, page, count >= 2);
             await (await page.$$('button'))[2].click();
-            await FunctionHelper.timeout(4000)
+            await FunctionHelper.timeout(5000)
             const checkbox = await page.$$('input[type="checkbox"]');
             if (checkbox.length > 0) {
                 await FunctionHelper.waitForSelector('visible', 'input[type="checkbox"]', config.timeout, page, count >= 2);
+                await FunctionHelper.timeout(5000);
                 await checkbox[0].click();
+                if (count >= 2) {
+                    screenshot = await FunctionHelper.screenshot(page);
+                    FunctionHelper.log('Then', 'screenshot after input[type="checkbox"]', StatusOfStep.PASSED, screenshot);
+                }
                 await (await page.$$('button'))[2].click();
             } else {
                 await FunctionHelper.waitForSelector('visible', `div[data-email="${email.toLocaleLowerCase()}"]`, config.timeout, page, count >= 2);
-                await FunctionHelper.timeout(4000)
+                await FunctionHelper.timeout(5000);
+                if (count >= 2) {
+                    screenshot = await FunctionHelper.screenshot(page);
+                    FunctionHelper.log('Then', 'screenshot after div email', StatusOfStep.PASSED, screenshot);
+                }
+                await FunctionHelper.waitForSelector('visible', 'button', config.timeout, page, count >= 2);
                 await (await page.$$('button'))[2].click();
             }
-            await FunctionHelper.timeout(4000)
+            await FunctionHelper.timeout(5000)
             await FunctionHelper.waitForSelector('visible', 'body', config.timeout, page, count >= 2);
             const currentUrl = page.url()
             const code = currentUrl.substring(

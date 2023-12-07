@@ -11,8 +11,9 @@ export class UploadModel {
     private _retries: number;
     private _featureName: string;
     private _scenarioName: string;
+    private _isOfficial: boolean;
 
-    constructor(org: string, baseUrl: string, digitalProduct: string, environment: string, bucket: string) {
+    constructor(org: string, baseUrl: string, digitalProduct: string, environment: string, bucket: string, isOfficial: boolean) {
         this._reportId = '';
         this._nextSuites = [];
         this._currentSuite = '';
@@ -24,6 +25,7 @@ export class UploadModel {
         this._baseUrl = baseUrl;
         this._featureName = '';
         this._scenarioName = '';
+        this._isOfficial = isOfficial
     }
 
     set currentSuite(value: string) {
@@ -107,5 +109,13 @@ export class UploadModel {
 
     set scenarioName(value: string) {
         this._scenarioName = value;
+    }
+
+    get isOfficial(): boolean {
+        return this._isOfficial;
+    }
+
+    set isOfficial(value: boolean) {
+        this._isOfficial = value;
     }
 }
