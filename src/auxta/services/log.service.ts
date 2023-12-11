@@ -15,6 +15,7 @@ export interface Step {
 }
 
 export class LogSteps {
+    public AuxTA_FAILED = false;
     private stepLog: Step[] = [];
     private lastStepTime = new Date().getTime();
     public statusCounter = {
@@ -43,6 +44,9 @@ export class LogSteps {
     }
 
     public push(keyword: string, name: string, status: StatusOfStep, screenshot = '', imageCompareKey = '') {
+        if (status == StatusOfStep.FAILED) {
+            this.AuxTA_FAILED = true;
+        }
         console.log(`System log -- status: ${status} -- : ${name} `);
         this.statusCounter[status]++;
         const currentStep = new Date().getTime();
@@ -55,10 +59,10 @@ export class LogSteps {
                 keyword,
                 name,
                 imageCompareKey,
-                result: {status, duration: currentStep - this.lastStepTime, embedding: embedding}
+                result: {status: (this.AuxTA_FAILED ? StatusOfStep.SKIPPED : status), duration: currentStep - this.lastStepTime, embedding: embedding}
             });
         } else {
-            this.stepLog.push({keyword, name, imageCompareKey ,result: {status, duration: currentStep - this.lastStepTime}});
+            this.stepLog.push({keyword, name, imageCompareKey ,result: {status: (this.AuxTA_FAILED ? StatusOfStep.SKIPPED : status), duration: currentStep - this.lastStepTime}});
         }
 
         this.lastStepTime = currentStep;

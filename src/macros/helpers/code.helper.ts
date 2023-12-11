@@ -14,6 +14,9 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     public async screenshot(page = puppeteer.defaultPage) {
+        if (log.AuxTA_FAILED) {
+            return;
+        }
         const screenshotBuffer = await captureScreenshotPage(page);
         if (screenshotBuffer) {
             return screenshotBuffer.toString('base64');
@@ -21,6 +24,10 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     public async screenshotCompare(key: string, threshold = 0.1, page = puppeteer.defaultPage) {
+        if (log.AuxTA_FAILED) {
+            log.push('Then', `I compare screenshots with key ${key}`, StatusOfStep.SKIPPED, undefined, key)
+            return;
+        }
         if (process.env.ENVIRONMENT !== 'LOCAL') {
             const screenshotBuffer = await captureScreenshotPage(page);
             if (screenshotBuffer) {
@@ -48,6 +55,11 @@ export class FunctionHelper extends ExtendDefaultPage {
 
     public async clickByText(selector: string, text: string, dotOrText = '.', options = {}, page = puppeteer.defaultPage, time: number = this.defaultTimeout, log_message = true) {
         const message = `I clicked on the '${text}' '${selector}'`;
+
+        if (log.AuxTA_FAILED) {
+            log.push('And', `${message}, but it didn't appear in ${time / 1000} seconds.`, StatusOfStep.FAILED);
+            return;
+        }
         try {
             const [linkHandlers]: any = await page.$x(`//${selector}[contains(${dotOrText},"${text}")]`);
 
@@ -59,7 +71,6 @@ export class FunctionHelper extends ExtendDefaultPage {
             if (log_message) {
                 log.push('And', `${message}, but it didn't appear in ${time / 1000} seconds.`, StatusOfStep.FAILED);
             }
-            throw new Error(message)
         }
         if (log_message) {
             log.push('And', message, StatusOfStep.PASSED);
@@ -68,6 +79,10 @@ export class FunctionHelper extends ExtendDefaultPage {
 
     public async clickByTextWithClass(class_selector: string, class_name: string, selector: string, text: string, dotOrText = '.', page = puppeteer.defaultPage) {
         const message = `I click on the '${text}' '${selector}'`;
+        if (log.AuxTA_FAILED) {
+            log.push('And', `${message}`, StatusOfStep.SKIPPED);
+            return;
+        }
         try {
             const [linkHandlers]: any = await page.$x(`//${class_selector}[contains(@class,${this.getEscapedText(class_name)})]//${selector}[contains(${dotOrText},"${text}")]`);
 
@@ -79,12 +94,15 @@ export class FunctionHelper extends ExtendDefaultPage {
         } catch (e) {
         }
         log.push('Then', message, StatusOfStep.FAILED);
-        throw new Error(message);
     }
 
     //div[contains(@class,"mat-menu-content")]//button
     public async waitForSelectorWithText(selector: string, text: string, dotOrText = '.', page = puppeteer.defaultPage) {
         const message = `I check for '${text}' on the current page`;
+        if (log.AuxTA_FAILED) {
+            log.push('And', `${message}`, StatusOfStep.SKIPPED);
+            return;
+        }
         try {
             await page.waitForSelector(selector, {
                 timeout: this.defaultTimeout
@@ -97,10 +115,12 @@ export class FunctionHelper extends ExtendDefaultPage {
         } catch (e) {
         }
         log.push('And', message, StatusOfStep.FAILED);
-        throw new Error(message);
     }
 
     public async timeout(timeout = this.defaultTimeout, page = puppeteer.defaultPage) {
+        if (log.AuxTA_FAILED) {
+            return;
+        }
         await new Promise(r => setTimeout(r, timeout));
     }
 
@@ -117,6 +137,10 @@ export class FunctionHelper extends ExtendDefaultPage {
 
     public async waitForSelector(option: string, selector: string, time: number = this.defaultTimeout, page = puppeteer.defaultPage, log_message = true) {
         const message = `I checked for the '${selector}' element to be ${option}`;
+        if (log.AuxTA_FAILED) {
+            log.push('And', `${message}, but it didn't appear in ${time / 1000} seconds.`, StatusOfStep.SKIPPED);
+            return;
+        }
         try {
             await page.waitForSelector(selector, {
                 [option]: true,
@@ -126,7 +150,6 @@ export class FunctionHelper extends ExtendDefaultPage {
             if (log_message) {
                 log.push('And', `${message}, but it didn't appear in ${time / 1000} seconds.`, StatusOfStep.FAILED);
             }
-            throw new Error(message)
         }
         if (log_message) {
             log.push('And', message, StatusOfStep.PASSED);
@@ -134,11 +157,14 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     public async urlContains(selector: string, page = puppeteer.defaultPage) {
+        if (log.AuxTA_FAILED) {
+            log.push('And', `I am on the ${selector} page`, StatusOfStep.SKIPPED);
+            return;
+        }
         const url = page.url();
         let message = `I am on the ${selector} page`
         if (!url.includes(selector)) {
             log.push('And', message, StatusOfStep.FAILED);
-            throw new Error(message)
         }
         log.push('And', message, StatusOfStep.PASSED);
     }
@@ -148,6 +174,9 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     public async emulate(phone_name: string, page = puppeteer.defaultPage) {
+        if (log.AuxTA_FAILED) {
+            return;
+        }
         // @ts-ignore
         const phone = KnownDevices[phone_name]
         await page.emulate(phone);
@@ -159,6 +188,10 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     public async clickAndWaitForPageToBeCreated(selector: string, page = puppeteer.defaultPage, newPage: boolean) {
+        if (log.AuxTA_FAILED) {
+            await page.click(selector);
+            return;
+        }
         if (newPage) {
             const nav = new Promise(res => page.browser().on('targetcreated', res));
             await page.click(selector);
@@ -210,7 +243,6 @@ export class FunctionHelper extends ExtendDefaultPage {
             await this.log('Then', `I type password into the ${password_input}`, StepStatus.PASSED);
         } catch (e) {
             await this.log('Then', `I type password into the ${password_input}`, StepStatus.FAILED);
-            throw new Error(`I type password into the ${password_input}`)
         }
         await this.timeout(4000);
         await loginPage.keyboard.press('Enter');

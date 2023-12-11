@@ -23,6 +23,20 @@ export class EmailHelper {
      */
     public async verifyEmail(from_name: string, from_email: string, subject: string, body: string, link: boolean = false) {
         try {
+            if (log.AuxTA_FAILED) {
+                log.push('Then', `Logging in two google or getting the token`, StepStatus.SKIPPED);
+                log.push('Then', `Done logging in and waiting 35 seconds`, StepStatus.SKIPPED);
+                log.push('Then', `Getting the last 20 emails`, StepStatus.SKIPPED);
+                log.push('Then', `Entering main for`, StepStatus.SKIPPED);
+                log.push('Then', `I check payload && id && threadId`, StepStatus.SKIPPED);
+                log.push('Then', `I got message_sender`, StepStatus.SKIPPED);
+                log.push('Then', `I got message_body`, StepStatus.SKIPPED);
+                log.push('Then', `I got message_body`, StepStatus.SKIPPED);
+                log.push('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.SKIPPED);
+                log.push('Then', `I got modify email`, StepStatus.SKIPPED);
+                log.push('Then', `I get html lik`, StepStatus.SKIPPED);
+                log.push('Then', `I deleted email`, StepStatus.SKIPPED);
+            }
             log.push('Then', `Logging in two google or getting the token`, StepStatus.PASSED);
             await AuxGoogleAuth.setupHeadless();
             log.push('Then', `Done logging in and waiting 35 seconds`, StepStatus.PASSED);
@@ -118,6 +132,9 @@ export class EmailHelper {
 
 
     public async sendEmail(to: string, subject: string, body: string) {
+        if (log.AuxTA_FAILED) {
+            return
+        }
         await AuxGoogleAuth.setupHeadless();
         const options = {
             to: to,
@@ -139,6 +156,9 @@ export class EmailHelper {
      */
 
     public async replyEmail(id: string, threadId: string, body: string) {
+        if (log.AuxTA_FAILED) {
+            return
+        }
         await AuxGoogleAuth.setupHeadless();
         const gmailResponse = await AuxGoogleAuth.gmailClient.users.messages.get({
             userId: "me",
@@ -162,6 +182,9 @@ export class EmailHelper {
     }
 
     private static async send(options: object, threadId?: string) {
+        if (log.AuxTA_FAILED) {
+            return
+        }
         const mailComposer = new MailComposer(options);
         const message = await mailComposer.compile().build();
         const encodeMessage = Buffer.from(message).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -211,6 +234,9 @@ export class EmailHelper {
     }
 
     private async getUrl(body: string) {
+        if (log.AuxTA_FAILED) {
+            return
+        }
         const httpsStartIndex = body.indexOf('https');
         const bodyHttpsStartIndexString = body.toString().substring(httpsStartIndex);
         return bodyHttpsStartIndexString.substring(0, bodyHttpsStartIndexString.indexOf(' ')).replace('"', '')
