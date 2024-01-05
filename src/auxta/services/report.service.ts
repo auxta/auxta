@@ -1,7 +1,7 @@
 import axios from "axios";
-import { Step } from "./log.service";
-import { config } from "../configs/config";
-import { UploadModel } from "../models/upload.model";
+import {Step} from "./log.service";
+import {config} from "../configs/config";
+import {UploadModel} from "../models/upload.model";
 
 export interface Scenarios {
     scenarioId: string,
@@ -11,6 +11,7 @@ export interface Scenarios {
     scenariosCount: number
     lastFiveStepsHash: number
 }
+
 export interface Steps {
     failedSteps: number,
     passedSteps: number,
@@ -174,7 +175,7 @@ export async function compareScreenshots(key: string, screenshot: string): Promi
     }, headers(token))).data;
 }
 
-export async function postNotifications( body: UploadModel) {
+export async function postNotifications(body: UploadModel) {
     let token = await auth();
     await axios.post(`${config.auxtaURL}post-notification-after-run-background`, {
         environmentName: body.environment,
@@ -187,7 +188,7 @@ export async function postNotifications( body: UploadModel) {
 }
 
 
-export async function postNotificationsOnFail( body: UploadModel) {
+export async function postNotificationsOnFail(body: UploadModel) {
     let token = await auth();
     await axios.post(`${config.auxtaURL}post-notifications-after-case-fail-background`, {
         environmentName: body.environment,
@@ -198,5 +199,16 @@ export async function postNotificationsOnFail( body: UploadModel) {
         featureName: body.featureName,
         scenarioName: body.scenarioName,
         isOfficial: body.isOfficial
+    }, headers(token));
+}
+
+export async function getVerifyReceivedEmail(from_name: string, from_email: string, subject: string, body: string, link: boolean) {
+    let token = await auth();
+    return await axios.post(`${config.auxtaURL}get-verify-received-email`, {
+        from_name: from_name,
+        from_email: from_email,
+        subject: subject,
+        body: body,
+        link: link
     }, headers(token));
 }

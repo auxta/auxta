@@ -7,27 +7,50 @@ import {Page} from "puppeteer";
 const RETRY_NUMBERS = 10
 
 export async function captureScreenshot() {
-    let count = 0
-    while (count <= RETRY_NUMBERS) {
-        try {
-            const pages = await puppeteer.defaultPage.browser().pages();
-            if (!pages.length) return undefined;
-            const lastPage = pages[pages.length - 1] || puppeteer.defaultPage;
-            log.push('When', `Before the screenshot the number of pages are ${pages.length}`, StatusOfStep.PASSED);
-            const screenshotBuffer = await lastPage.screenshot({
-                    captureBeyondViewport: false,
-                    encoding: 'binary'
+    const pages = await puppeteer.defaultPage.browser().pages();
+    if (!pages.length) return undefined;
+    for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+        if ((pages.length - 1) == i) {
+            let count = 0
+            while (count <= RETRY_NUMBERS) {
+                try {
+                    const lastPage = pages[pages.length - 1] || puppeteer.defaultPage;
+                    const screenshotBuffer = await lastPage.screenshot({
+                            captureBeyondViewport: false,
+                            encoding: 'binary'
+                        }
+                    );
+                    if (Buffer.isBuffer(screenshotBuffer))
+                        return screenshotBuffer;
+                } catch (e: any) {
+                    if (count == RETRY_NUMBERS) {
+                        log.push('When', e.toString(), StatusOfStep.FAILED);
+                        return undefined
+                    }
                 }
-            );
-            if (Buffer.isBuffer(screenshotBuffer))
-                return screenshotBuffer;
-        } catch (e: any) {
-            if (count == RETRY_NUMBERS) {
-                log.push('When', e.toString(), StatusOfStep.FAILED);
-                return undefined
+                count++;
+            }
+        } else {
+            let count = 0
+            while (count <= RETRY_NUMBERS) {
+                try {
+                    const screenshotBuffer = await page.screenshot({
+                            captureBeyondViewport: false,
+                            encoding: 'binary'
+                        }
+                    );
+                    if (Buffer.isBuffer(screenshotBuffer))
+                        log.push("When", `${i} Image`, StatusOfStep.FAILED, screenshotBuffer.toString("base64"))
+                } catch (e: any) {
+                    if (count == RETRY_NUMBERS) {
+                        log.push('When', e.toString(), StatusOfStep.FAILED);
+                        return undefined
+                    }
+                }
+                count++;
             }
         }
-        count++;
     }
     return undefined
 }

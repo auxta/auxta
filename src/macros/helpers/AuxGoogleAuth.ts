@@ -1,5 +1,3 @@
-import {config} from "../../auxta/configs/config";
-import puppeteer_extra from "../../puppeteer/puppeteer-extra";
 import FunctionHelper from "../helpers/code.helper";
 import StatusOfStep from "../../auxta/enums/status-of.step";
 
@@ -28,10 +26,17 @@ const TOKEN_PATH = 'token.json';
 
 let TOKEN: string;
 
+let TOKENS = [
+    {"access_token":"ya29.a0AfB_byBxWTRPqnu3nL6bUzCCGdJl9skLupcJH8q0GSEAkimkkvQaKSkXimshAzJWQz4nmyYQ_cW7p9iYNDnT2zlJYk4j1eeVDI7YT80uhxPmLOw3Dcn7IY9cbhZK0_lgRBm8CCrBVVRPzkfVSnAF3D3wuW3-sLr22qt4aCgYKAcYSARASFQHGX2Mi1lEgWolMYxlejnZD-kjcDQ0171","refresh_token":"1//09YdEzFTKqqYxCgYIARAAGAkSNwF-L9IrL8CtoJKFamnKWiHs-kTBaZXfSWY15jTLMeLSJzT-St1OVpHfCCumEkJorO8hg29wGXI","scope":"https://www.googleapis.com/auth/gmail.addons.current.message.action https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.addons.current.action.compose https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.insert https://www.googleapis.com/auth/gmail.addons.current.message.metadata https://www.googleapis.com/auth/gmail.labels https://mail.google.com/ https://www.googleapis.com/auth/gmail.addons.current.message.readonly https://www.googleapis.com/auth/gmail.readonly","token_type":"Bearer","expiry_date":1702994988534},
+    {"access_token":"ya29.a0AfB_byB-QxjIsHwSU7lbD2FpCMz2rK7p1Tzohl9BjeQUK_nFsEzqww4uQK086INqwTLENLXYVVq09hW7nRuhEg15MYtWo9xbU-nRtAMvzG5aLGPKOXl9mkWBR1cCsgtBPoxl7Klc_jnvH0PnC0TYwISoUqm9W-5c6fFraCgYKAQgSARASFQHGX2Minj2IKMCYkue3rCSMmM_h8g0171","refresh_token":"1//09YMAAKDjzZ3VCgYIARAAGAkSNwF-L9Ir62E-caPL0S0qKj1phMtHSk3nQWFBW7YAyl7Nh8oSJ6WSXd2NvzHt0Hwf-i85GLF6grE","scope":"https://mail.google.com/ https://www.googleapis.com/auth/gmail.addons.current.message.metadata https://www.googleapis.com/auth/gmail.insert https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.addons.current.action.compose https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.addons.current.message.action https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.addons.current.message.readonly https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.labels","token_type":"Bearer","expiry_date":1702995163803},
+    {"access_token":"ya29.a0AfB_byDVVHpB9LKHhdmD5nInQJHTGU8Ky0JHf2wRNtZB1HJHqod7Pme_0CHSy6vO5pNNaVPpyO8H3vNQ9jA6AGJLc82AKI3mGTsGmaIQFRQr02nhPTFuTY7Gl-_iR5lgZM6BmB5koWccOT6Xe9pl5ND5T8FVlRSRLvitaCgYKAdUSARASFQHGX2Mi2iH-ZeiaxFELglikw-okOw0171","refresh_token":"1//09YD8dwZN5F1RCgYIARAAGAkSNwF-L9Irfie38zhzgw1ue4oEgR5Xc89BgiZHs1vcm8Tf6ROJfuCrnhsWLhr4oFkNlQ6UbJgU7GA","scope":"https://www.googleapis.com/auth/gmail.insert https://www.googleapis.com/auth/gmail.addons.current.message.metadata https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.addons.current.action.compose https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.addons.current.message.action https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.labels https://mail.google.com/ https://www.googleapis.com/auth/gmail.addons.current.message.readonly","token_type":"Bearer","expiry_date":1702995310295},
+    {"access_token":"ya29.a0AfB_byBKWIknMT7E8yzyFjfNIzl_y_I73sP71YadO-yoKjphk6mvdSwOaYooLYYuZrHit8bYt0ERrX8mhkE1WGdiNcWGpBliS0s1Ved2DWJqkMlYsgnzz-4uAByodSHaxoqbnI0L1vCsqkJvvO4AJYUAIcSjf4z162gRaCgYKAT8SARASFQHGX2Mib4ndKaU92xuMBjUVD990GQ0171","refresh_token":"1//09BZILsMOzERdCgYIARAAGAkSNwF-L9IryuSQRewZs9LSuCSdXdmfimL18Edof34Mo5UrC-FGuGHED7519THwrYLFoOFJe18TgRk","scope":"https://www.googleapis.com/auth/gmail.addons.current.message.action https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.addons.current.message.readonly https://mail.google.com/ https://www.googleapis.com/auth/gmail.labels https://www.googleapis.com/auth/gmail.addons.current.message.metadata https://www.googleapis.com/auth/gmail.insert https://www.googleapis.com/auth/gmail.addons.current.action.compose https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.send","token_type":"Bearer","expiry_date":1702995376462},
+    {"access_token":"ya29.a0AfB_byABK1ECnRhzxM2_5FzN4XdwBG2q-qWDZlCJ2oZ2g7-k_QFgdyyICP99rQJuOyIU5t6NU9wSRsxL-hrk6kf2BmC2rW7ltdRw14h_n-nFPSk9Gg8979iuqvvfEokd9dIkY_MwhOYGiz7rP6aUwqjEAXDjg6FAieL1aCgYKAdsSARASFQHGX2Mim1Y5ousgcVP835Epj10Xww0171","refresh_token":"1//09yqHMectr6qjCgYIARAAGAkSNwF-L9IrITv60RhPCDiL8POjD0Uy8CvxPDc7hmWrvL7zLCOcxNACUWDpTnQyqkOYRGWyF3pyNaI","scope":"https://www.googleapis.com/auth/gmail.addons.current.message.action https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.addons.current.action.compose https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.insert https://www.googleapis.com/auth/gmail.addons.current.message.metadata https://mail.google.com/ https://www.googleapis.com/auth/gmail.labels https://www.googleapis.com/auth/gmail.addons.current.message.readonly https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.readonly","token_type":"Bearer","expiry_date":1702995426413}
+]
+
 let EMAIL: string;
 let PASSWORD: string;
 
-let count = 0;
 
 export class AuxGoogleAuth {
     // @ts-ignore
@@ -68,6 +73,7 @@ export class AuxGoogleAuth {
     public static async setEmailPassword(email: string, password: string) {
         EMAIL = email
         PASSWORD = password
+        console.log(EMAIL,PASSWORD);
     }
 
     public static async setupHeadless() {
@@ -110,7 +116,7 @@ export class AuxGoogleAuth {
             }
             await this.getNewTokenHeadless(oAuth2Client);
         } catch (e) {
-            await this.getNewTokenHeadless(oAuth2Client);
+            FunctionHelper.log('Then', 'Getting the existing token', StatusOfStep.FAILED);
         }
 
     }
@@ -147,6 +153,7 @@ export class AuxGoogleAuth {
     }
 
     private static async getNewTokenHeadless(oAuth2Client: any) {
+        /*
         const authUrl = oAuth2Client.generateAuthUrl({
             access_type: 'offline',
             prompt: 'consent',
@@ -154,7 +161,15 @@ export class AuxGoogleAuth {
         });
 
         const code = await this.LogIn(authUrl);
+        */
 
+        const position = Math.floor(Math.random() * 6);
+        const token = TOKENS[position];
+        oAuth2Client.setCredentials(token);
+        this._oAuth2Client = oAuth2Client;
+        FunctionHelper.log('Then', 'I login with the google account', StatusOfStep.PASSED);
+
+/**
         this._oAuth2Client = await (new Promise(async (resolve, reject) => {
             await oAuth2Client.getToken(code, (err: any, token: any) => {
                 if (err) return console.error('Error retrieving access token', err);
@@ -164,9 +179,9 @@ export class AuxGoogleAuth {
                 FunctionHelper.log('Then', 'I login with the google account', StatusOfStep.PASSED);
                 resolve(oAuth2Client);
             });
-        }));
+        }));*/
     }
-
+/*
     private static async LogIn(authUrl: string) {
         const email = EMAIL ? EMAIL : process.env.google_account;
         const password = PASSWORD ? PASSWORD : process.env.google_password;
@@ -238,6 +253,7 @@ export class AuxGoogleAuth {
             throw new Error('The email or password for the google account are empty');
         }
     }
+    */
 }
 
 export default new AuxGoogleAuth();
