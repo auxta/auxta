@@ -11,7 +11,7 @@ export async function captureScreenshot() {
     if (!pages.length) return undefined;
     for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
-        if ((pages.length - 1) == i) {
+        if ((pages.length - 1) == i || pages.length == 1) {
             let count = 0
             while (count <= RETRY_NUMBERS) {
                 try {
@@ -40,8 +40,10 @@ export async function captureScreenshot() {
                             encoding: 'binary'
                         }
                     );
-                    if (Buffer.isBuffer(screenshotBuffer))
+                    if (Buffer.isBuffer(screenshotBuffer)) {
                         log.push("When", `${i} Image`, StatusOfStep.FAILED, screenshotBuffer.toString("base64"))
+                        break;
+                    }
                 } catch (e: any) {
                     if (count == RETRY_NUMBERS) {
                         log.push('When', e.toString(), StatusOfStep.FAILED);
