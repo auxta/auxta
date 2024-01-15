@@ -23,7 +23,7 @@ export class Puppeteer {
             args.push('--start-maximized');
         }
 
-        args.push(`--window-size=${config.screenWidth ? config.screenWidth : 1920},${config.screenHeight ? config.screenHeight : 1080}`)
+        args.push(`--window-size=${config.screenWidth ? config.screenWidth : 1440},${config.screenHeight ? config.screenHeight : 900}`)
         // needed because without these tree tags in doesn't work
         args.push("--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu")
         args.push('--enable-automation=false');
