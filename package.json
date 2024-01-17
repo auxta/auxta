@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^17.0.9",
-    "axios": "^0.24.0",
+    "axios": "1.6.5",
     "dotenv": "^10.0.0",
     "dotenv-extended": "^2.9.0",
     "fs": "^0.0.1-security",
@@ -26,9 +26,7 @@
     "nodemailer": "^6.9.2",
     "puppeteer": "^21.6.0",
     "readline": "^1.3.0",
-    "typescript": "^5.2.2",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2"
+    "typescript": "^5.2.2"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.16.0"

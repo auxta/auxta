@@ -1,13 +1,18 @@
 import log from "../../auxta/services/log.service";
-import { StatusOfStep } from "../../auxta/enums/status-of.step";
-import { config } from "../../auxta/configs/config";
+import {StatusOfStep} from "../../auxta/enums/status-of.step";
+import {config} from "../../auxta/configs/config";
 
 export class ExtendDefaultPage {
     public defaultTimeout: number = config.timeout;
 
     public async extend_page_functions(page: any, time = this.defaultTimeout) {
         this.defaultTimeout = config.timeout
-        const {goto: original_goto, click: original_click, type: original_type, waitForNetworkIdle: original_waitForNetworkIdle} = page;
+        const {
+            goto: original_goto,
+            click: original_click,
+            type: original_type,
+            waitForNetworkIdle: original_waitForNetworkIdle
+        } = page;
         page.goto = function goto(url: any, options?: any) {
             log.push('Then', `I go to the '${url}' page`, StatusOfStep.PASSED);
             return original_goto.apply(page, arguments);

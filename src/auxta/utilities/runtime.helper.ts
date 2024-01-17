@@ -1,7 +1,6 @@
-import { RunTime } from "../services/runtime.service";
+import {RunTime} from "../services/runtime.service";
 
 export class CalculateRuntime {
-    private runtime: RunTime;
     public startTimeSeconds: string;
     public startTimeMinutes: string;
     public startTimeHours: string;
@@ -12,7 +11,9 @@ export class CalculateRuntime {
     public endTimeHours: string;
     public endTimeDay: string;
     public endTimeMonth: string;
-    constructor(r: RunTime){
+    private runtime: RunTime;
+
+    constructor(r: RunTime) {
         this.runtime = r;
         this.startTimeSeconds = (this.runtime.startTime.getSeconds() < 10) ? `0${this.runtime.startTime.getSeconds()}` : `${this.runtime.startTime.getSeconds()}`
         this.startTimeMinutes = (this.runtime.startTime.getMinutes() < 10) ? `0${this.runtime.startTime.getMinutes()}` : `${this.runtime.startTime.getMinutes()}`;

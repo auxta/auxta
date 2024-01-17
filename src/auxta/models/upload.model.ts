@@ -1,17 +1,5 @@
-
 export class UploadModel {
-    private _reportId: string;
-    private _nextSuites: [];
-    private _digitalProduct: string;
-    private _baseUrl: string;
     private readonly _organization: string;
-    private _bucket: string;
-    private _environment: string;
-    private _currentSuite: string;
-    private _retries: number;
-    private _featureName: string;
-    private _scenarioName: string;
-    private _isOfficial: boolean;
 
     constructor(org: string, baseUrl: string, digitalProduct: string, environment: string, bucket: string, isOfficial: boolean) {
         this._reportId = '';
@@ -28,29 +16,7 @@ export class UploadModel {
         this._isOfficial = isOfficial
     }
 
-    set currentSuite(value: string) {
-        this._currentSuite = value;
-    }
-
-    set retries(value: number) {
-        this._retries = value;
-    }
-
-    get currentSuite(): string {
-        return this._currentSuite;
-    }
-
-    get bucket(): string {
-        return this._bucket;
-    }
-
-    set bucket(value: string) {
-        this._bucket = value;
-    }
-
-    get retries(): number {
-        return this._retries;
-    }
+    private _reportId: string;
 
     get reportId(): string {
         return this._reportId;
@@ -60,6 +26,8 @@ export class UploadModel {
         this._reportId = value;
     }
 
+    private _nextSuites: [];
+
     get nextSuites(): [] {
         return this._nextSuites;
     }
@@ -67,6 +35,8 @@ export class UploadModel {
     set nextSuites(value: []) {
         this._nextSuites = value;
     }
+
+    private _digitalProduct: string;
 
     get digitalProduct(): string {
         return this._digitalProduct;
@@ -76,9 +46,7 @@ export class UploadModel {
         this._digitalProduct = value;
     }
 
-    get organization(): string {
-        return this._organization;
-    }
+    private _baseUrl: string;
 
     get baseUrl(): string {
         return this._baseUrl;
@@ -88,6 +56,18 @@ export class UploadModel {
         this._baseUrl = value;
     }
 
+    private _bucket: string;
+
+    get bucket(): string {
+        return this._bucket;
+    }
+
+    set bucket(value: string) {
+        this._bucket = value;
+    }
+
+    private _environment: string;
+
     get environment(): string {
         return this._environment;
     }
@@ -95,6 +75,29 @@ export class UploadModel {
     set environment(value: string) {
         this._environment = value;
     }
+
+    private _currentSuite: string;
+
+    get currentSuite(): string {
+        return this._currentSuite;
+    }
+
+    set currentSuite(value: string) {
+        this._currentSuite = value;
+    }
+
+    private _retries: number;
+
+    get retries(): number {
+        return this._retries;
+    }
+
+    set retries(value: number) {
+        this._retries = value;
+    }
+
+    private _featureName: string;
+
     get featureName(): string {
         return this._featureName;
     }
@@ -102,6 +105,8 @@ export class UploadModel {
     set featureName(value: string) {
         this._featureName = value;
     }
+
+    private _scenarioName: string;
 
     get scenarioName(): string {
         return this._scenarioName;
@@ -111,11 +116,17 @@ export class UploadModel {
         this._scenarioName = value;
     }
 
+    private _isOfficial: boolean;
+
     get isOfficial(): boolean {
         return this._isOfficial;
     }
 
     set isOfficial(value: boolean) {
         this._isOfficial = value;
+    }
+
+    get organization(): string {
+        return this._organization;
     }
 }

@@ -33,23 +33,25 @@ waitforseelctorbytext `depreciated`
 * (AuxTA) We do some action on the website.
 * (Website) Sends an email to the email address of the user who did the action.
 * (AuxTA) Should check that that the email was correctly sent. So we check:
-  * `auxta.checkMail(_from_name_, _from_email_, _subject_, _body_text_)`
-    * The email login is in the main config of the test suite.
-      * email
-      * API TOKEN
-    * For the moment we do it synchroneous (AuxTA waits for the email).
-    * The email must be newser than the time of the action on the Website.
-    * Must be _from_name_ (substring)
-    * Must be _from_email_ (substring)
-    * Must have _subject_ (substring)
-    * Must cotnain _body_text_ (substring)
-    * Quality of Service, if the email does not arrive w/in eg. 5 minutes we return an error w/ timeout.
-* * `auxta.clickInMail(_from_name_, _from_email_, _subject_, _click_on_)`
+    * `auxta.checkMail(_from_name_, _from_email_, _subject_, _body_text_)`
+        * The email login is in the main config of the test suite.
+            * email
+            * API TOKEN
+        * For the moment we do it synchroneous (AuxTA waits for the email).
+        * The email must be newser than the time of the action on the Website.
+        * Must be _from_name_ (substring)
+        * Must be _from_email_ (substring)
+        * Must have _subject_ (substring)
+        * Must cotnain _body_text_ (substring)
+        * Quality of Service, if the email does not arrive w/in eg. 5 minutes we return an error w/ timeout.
+*
+    * `auxta.clickInMail(_from_name_, _from_email_, _subject_, _click_on_)`
 
 ## Running
 
 * Create a main function that calls the run() function which starts all tests
-* Create a function for each test that calls the `auxtaPuppeteer.run(event, callback, featureName, scenarioName)` function
+* Create a function for each test that calls the `auxtaPuppeteer.run(event, callback, featureName, scenarioName)`
+  function
 
 ## Puppeteer
 
@@ -96,10 +98,12 @@ npm i
 Implement a way to scout the skipped steps w/ $failed=true, $skipped=++
 control click go to source directory
 
-
 ##Improvements
+
 * introduce the new headless mode, by Puppeteer.
 
 ### platform improvements
+
 Also some improvements to the platform in general:
+
 * get the console state after a fail, this would increase the value of each failed report.

@@ -1,3 +1,9 @@
+/**
+ * This method used to return an image from buffer to base64 format
+ * @param code
+ * @param screenshot
+ *
+ * */
 export function returnImage(code: number, screenshot: Buffer) {
     return {
         isBase64Encoded: true,

@@ -45,6 +45,11 @@ async function auth() {
         });
 }
 
+/**
+ * This method used to create empty report in the database
+ * @param body
+ * @return reportId - id of the report
+ * */
 export async function createEmptyReport(body: any): Promise<string> {
     const token = await auth();
     return (await axios.post(
@@ -60,6 +65,14 @@ export async function createEmptyReport(body: any): Promise<string> {
     )).data.reportId;
 }
 
+/**
+ * This method used to create a step with the given parameters
+ * @param stepLog
+ * @param scenarioName
+ * @param screenshot
+ * @param errMessage
+ * @return scenarios - array object with the parameter for the given step
+ * */
 export async function uploadStep(stepLog: Step[], scenarioName: string, screenshot?: Buffer, errMessage?: object) {
     let scenarios = [];
     let token = await auth();
@@ -106,6 +119,16 @@ export async function uploadStep(stepLog: Step[], scenarioName: string, screensh
     return scenarios;
 }
 
+/**
+ * This method used to create and upload a Scenario with the given parameters
+ * @return reportId - id of the report
+ * @param stepRes
+ * @param scenarioName
+ * @param uri
+ * @param hasFailed
+ @return scenario - object with the parameter for the given scenario
+ *
+ * */
 export async function uploadScenario(stepRes: any[], scenarioName: string, uri: string, hasFailed: boolean) {
     let token = await auth();
     return (await axios.post(
@@ -122,6 +145,13 @@ export async function uploadScenario(stepRes: any[], scenarioName: string, uri: 
     )).data;
 }
 
+/**
+ * This method used to update a report by its id
+ * @param reportId
+ * @param scenario
+ * @param steps
+ * @param isFinal
+ * */
 export async function updateReport(reportId: string, scenario: Scenarios, steps: Steps, isFinal: boolean) {
     let token = await auth();
     await axios.post(

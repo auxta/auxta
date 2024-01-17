@@ -7,27 +7,50 @@ import {UploadModel} from "../auxta/models/upload.model";
 import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
 import {postNotificationsOnFail} from "../auxta/services/report.service";
-// @ts-ignore
-//import puppeteer = require("puppeteer-extra");
-// @ts-ignore
+
 import puppeteer = require("puppeteer");
 
 export class Puppeteer {
     public defaultPage!: puppeteer.Page;
     private browser!: puppeteer.Browser;
 
+    private static setupHeader(event: any, uploadModel: UploadModel) {
+        let close = true;
+        if (process.env.ENVIRONMENT !== 'LOCAL' && event) {
+            uploadModel.reportId = event.reportId;
+            uploadModel.nextSuites = event.nextSuites;
+            uploadModel.currentSuite = event.currentSuite;
+            uploadModel.retries = Number(event.retries);
+        }
+        try {
+            if (event.close) {
+                close = event.close === "true";
+            }
+            return close;
+        } catch (e) {
+            return true
+        }
+    }
+
+    /**
+     * Start the Browser with puppeteer
+     *
+     * @remarks
+     * Starts the puppeteer with the given parameters either with browser or in headless mode
+     *
+     *
+     */
     public async startBrowser() {
         let args = [];
-        let env = {};
         if (process.env.ENVIRONMENT === 'LOCAL') {
             args.push('--start-maximized');
         }
 
-        args.push(`--window-size=${config.screenWidth ? config.screenWidth : 1440},${config.screenHeight ? config.screenHeight : 900}`)
+        args.push(`--window-size=${config.screenWidth ? config.screenWidth : 1920},${config.screenHeight ? config.screenHeight : 1080}`)
         // needed because without these tree tags in doesn't work
         args.push("--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu")
         args.push('--enable-automation=false');
-        env = {
+        let env = {
             DISPLAY: ":10.0"
         }
 
@@ -42,7 +65,7 @@ export class Puppeteer {
                 height: config.screenHeight
             },
             // Return back to headless for netlify
-            headless: process.env.ENVIRONMENT === 'LOCAL' ? (process.env.headless === 'true' ? true : false) : true
+            headless: process.env.ENVIRONMENT === 'LOCAL' ? (process.env.headless === 'true') : true
         });
         this.defaultPage = (await this.browser.pages())[0];
         await auxta.extend_page_functions(this.defaultPage);
@@ -50,6 +73,14 @@ export class Puppeteer {
         await this.defaultPage.waitForNetworkIdle();
     }
 
+    /**
+     * Closers all browsers
+     *
+     * @remarks
+     * This method closers all browsers
+     *
+     *
+     */
     public async close() {
         if (this.browser) {
             let pages = await this.browser.pages();
@@ -58,6 +89,17 @@ export class Puppeteer {
         }
     }
 
+    /**
+     * This method is the main method that starts the given test
+     *
+     * @param event
+     * @param callback - the main function code that need to be run in the browser
+     * @param featureName
+     * @param scenarioName
+     * @param uploadModel - the given configuration that is going to be used to upload the test
+     *
+     *
+     */
     public async run(event: any, callback: any, featureName = 'Test feature', scenarioName = 'Test scenario', uploadModel?: UploadModel) {
         let close;
         try {
@@ -126,6 +168,15 @@ export class Puppeteer {
         }
     }
 
+    /**
+     * This method can be used to start the browser and run the test when live without uploading them
+     *
+     * @param event
+     * @param callback - the main function code that need to be run in the browser
+     * @param uploadModel - the given configuration that is going to be used to upload the test
+     * @param close
+     *
+     */
     public async runRPA(event: any, callback: any, uploadModel?: UploadModel, close?: boolean) {
         let errMessage: any;
         try {
@@ -177,24 +228,6 @@ export class Puppeteer {
             log.clear();
         }
         return {statusCode: 200}
-    }
-
-    private static setupHeader(event: any, uploadModel: UploadModel) {
-        let close = true;
-        if (process.env.ENVIRONMENT !== 'LOCAL' && event) {
-            uploadModel.reportId = event.reportId;
-            uploadModel.nextSuites = event.nextSuites;
-            uploadModel.currentSuite = event.currentSuite;
-            uploadModel.retries = Number(event.retries);
-        }
-        try {
-            if (event.close) {
-                close = event.close === "true";
-            }
-            return close;
-        } catch (e) {
-            return true
-        }
     }
 }
 

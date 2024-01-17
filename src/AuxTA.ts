@@ -5,11 +5,10 @@ import fs from "fs";
 import StatusOfStep from "./auxta/enums/status-of.step";
 import {UploadModel} from "./auxta/models/upload.model";
 import * as dotenv from "dotenv";
-import {setupConfig, config as c, setupOverrideConfig} from "./auxta/configs/config";
+import {config as c, setupConfig, setupOverrideConfig} from "./auxta/configs/config";
 import {startSuite} from "./auxta/utilities/start-suite.helper";
 import {createEmptyReport} from "./auxta/services/report.service";
 import Aux2faAuth from "./macros/helpers/Aux2faAuth";
-import {AuxGoogleAuth} from "./macros/helpers/AuxGoogleAuth";
 import emailHelper from "./macros/helpers/emailHelper";
 
 
@@ -18,7 +17,6 @@ dotenv.config();
 class AuxTA extends FunctionHelper {
     public puppeteer: Puppeteer = puppeteer;
     public aux2fa = Aux2faAuth;
-    public google = AuxGoogleAuth
     public config = c;
     public email = emailHelper
 
@@ -56,10 +54,18 @@ class AuxTA extends FunctionHelper {
                 process.exit(1);
             }
         } else {
-            this.uploadModel = new UploadModel('', '', '', '','', true);
+            this.uploadModel = new UploadModel('', '', '', '', '', true);
         }
     }
 
+    /**
+     * This method is used when the test are started in an array
+     *
+     * @param event
+     * @param overrideConfig
+     *
+     *
+     */
     public async run(event: any, overrideConfig?: any) {
         this.changeModelData(overrideConfig);
         let reportId;
@@ -74,17 +80,14 @@ class AuxTA extends FunctionHelper {
         return startSuite(suites, reportId || await createEmptyReport(this.uploadModel));
     }
 
-    private changeModelData(overrideConfig?: any) {
-        if (overrideConfig) {
-            if (overrideConfig.digitalProduct) this.uploadModel.digitalProduct = overrideConfig.digitalProduct
-            if (overrideConfig.environment) this.uploadModel.environment = overrideConfig.environment
-            if (overrideConfig.baseURL) this.uploadModel.baseUrl = overrideConfig.baseURL
-            if (overrideConfig.bucket) this.uploadModel.bucket = overrideConfig.bucket
-            if (overrideConfig.isOfficial !== undefined) this.uploadModel.isOfficial = overrideConfig.isOfficial
-            this.config = setupOverrideConfig(overrideConfig)
-        }
-    }
-
+    /**
+     * Start the Browser with puppeteer
+     *
+     * @remarks
+     * Starts the puppeteer with the given parameters either with browser or in headless mode
+     *
+     *
+     */
     public async startBrowser(event: any, callback: any, feature: string, scenario: string, overrideConfig?: any, singleFeature = false, fileName = '') {
         this.changeModelData(overrideConfig);
         if (singleFeature && process.env.ENVIRONMENT !== 'LOCAL') {
@@ -95,6 +98,14 @@ class AuxTA extends FunctionHelper {
         return this.puppeteer.run(event, callback, feature, scenario)
     }
 
+    /**
+     * This method can be used to start the browser and run the test when live without uploading them
+     *
+     * @param event
+     * @param callback - the main function code that need to be run in the browser
+     * @param baseURL
+     * @param fileName
+     */
     public async startBrowserRPA(event: any, callback: any, baseURL: string, fileName = '') {
         this.changeModelData({
             baseURL: baseURL,
@@ -107,6 +118,17 @@ class AuxTA extends FunctionHelper {
 
     public getUploadModel(): UploadModel {
         return this.uploadModel;
+    }
+
+    private changeModelData(overrideConfig?: any) {
+        if (overrideConfig) {
+            if (overrideConfig.digitalProduct) this.uploadModel.digitalProduct = overrideConfig.digitalProduct
+            if (overrideConfig.environment) this.uploadModel.environment = overrideConfig.environment
+            if (overrideConfig.baseURL) this.uploadModel.baseUrl = overrideConfig.baseURL
+            if (overrideConfig.bucket) this.uploadModel.bucket = overrideConfig.bucket
+            if (overrideConfig.isOfficial !== undefined) this.uploadModel.isOfficial = overrideConfig.isOfficial
+            this.config = setupOverrideConfig(overrideConfig)
+        }
     }
 }
 

@@ -16,10 +16,17 @@ export class Runtime {
         this.end = e;
     }
 
+    public returnRuntime(): RunTime {
+        let duration = this.formatRuntime(this.calculateDuration());
+        let startTime = this.start;
+        let endTime = this.end;
+        this.runtime = {duration, startTime, endTime}
+        return this.runtime;
+    }
+
     private calculateDuration() {
         let currentTime = new Date;
-        let duration = currentTime.getTime() - this.start.getTime();
-        return duration;
+        return currentTime.getTime() - this.start.getTime();
     }
 
     private splitAtDecimanlMinutes(time: number) {
@@ -34,18 +41,10 @@ export class Runtime {
     }
 
     private formatRuntime(duration: number) {
-        if(duration / 1000 < 60) return `${(duration / 1000).toFixed(0)}s`
+        if (duration / 1000 < 60) return `${(duration / 1000).toFixed(0)}s`
         else {
-            if(duration / 60000 < 60) return this.splitAtDecimanlMinutes(duration / 60000);
+            if (duration / 60000 < 60) return this.splitAtDecimanlMinutes(duration / 60000);
             else return this.splitAtDecimanlHours(duration / 3600000);
         }
-    }
-
-    public returnRuntime() : RunTime { 
-        let duration = this.formatRuntime(this.calculateDuration());
-        let startTime = this.start;
-        let endTime = this.end;
-        this.runtime = { duration, startTime, endTime }
-        return this.runtime;
     }
 }

@@ -15,15 +15,19 @@ export interface Step {
 }
 
 export class LogSteps {
-    private stepLog: Step[] = [];
-    private lastStepTime = new Date().getTime();
     public statusCounter = {
         [StatusOfStep.PASSED]: 0,
         [StatusOfStep.FAILED]: 0,
         [StatusOfStep.SKIPPED]: 0,
         [StatusOfStep.SUGGESTION]: 0,
     }
+    private stepLog: Step[] = [];
+    private lastStepTime = new Date().getTime();
 
+    /**
+     * This method used to add a suggestion log
+     * @param text
+     * */
     public addSuggestion(text: string) {
         this.statusCounter[StatusOfStep.SUGGESTION]++;
         this.stepLog.push({
@@ -32,6 +36,9 @@ export class LogSteps {
         });
     }
 
+    /**
+     * This method used to clear all logs
+     * */
     public clear() {
         this.stepLog = [];
         this.statusCounter = {
@@ -42,6 +49,14 @@ export class LogSteps {
         }
     }
 
+    /**
+     * This method used to add a log, image and image compare key if present
+     * @param keyword
+     * @param name
+     * @param status
+     * @param screenshot
+     * @param imageCompareKey
+     * */
     public push(keyword: string, name: string, status: StatusOfStep, screenshot = '', imageCompareKey = '') {
         console.log(`System log -- status: ${status} -- : ${name} `);
         this.statusCounter[status]++;
@@ -58,7 +73,12 @@ export class LogSteps {
                 result: {status, duration: currentStep - this.lastStepTime, embedding: embedding}
             });
         } else {
-            this.stepLog.push({keyword, name, imageCompareKey ,result: {status, duration: currentStep - this.lastStepTime}});
+            this.stepLog.push({
+                keyword,
+                name,
+                imageCompareKey,
+                result: {status, duration: currentStep - this.lastStepTime}
+            });
         }
 
         this.lastStepTime = currentStep;

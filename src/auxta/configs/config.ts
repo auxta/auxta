@@ -22,7 +22,7 @@ export function setupConfig(jsonConfig: any) {
     return config;
 }
 
-export function setupOverrideConfig(overrideConfig: any){
+export function setupOverrideConfig(overrideConfig: any) {
     if (overrideConfig.baseURL) config.baseURL = overrideConfig.baseURL;
     if (overrideConfig.digitalProduct) config.digitalProduct = overrideConfig.digitalProduct;
     if (overrideConfig.screenWidth) config.screenWidth = overrideConfig.screenWidth;
@@ -37,7 +37,7 @@ export let config = {
     organization: "",
     netlifyPath: "",
     digitalProduct: "",
-    bucket:"",
+    bucket: "",
     token: "",
     screenWidth: 1920,
     screenHeight: 1080,

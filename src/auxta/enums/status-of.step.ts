@@ -4,4 +4,5 @@ export enum StatusOfStep {
     SKIPPED = 'skipped',
     SUGGESTION = 'suggestion',
 }
+
 export default StatusOfStep;
