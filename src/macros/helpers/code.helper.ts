@@ -82,7 +82,7 @@ export class FunctionHelper extends ExtendDefaultPage {
     public async clickByText(selector: string, text: string, dotOrText = '.', options = {}, page = puppeteer.defaultPage, time: number = this.defaultTimeout, log_message = true) {
         const message = `I clicked on the '${text}' '${selector}'`;
         try {
-            const [linkHandlers]: any = await page.$x(`//${selector}[contains(${dotOrText},"${text}")]`);
+            const [linkHandlers]: any = await page.$$(`xpath/.//${selector}[contains(${dotOrText},"${text}")]`);
 
             if (linkHandlers) {
                 await linkHandlers.click(options);
@@ -112,7 +112,7 @@ export class FunctionHelper extends ExtendDefaultPage {
     public async clickByTextWithClass(class_selector: string, class_name: string, selector: string, text: string, dotOrText = '.', page = puppeteer.defaultPage) {
         const message = `I click on the '${text}' '${selector}'`;
         try {
-            const [linkHandlers]: any = await page.$x(`//${class_selector}[contains(@class,${this.getEscapedText(class_name)})]//${selector}[contains(${dotOrText},"${text}")]`);
+            const [linkHandlers]: any = await page.$$(`xpath/.//${class_selector}[contains(@class,${this.getEscapedText(class_name)})]//${selector}[contains(${dotOrText},"${text}")]`);
 
             if (linkHandlers) {
                 await linkHandlers.click();
@@ -140,7 +140,7 @@ export class FunctionHelper extends ExtendDefaultPage {
             await page.waitForSelector(selector, {
                 timeout: this.defaultTimeout
             });
-            const linkHandlers = await page.$x(`//${selector}[contains(${dotOrText},"${text}")]`);
+            const linkHandlers = await page.$$(`xpath/.//${selector}[contains(${dotOrText},"${text}")]`);
             if (linkHandlers.length > 0) {
                 log.push('And', message, StatusOfStep.PASSED);
                 return true;
@@ -257,6 +257,13 @@ export class FunctionHelper extends ExtendDefaultPage {
 
     }
 
+    public async waitForResponse(name: string, wait = true, page = puppeteer.defaultPage)  {
+        if (wait) {
+            await page.waitForResponse(response => response.url().includes(name));
+            this.log('Then', `I wait for response with name: ${name}`, StatusOfStep.PASSED);
+        }
+    }
+
     /**
      * This method used to close last page in browser
      * @param page
@@ -279,43 +286,21 @@ export class FunctionHelper extends ExtendDefaultPage {
     public async microsoftLogin(button: string, email: string, password: string, page = puppeteer.defaultPage, newPage = true) {
         const email_input = 'input[type="email"]';
         const password_input = 'input[type="password"]';
-        const next_button = 'input[value="Next"]';
-        const sign_in_button = 'input[value="Sign in"]';
-        const no_button = 'input.ext-secondary';
         await this.clickAndWaitForPageToBeCreated(button, page, newPage);
         const pages = await page.browser().pages();
         const loginPage = pages[pages.length - 1];
         await this.extend_page_functions(loginPage);
-        await loginPage.waitForNetworkIdle();
-        try {
-            await loginPage.waitForSelector(next_button, {visible: true, timeout: 60000})
-        } catch (e) {
-        }
-        this.log('Then', `I checked for the '${next_button}' element to be visible`, StepStatus.PASSED);
+        await this.waitForResponse('signin-options',true, loginPage)
         await loginPage.type(email_input, email, {delay: 0});
         await loginPage.keyboard.press('Enter');
-        await this.timeout(4000);
-        // if() here check is container with asking Work or Personal is account?
+        await this.waitForResponse('microsoft_logo',true, loginPage);
         let isWorkOrPersonalVisible = await page.$('div.table');
         if (!!isWorkOrPersonalVisible) {
             await (await page.$$('div.table'))[0].click();
             console.log('Then', 'I clicked Work or school account', StepStatus.PASSED);
-            await this.timeout(4000);
-        } else {
-            await this.timeout(4000);
+            await this.waitForResponse('microsoft_logo',true, loginPage);
         }
-        try {
-            await loginPage.waitForSelector(sign_in_button, {visible: true, timeout: 60000})
-        } catch (e) {
-        }
-        this.log('Then', `I checked for the '${sign_in_button}' element to be visible`, StepStatus.PASSED);
-
-        try {
-            await loginPage.waitForSelector(password_input, {visible: true, timeout: 60000})
-        } catch (e) {
-        }
-        this.log('Then', `I checked for the '${password_input}' element to be visible`, StepStatus.PASSED);
-
+        // if() here check is container with asking Work or Personal is account?
         try {
             (await loginPage.$(password_input))?.type(password);
             await this.log('Then', `I type password into the ${password_input}`, StepStatus.PASSED);
@@ -323,13 +308,10 @@ export class FunctionHelper extends ExtendDefaultPage {
             await this.log('Then', `I type password into the ${password_input}`, StepStatus.FAILED);
             throw new Error(`I type password into the ${password_input}`)
         }
-        await this.timeout(4000);
+        await this.timeout(1000);
         await loginPage.keyboard.press('Enter');
-        try {
-            await loginPage.waitForSelector(no_button, {visible: true, timeout: 60000})
-        } catch (e) {
-        }
-        this.log('Then', `I checked for the '${no_button}' element to be visible`, StepStatus.PASSED);
+        await this.waitForResponse('2_bc3d32a696895f78c19d',true, loginPage);
+        await this.timeout(1000);
         await loginPage.keyboard.press('Enter');
     }
 

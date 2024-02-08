@@ -1,5 +1,4 @@
 import log from "../../auxta/services/log.service";
-import {AuxGoogleAuth} from "./AuxGoogleAuth";
 import {StepStatus} from "../../AuxTA";
 import {getVerifyReceivedEmail} from "../../auxta/services/report.service";
 
@@ -20,9 +19,7 @@ export class EmailHelper {
      */
     public async verifyEmail(from_name: string, from_email: string, subject: string, body: string, link: boolean = false) {
         try {
-            log.push('Then', `Logging in two google or getting the token`, StepStatus.PASSED);
-            await AuxGoogleAuth.setupHeadless();
-            log.push('Then', `Done logging in and waiting 35 seconds`, StepStatus.PASSED);
+            log.push('Then', `waiting 35 seconds`, StepStatus.PASSED);
             await new Promise(r => setTimeout(r, 35000));
             let timeoutCount = 12000;
             while (timeoutCount <= 60000) {
