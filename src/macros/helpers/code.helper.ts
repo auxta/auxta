@@ -154,8 +154,6 @@ export class FunctionHelper extends ExtendDefaultPage {
     /**
      * This method used to set timeout
      * @param timeout
-     * @param page
-     *
      * */
     public async timeout(timeout = this.defaultTimeout) {
         await new Promise(r => setTimeout(r, timeout));
@@ -221,7 +219,7 @@ export class FunctionHelper extends ExtendDefaultPage {
         });
     }
 
-    public async EndForceState() {
+    public async endForceState() {
         this.cdp?.detach();
     }
 
