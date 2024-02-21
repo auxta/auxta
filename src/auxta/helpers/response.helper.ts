@@ -12,6 +12,6 @@ export function returnImage(code: number, screenshot: Buffer) {
             "Content-Type": "image/png",
             "Content-Length": screenshot.length.toString()
         },
-        body: screenshot.toString("base64")
+        body: screenshot
     };
 }

@@ -41,7 +41,7 @@ export async function captureScreenshot() {
                         }
                     );
                     if (Buffer.isBuffer(screenshotBuffer)) {
-                        log.push("When", `${i} Image`, StatusOfStep.FAILED, screenshotBuffer.toString("base64"))
+                        log.push("When", `${i} Image`, StatusOfStep.FAILED, screenshotBuffer)
                         break;
                     }
                 } catch (e: any) {
@@ -63,7 +63,7 @@ export async function captureScreenshotPage(page: Page) {
         try {
             const pages = await puppeteer.defaultPage.browser().pages();
             log.push('When', `Before the screenshot the number of pages are ${pages.length}`, StatusOfStep.PASSED);
-            const screenshotBuffer = await page.screenshot({
+            const screenshotBuffer: ArrayBuffer = await page.screenshot({
                     fullPage: true,
                     captureBeyondViewport: false,
                     encoding: 'binary'

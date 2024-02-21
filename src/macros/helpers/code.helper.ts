@@ -3,12 +3,12 @@ import puppeteer from "../../puppeteer/puppeteer";
 import {StatusOfStep} from "../../auxta/enums/status-of.step";
 import {StepStatus} from "../../AuxTA";
 import {ExtendDefaultPage} from "./extend-default-page";
-import {KnownDevices} from "puppeteer";
+import {CDPSession, KnownDevices} from "puppeteer";
 import {captureScreenshotPage} from "../../auxta/utilities/screenshot.helper";
 import {compareScreenshots} from "../../auxta/services/report.service";
 
 export class FunctionHelper extends ExtendDefaultPage {
-
+    public cdp: CDPSession | undefined;
 
     /**
      * This method is used to log data in to the test
@@ -19,7 +19,7 @@ export class FunctionHelper extends ExtendDefaultPage {
      *
      *
      */
-    public log(keyword: string, name: string, status: StatusOfStep, screenshot?: string) {
+    public log(keyword: string, name: string, status: StatusOfStep, screenshot?: ArrayBuffer) {
         log.push(keyword, name, status, screenshot)
     }
 
@@ -31,7 +31,7 @@ export class FunctionHelper extends ExtendDefaultPage {
     public async screenshot(page = puppeteer.defaultPage) {
         const screenshotBuffer = await captureScreenshotPage(page);
         if (screenshotBuffer) {
-            return screenshotBuffer.toString('base64');
+            return screenshotBuffer;
         }
     }
 
@@ -46,7 +46,7 @@ export class FunctionHelper extends ExtendDefaultPage {
         if (process.env.ENVIRONMENT !== 'LOCAL') {
             const screenshotBuffer = await captureScreenshotPage(page);
             if (screenshotBuffer) {
-                const screenshot = screenshotBuffer.toString('base64');
+                const screenshot = screenshotBuffer;
                 const result = await compareScreenshots(key, screenshot);
                 if (result.presentDifference && Number(result.presentDifference) > threshold) {
                     log.push('Then', `I compare screenshots with key ${key}, and difference is: ${result.presentDifference}%`, StatusOfStep.FAILED, screenshot, key)
@@ -204,6 +204,25 @@ export class FunctionHelper extends ExtendDefaultPage {
             throw new Error(message)
         }
         log.push('And', message, StatusOfStep.PASSED);
+    }
+
+    public async forceState(selector: string, state: string, index = 0, page = puppeteer.defaultPage) {
+         this.cdp = await page.target().createCDPSession();
+
+        const docNodeId = (await this.cdp.send('DOM.getDocument')).root.nodeId;
+        const nodeIds = (await this.cdp.send('DOM.querySelectorAll', {
+            nodeId: docNodeId,
+            selector: selector,
+        })).nodeIds;
+        await this.cdp.send('CSS.enable');
+        await this.cdp.send('CSS.forcePseudoState', {
+                nodeId: nodeIds[index],
+                forcedPseudoClasses: [state],
+        });
+    }
+
+    public async EndForceState() {
+        this.cdp?.detach();
     }
 
     /**

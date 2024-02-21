@@ -8,7 +8,7 @@ export interface Step {
         status: StatusOfStep,
         duration: number
         embedding?: {
-            data: string,
+            data: ArrayBuffer,
             mime_type: string
         },
     }
@@ -57,11 +57,11 @@ export class LogSteps {
      * @param screenshot
      * @param imageCompareKey
      * */
-    public push(keyword: string, name: string, status: StatusOfStep, screenshot = '', imageCompareKey = '') {
+    public push(keyword: string, name: string, status: StatusOfStep, screenshot = new ArrayBuffer(0), imageCompareKey = '') {
         console.log(`System log -- status: ${status} -- : ${name} `);
         this.statusCounter[status]++;
         const currentStep = new Date().getTime();
-        if (screenshot != '') {
+        if (screenshot.byteLength != 0) {
             const embedding = {
                 data: screenshot,
                 mime_type: "image/png"

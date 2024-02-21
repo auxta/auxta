@@ -101,7 +101,7 @@ export async function uploadStep(stepLog: Step[], scenarioName: string, screensh
                             duration: 2678000000
                         },
                         embeddings: (screenshot) ? [{
-                            data: screenshot.toString("base64"),
+                            data: screenshot,
                             mime_type: "image/png"
                         }] : undefined,
                     }
@@ -192,7 +192,7 @@ export async function getLastDayResults(): Promise<any> {
     )).data.results;
 }
 
-export async function compareScreenshots(key: string, screenshot: string): Promise<any> {
+export async function compareScreenshots(key: string, screenshot: ArrayBuffer): Promise<any> {
     let token = await auth();
     const embedding = {
         data: screenshot,
