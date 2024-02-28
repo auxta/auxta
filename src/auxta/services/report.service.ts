@@ -16,7 +16,8 @@ export interface Steps {
     failedSteps: number,
     passedSteps: number,
     skippedSteps: number,
-    suggestedSteps: number
+    suggestedSteps: number,
+    performanceFailure: number
 }
 
 function headers(token: string) {

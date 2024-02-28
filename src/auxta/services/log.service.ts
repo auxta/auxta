@@ -20,6 +20,7 @@ export class LogSteps {
         [StatusOfStep.FAILED]: 0,
         [StatusOfStep.SKIPPED]: 0,
         [StatusOfStep.SUGGESTION]: 0,
+        [StatusOfStep.PERFORMANCE_FAIL]: 0
     }
     private stepLog: Step[] = [];
     private lastStepTime = new Date().getTime();
@@ -36,6 +37,30 @@ export class LogSteps {
         });
     }
 
+    public addPerformanceFail(text: string, screenshot = new ArrayBuffer(0)) {
+        this.statusCounter[StatusOfStep.PERFORMANCE_FAIL]++;
+        if (screenshot.byteLength != 0) {
+            const embedding = {
+                data: screenshot,
+                mime_type: "image/png"
+            };
+            this.stepLog.push({
+                keyword: 'PerformanceFail',
+                name: text,
+                imageCompareKey: '',
+                result: {status: StatusOfStep.PERFORMANCE_FAIL, duration: 0, embedding: embedding}
+            });
+        } else {
+            this.stepLog.push({
+                keyword: 'PerformanceFail',
+                name: text,
+                imageCompareKey: '',
+                result: {status: StatusOfStep.PERFORMANCE_FAIL, duration: 0}
+            });
+        }
+
+    }
+
     /**
      * This method used to clear all logs
      * */
@@ -46,6 +71,7 @@ export class LogSteps {
             [StatusOfStep.FAILED]: 0,
             [StatusOfStep.SKIPPED]: 0,
             [StatusOfStep.SUGGESTION]: 0,
+            [StatusOfStep.PERFORMANCE_FAIL]: 0
         }
     }
 

@@ -41,7 +41,8 @@ export async function onTestEnd(body: any, featureName: string, scenarioName: st
                 failedSteps: log.getStatusCount(StatusOfStep.FAILED),
                 passedSteps: log.getStatusCount(StatusOfStep.PASSED),
                 skippedSteps: log.getStatusCount(StatusOfStep.SKIPPED),
-                suggestedSteps: log.getStatusCount(StatusOfStep.SUGGESTION)
+                suggestedSteps: log.getStatusCount(StatusOfStep.SUGGESTION),
+                performanceFailure: log.getStatusCount(StatusOfStep.PERFORMANCE_FAIL)
             }
             isFinal = (!(body.nextSuites && body.nextSuites.length > 0));
             await updateReport(body.reportId, scenario, stepCounts, isFinal);

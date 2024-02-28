@@ -68,6 +68,10 @@ export class FunctionHelper extends ExtendDefaultPage {
         log.addSuggestion(name)
     }
 
+    public performanceFail(name: string, screenshot?: ArrayBuffer) {
+        log.addPerformanceFail(name, screenshot)
+    }
+
     /**
      * This method used to click the selected text by Xpath expression
      * @param selector
@@ -319,6 +323,7 @@ export class FunctionHelper extends ExtendDefaultPage {
         }
         // if() here check is container with asking Work or Personal is account?
         try {
+            await this.timeout(1000);
             (await loginPage.$(password_input))?.type(password);
             await this.log('Then', `I type password into the ${password_input}`, StepStatus.PASSED);
         } catch (e) {
