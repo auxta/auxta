@@ -68,8 +68,13 @@ export class FunctionHelper extends ExtendDefaultPage {
         log.addSuggestion(name)
     }
 
-    public performanceFail(name: string, screenshot?: ArrayBuffer) {
-        log.addPerformanceFail(name, screenshot)
+    public async performanceFail(name: string, screenshot = true, page = puppeteer.defaultPage) {
+        if (screenshot) {
+            const screenshotBuffer = await captureScreenshotPage(page);
+            log.addPerformanceFail(name, screenshotBuffer)
+        } else {
+            log.addPerformanceFail(name)
+        }
     }
 
     /**
@@ -209,7 +214,7 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     public async forceState(selector: string, state: string, index = 0, page = puppeteer.defaultPage) {
-         this.cdp = await page.target().createCDPSession();
+        this.cdp = await page.target().createCDPSession();
 
         const docNodeId = (await this.cdp.send('DOM.getDocument')).root.nodeId;
         const nodeIds = (await this.cdp.send('DOM.querySelectorAll', {
@@ -218,8 +223,8 @@ export class FunctionHelper extends ExtendDefaultPage {
         })).nodeIds;
         await this.cdp.send('CSS.enable');
         await this.cdp.send('CSS.forcePseudoState', {
-                nodeId: nodeIds[index],
-                forcedPseudoClasses: [state],
+            nodeId: nodeIds[index],
+            forcedPseudoClasses: [state],
         });
     }
 
@@ -278,7 +283,7 @@ export class FunctionHelper extends ExtendDefaultPage {
 
     }
 
-    public async waitForResponse(name: string, wait = true, page = puppeteer.defaultPage)  {
+    public async waitForResponse(name: string, wait = true, page = puppeteer.defaultPage) {
         if (wait) {
             await page.waitForResponse(response => response.url().includes(name));
             this.log('Then', `I wait for response with name: ${name}`, StatusOfStep.PASSED);
@@ -311,15 +316,15 @@ export class FunctionHelper extends ExtendDefaultPage {
         const pages = await page.browser().pages();
         const loginPage = pages[pages.length - 1];
         await this.extend_page_functions(loginPage);
-        await this.waitForResponse('signin-options',true, loginPage)
+        await this.waitForResponse('signin-options', true, loginPage)
         await loginPage.type(email_input, email, {delay: 0});
         await loginPage.keyboard.press('Enter');
-        await this.waitForResponse('microsoft_logo',true, loginPage);
+        await this.waitForResponse('microsoft_logo', true, loginPage);
         let isWorkOrPersonalVisible = await page.$('div.table');
         if (!!isWorkOrPersonalVisible) {
             await (await page.$$('div.table'))[0].click();
             console.log('Then', 'I clicked Work or school account', StepStatus.PASSED);
-            await this.waitForResponse('microsoft_logo',true, loginPage);
+            await this.waitForResponse('microsoft_logo', true, loginPage);
         }
         // if() here check is container with asking Work or Personal is account?
         try {
@@ -332,7 +337,7 @@ export class FunctionHelper extends ExtendDefaultPage {
         }
         await this.timeout(1000);
         await loginPage.keyboard.press('Enter');
-        await this.waitForResponse('2_bc3d32a696895f78c19d',true, loginPage);
+        await this.waitForResponse('2_bc3d32a696895f78c19d', true, loginPage);
         await this.timeout(1000);
         await loginPage.keyboard.press('Enter');
     }

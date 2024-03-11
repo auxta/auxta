@@ -39,6 +39,7 @@ export class LogSteps {
 
     public addPerformanceFail(text: string, screenshot = new ArrayBuffer(0)) {
         this.statusCounter[StatusOfStep.PERFORMANCE_FAIL]++;
+        const currentStep = new Date().getTime();
         if (screenshot.byteLength != 0) {
             const embedding = {
                 data: screenshot,
@@ -48,17 +49,17 @@ export class LogSteps {
                 keyword: 'PerformanceFail',
                 name: text,
                 imageCompareKey: '',
-                result: {status: StatusOfStep.PERFORMANCE_FAIL, duration: 0, embedding: embedding}
+                result: {status: StatusOfStep.PERFORMANCE_FAIL, duration: currentStep - this.lastStepTime, embedding: embedding}
             });
         } else {
             this.stepLog.push({
                 keyword: 'PerformanceFail',
                 name: text,
                 imageCompareKey: '',
-                result: {status: StatusOfStep.PERFORMANCE_FAIL, duration: 0}
+                result: {status: StatusOfStep.PERFORMANCE_FAIL, duration: currentStep - this.lastStepTime}
             });
         }
-
+        this.lastStepTime = currentStep;
     }
 
     /**
