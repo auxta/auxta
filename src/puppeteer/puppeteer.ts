@@ -116,7 +116,7 @@ export class Puppeteer {
             let consoleMessage: any [] = [];
             let httpsMessage: any [] = [];
             try {
-                log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
+                log.push('When', log.tag, `Starting puppeteer process`, StatusOfStep.PASSED);
                 await this.startBrowser()
                 this.defaultPage.on('console', (message: any) =>
                     consoleMessage.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
@@ -127,7 +127,7 @@ export class Puppeteer {
                     .on('requestfailed', (request: any) =>
                         httpsMessage.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
                 await callback(event)
-                log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
+                log.push('When', log.tag, `Finished puppeteer process`, StatusOfStep.PASSED);
             } catch (err: any) {
                 console.log("Error message: \n", err);
                 let browser_start_retry = err.toString().includes("Failed to launch the browser process!");
@@ -149,7 +149,7 @@ export class Puppeteer {
                 errMessage = err;
                 statusCode = 500;
                 screenshotBuffer = await captureScreenshot();
-                log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
+                log.push('When', log.tag, `Finished puppeteer process`, StatusOfStep.FAILED);
                 await postNotificationsOnFail(uploadModel);
             }
             let url = this.defaultPage.url();
@@ -197,7 +197,7 @@ export class Puppeteer {
             }
             let consoleStack: any[] = [];
             try {
-                await log.push('When', `Starting puppeteer process`, StatusOfStep.PASSED);
+                await log.push('When', log.tag, `Starting puppeteer process`, StatusOfStep.PASSED);
                 await this.startBrowser()
                 this.defaultPage.on('console', (message: any) =>
                     consoleStack.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
@@ -208,7 +208,7 @@ export class Puppeteer {
                     .on('requestfailed', (request: any) =>
                         consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
                 await callback(event)
-                log.push('When', `Finished puppeteer process`, StatusOfStep.PASSED);
+                log.push('When', log.tag, `Finished puppeteer process`, StatusOfStep.PASSED);
             } catch (err: any) {
                 console.log("Error message: \n", err);
                 let browser_start_retry = err.toString().includes("Failed to launch the browser process!");
@@ -218,7 +218,7 @@ export class Puppeteer {
                     return {statusCode: 204}
                 }
                 errMessage = err;
-                log.push('When', `Finished puppeteer process`, StatusOfStep.FAILED);
+                log.push('When', log.tag, `Finished puppeteer process`, StatusOfStep.FAILED);
                 return errMessage;
             }
             if (close) await this.close();

@@ -20,7 +20,15 @@ export class FunctionHelper extends ExtendDefaultPage {
      *
      */
     public log(keyword: string, name: string, status: StatusOfStep, screenshot?: ArrayBuffer) {
-        log.push(keyword, name, status, screenshot)
+        log.push(keyword, log.tag, name, status, screenshot)
+    }
+
+    public setTag(tag: string) {
+        log.tag = tag;
+    }
+
+    public clearTag() {
+        log.tag = '';
     }
 
     /**
@@ -49,13 +57,13 @@ export class FunctionHelper extends ExtendDefaultPage {
                 const screenshot = screenshotBuffer;
                 const result = await compareScreenshots(key, screenshot);
                 if (result.presentDifference && Number(result.presentDifference) > threshold) {
-                    log.push('Then', `I compare screenshots with key ${key}, and difference is: ${result.presentDifference}%`, StatusOfStep.FAILED, screenshot, key)
+                    log.push('Then', log.tag, `I compare screenshots with key ${key}, and difference is: ${result.presentDifference}%`, StatusOfStep.FAILED, screenshot, key)
                 } else {
-                    log.push('Then', `I compare screenshots with key ${key}`, StatusOfStep.PASSED, screenshot, key)
+                    log.push('Then', log.tag, `I compare screenshots with key ${key}`, StatusOfStep.PASSED, screenshot, key)
                 }
             }
         } else {
-            log.push('Then', `I compare screenshots with key ${key}`, StatusOfStep.PASSED, undefined, key)
+            log.push('Then', log.tag, `I compare screenshots with key ${key}`, StatusOfStep.PASSED, undefined, key)
         }
     }
 
@@ -95,16 +103,16 @@ export class FunctionHelper extends ExtendDefaultPage {
 
             if (linkHandlers) {
                 await linkHandlers.click(options);
-                log.push('Then', message, StatusOfStep.PASSED);
+                log.push('Then', log.tag, message, StatusOfStep.PASSED);
             }
         } catch (e) {
             if (log_message) {
-                log.push('And', `${message}, but it didn't appear in ${time / 1000} seconds.`, StatusOfStep.FAILED);
+                log.push('And', log.tag, `${message}, but it didn't appear in ${time / 1000} seconds.`, StatusOfStep.FAILED);
             }
             throw new Error(message)
         }
         if (log_message) {
-            log.push('And', message, StatusOfStep.PASSED);
+            log.push('And', log.tag, message, StatusOfStep.PASSED);
         }
     }
 
@@ -125,12 +133,12 @@ export class FunctionHelper extends ExtendDefaultPage {
 
             if (linkHandlers) {
                 await linkHandlers.click();
-                log.push('Then', message, StatusOfStep.PASSED);
+                log.push('Then', log.tag, message, StatusOfStep.PASSED);
                 return;
             }
         } catch (e) {
         }
-        log.push('Then', message, StatusOfStep.FAILED);
+        log.push('Then', log.tag, message, StatusOfStep.FAILED);
         throw new Error(message);
     }
 
@@ -151,12 +159,12 @@ export class FunctionHelper extends ExtendDefaultPage {
             });
             const linkHandlers = await page.$$(`xpath/.//${selector}[contains(${dotOrText},"${text}")]`);
             if (linkHandlers.length > 0) {
-                log.push('And', message, StatusOfStep.PASSED);
+                log.push('And', log.tag, message, StatusOfStep.PASSED);
                 return true;
             }
         } catch (e) {
         }
-        log.push('And', message, StatusOfStep.FAILED);
+        log.push('And', log.tag, message, StatusOfStep.FAILED);
         throw new Error(message);
     }
 
@@ -188,12 +196,12 @@ export class FunctionHelper extends ExtendDefaultPage {
             });
         } catch (e) {
             if (log_message) {
-                log.push('And', `${message}, but it didn't appear in ${time / 1000} seconds.`, StatusOfStep.FAILED);
+                log.push('And', log.tag, `${message}, but it didn't appear in ${time / 1000} seconds.`, StatusOfStep.FAILED);
             }
             throw new Error(message)
         }
         if (log_message) {
-            log.push('And', message, StatusOfStep.PASSED);
+            log.push('And', log.tag, message, StatusOfStep.PASSED);
         }
     }
 
@@ -207,10 +215,10 @@ export class FunctionHelper extends ExtendDefaultPage {
         const url = page.url();
         let message = `I am on the ${selector} page`
         if (!url.includes(selector)) {
-            log.push('And', message, StatusOfStep.FAILED);
+            log.push('And', log.tag, message, StatusOfStep.FAILED);
             throw new Error(message)
         }
-        log.push('And', message, StatusOfStep.PASSED);
+        log.push('And', log.tag, message, StatusOfStep.PASSED);
     }
 
     public async forceState(selector: string, state: string, index = 0, page = puppeteer.defaultPage) {

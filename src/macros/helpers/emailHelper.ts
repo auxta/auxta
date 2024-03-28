@@ -19,13 +19,13 @@ export class EmailHelper {
      */
     public async verifyEmail(from_name: string, from_email: string, subject: string, body: string, link: boolean = false) {
         try {
-            log.push('Then', `waiting 35 seconds`, StepStatus.PASSED);
+            log.push('Then', log.tag, `waiting 35 seconds`, StepStatus.PASSED);
             await new Promise(r => setTimeout(r, 35000));
             let timeoutCount = 12000;
             while (timeoutCount <= 60000) {
                 try {
                     const links = await getVerifyReceivedEmail(from_name, from_email, subject, body, link);
-                    log.push('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.PASSED);
+                    log.push('Then', log.tag, `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.PASSED);
                     if (links) {
                         return {
                             link: links.data.link
@@ -35,11 +35,11 @@ export class EmailHelper {
                     }
                 } catch (e) {
                 }
-                log.push('Then', `Failed two get the email with the given criteria and waiting 12 seconds`, StepStatus.PASSED);
+                log.push('Then', log.tag, `Failed two get the email with the given criteria and waiting 12 seconds`, StepStatus.PASSED);
                 await new Promise(r => setTimeout(r, timeoutCount));
                 timeoutCount += 12000;
             }
-            await log.push('Then', `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.FAILED);
+            await log.push('Then', log.tag, `Email from: ${from_name} ${from_email} with subject: ${subject} and body: ${body} is found`, StepStatus.FAILED);
         } catch (e: any) {
             throw new Error(e);
         }

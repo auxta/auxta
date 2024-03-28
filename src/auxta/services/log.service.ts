@@ -2,6 +2,7 @@ import {StatusOfStep} from "../enums/status-of.step";
 
 export interface Step {
     keyword: string,
+    tag: string,
     name: string,
     imageCompareKey: string
     result: {
@@ -24,6 +25,7 @@ export class LogSteps {
     }
     private stepLog: Step[] = [];
     private lastStepTime = new Date().getTime();
+    private _tag = 'default'
 
     /**
      * This method used to add a suggestion log
@@ -32,7 +34,7 @@ export class LogSteps {
     public addSuggestion(text: string) {
         this.statusCounter[StatusOfStep.SUGGESTION]++;
         this.stepLog.push({
-            keyword: 'Suggestion', name: text, imageCompareKey: '', result:
+            keyword: 'Suggestion', tag: this._tag, name: text, imageCompareKey: '', result:
                 {status: StatusOfStep.SUGGESTION, duration: 0}
         });
     }
@@ -47,6 +49,7 @@ export class LogSteps {
             };
             this.stepLog.push({
                 keyword: 'PerformanceFail',
+                tag: this._tag,
                 name: text,
                 imageCompareKey: '',
                 result: {status: StatusOfStep.PERFORMANCE_FAIL, duration: currentStep - this.lastStepTime, embedding: embedding}
@@ -54,6 +57,7 @@ export class LogSteps {
         } else {
             this.stepLog.push({
                 keyword: 'PerformanceFail',
+                tag: this._tag,
                 name: text,
                 imageCompareKey: '',
                 result: {status: StatusOfStep.PERFORMANCE_FAIL, duration: currentStep - this.lastStepTime}
@@ -84,8 +88,8 @@ export class LogSteps {
      * @param screenshot
      * @param imageCompareKey
      * */
-    public push(keyword: string, name: string, status: StatusOfStep, screenshot = new ArrayBuffer(0), imageCompareKey = '') {
-        console.log(`System log -- status: ${status} -- : ${name} `);
+    public push(keyword: string, tag: string, name: string, status: StatusOfStep, screenshot = new ArrayBuffer(0), imageCompareKey = '') {
+        console.log(`System log -- status: ${status} -- tag: ${tag} -- : ${name} `);
         this.statusCounter[status]++;
         const currentStep = new Date().getTime();
         if (screenshot.byteLength != 0) {
@@ -95,6 +99,7 @@ export class LogSteps {
             };
             this.stepLog.push({
                 keyword,
+                tag,
                 name,
                 imageCompareKey,
                 result: {status, duration: currentStep - this.lastStepTime, embedding: embedding}
@@ -102,6 +107,7 @@ export class LogSteps {
         } else {
             this.stepLog.push({
                 keyword,
+                tag,
                 name,
                 imageCompareKey,
                 result: {status, duration: currentStep - this.lastStepTime}
@@ -117,6 +123,14 @@ export class LogSteps {
 
     public getStatusCount(status: StatusOfStep): number {
         return this.statusCounter[status];
+    }
+
+    get tag(): string {
+        return this._tag;
+    }
+
+    set tag(value: string) {
+        this._tag = value;
     }
 }
 

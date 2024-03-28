@@ -14,7 +14,7 @@ export class ExtendDefaultPage {
             waitForNetworkIdle: original_waitForNetworkIdle
         } = page;
         page.goto = function goto(url: any, options?: any) {
-            log.push('Then', `I go to the '${url}' page`, StatusOfStep.PASSED);
+            log.push('Then', log.tag, `I go to the '${url}' page`, StatusOfStep.PASSED);
             return original_goto.apply(page, arguments);
         };
         page.click = async function click(selector: any, options?: any) {
@@ -25,10 +25,10 @@ export class ExtendDefaultPage {
                 let elementName = await page.$eval(selector, (e: { textContent: any; }) => e.textContent);
                 if (!elementName || elementName === ' ') elementName = selector;
                 await original_click.apply(page, arguments);
-                log.push('Then', `I click on the '${elementName}'`, StatusOfStep.PASSED);
+                log.push('Then', log.tag, `I click on the '${elementName}'`, StatusOfStep.PASSED);
             } catch (e) {
                 const msg = `I click on the '${selector}'`;
-                log.push('Then', msg, StatusOfStep.FAILED);
+                log.push('Then', log.tag, msg, StatusOfStep.FAILED);
                 throw new Error(msg)
             }
         };
@@ -37,9 +37,9 @@ export class ExtendDefaultPage {
             let result
             try {
                 result = await original_waitForNetworkIdle.apply(page, arguments);
-                log.push('Then', message, StatusOfStep.PASSED);
+                log.push('Then', log.tag, message, StatusOfStep.PASSED);
             } catch (e) {
-                log.push('Then', message, StatusOfStep.FAILED);
+                log.push('Then', log.tag, message, StatusOfStep.FAILED);
                 throw new Error(message)
             }
             return result
@@ -52,10 +52,10 @@ export class ExtendDefaultPage {
                 await original_type.apply(page, arguments);
                 let elementName = await page.$eval(field, (e: { textContent: any; }) => e.textContent);
                 if (!elementName || elementName === ' ') elementName = field;
-                log.push('Then', `I type '${value}' into the '${elementName}' field`, StatusOfStep.PASSED);
+                log.push('Then', log.tag, `I type '${value}' into the '${elementName}' field`, StatusOfStep.PASSED);
             } catch (e) {
                 const msg = `I type '${value}' into the '${field}' field`
-                log.push('Then', msg, StatusOfStep.FAILED);
+                log.push('Then', log.tag, msg, StatusOfStep.FAILED);
                 throw new Error(msg)
             }
         }

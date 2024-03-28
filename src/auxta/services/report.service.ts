@@ -9,7 +9,7 @@ export interface Scenarios {
     scenarioUri: string,
     status: string,
     scenariosCount: number
-    lastFiveStepsHash: number
+    lastTag: string
 }
 
 export interface Steps {
@@ -30,7 +30,7 @@ function headers(token: string) {
 }
 
 async function auth() {
-    return axios.post(
+    let token = await axios.post(
         config.auxtaURL + 'login',
         config.auxtaCredentials,
         {
@@ -42,8 +42,26 @@ async function auth() {
             return data.token
         })
         .catch(() => {
-            throw new Error("Invalid login credentials")
+            return false;
         });
+    if (token == false) {
+        token = axios.post(
+            config.auxtaURL + 'login',
+            config.auxtaCredentials,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(({data}) => {
+                return data.token
+            })
+            .catch(() => {
+                throw new Error("Invalid login credentials")
+
+            });
+    }
+    return token;
 }
 
 /**
@@ -167,7 +185,7 @@ export async function updateReport(reportId: string, scenario: Scenarios, steps:
                     uri: scenario.scenarioUri,
                     status: scenario.status,
                     scenariosCount: scenario.scenariosCount,
-                    lastFiveStepsHash: scenario.lastFiveStepsHash
+                    lastTag: scenario.lastTag
                 },
                 ...steps
             }

@@ -25,7 +25,7 @@ export async function captureScreenshot() {
                         return screenshotBuffer;
                 } catch (e: any) {
                     if (count == RETRY_NUMBERS) {
-                        log.push('When', e.toString(), StatusOfStep.FAILED);
+                        log.push('When', log.tag, e.toString(), StatusOfStep.FAILED);
                         return undefined
                     }
                 }
@@ -41,12 +41,12 @@ export async function captureScreenshot() {
                         }
                     );
                     if (Buffer.isBuffer(screenshotBuffer)) {
-                        log.push("When", `${i} Image`, StatusOfStep.FAILED, screenshotBuffer)
+                        log.push("When", log.tag, `${i} Image`, StatusOfStep.FAILED, screenshotBuffer)
                         break;
                     }
                 } catch (e: any) {
                     if (count == RETRY_NUMBERS) {
-                        log.push('When', e.toString(), StatusOfStep.FAILED);
+                        log.push('When', log.tag, e.toString(), StatusOfStep.FAILED);
                         return undefined
                     }
                 }
@@ -62,7 +62,7 @@ export async function captureScreenshotPage(page: Page) {
     while (count <= RETRY_NUMBERS) {
         try {
             const pages = await puppeteer.defaultPage.browser().pages();
-            log.push('When', `Before the screenshot the number of pages are ${pages.length}`, StatusOfStep.PASSED);
+            log.push('When', log.tag, `Before the screenshot the number of pages are ${pages.length}`, StatusOfStep.PASSED);
             const screenshotBuffer: ArrayBuffer = await page.screenshot({
                     fullPage: true,
                     captureBeyondViewport: false,
@@ -73,7 +73,7 @@ export async function captureScreenshotPage(page: Page) {
                 return screenshotBuffer;
         } catch (e: any) {
             if (count == RETRY_NUMBERS) {
-                log.push('When', e.toString(), StatusOfStep.FAILED);
+                log.push('When', log.tag, e.toString(), StatusOfStep.FAILED);
                 return undefined
             }
         }
