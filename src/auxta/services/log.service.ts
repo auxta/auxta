@@ -4,6 +4,9 @@ export interface Step {
     keyword: string,
     tag: string,
     name: string,
+    isChecked?: boolean,
+    timeStamp?: Date,
+    userId?: string,
     imageCompareKey: string
     result: {
         status: StatusOfStep,
