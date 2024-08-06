@@ -65,19 +65,35 @@ async function auth() {
 }
 
 /**
+ * This method used to sets time zone for organization in the database
+ * @return reportId - id of the report
+ * */
+export async function setTimeZone(): Promise<string> {
+    const token = await auth();
+    return (await axios.post(
+        config.auxtaURL + "set-timezone",
+        {
+            organization: config.organization
+        },
+        headers(token)
+    )).data;
+}
+
+/**
  * This method used to create empty report in the database
  * @param body
  * @return reportId - id of the report
  * */
 export async function createEmptyReport(body: any): Promise<string> {
     const token = await auth();
+    const moment = require('moment-timezone');
     return (await axios.post(
         config.auxtaURL + "create-empty-report",
         {
             environment: body.environment,
             digitalProductToken: body.digitalProduct,
             bucket: body.bucket,
-            start: new Date(),
+            start: moment().tz(config.timezone),
             url: body.baseUrl
         },
         headers(token)
@@ -173,11 +189,13 @@ export async function uploadScenario(stepRes: any[], scenarioName: string, uri: 
  * */
 export async function updateReport(reportId: string, scenario: Scenarios, steps: Steps, isFinal: boolean) {
     let token = await auth();
+    const moment = require('moment-timezone');
     await axios.post(
         config.auxtaURL + "update-inprogress-report",
         {
             reportId: reportId,
             isFinal: isFinal,
+            end: moment().tz(config.timezone),
             data: {
                 scenario: {
                     scenarioRef: scenario.scenarioId,

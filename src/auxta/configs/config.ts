@@ -1,6 +1,10 @@
 export function setupConfig(jsonConfig: any) {
     if (!jsonConfig.baseURL) throw new Error("baseURL");
     config.baseURL = jsonConfig.baseURL;
+    if (!jsonConfig.auxtaURL) throw new Error("auxtaURL missing");
+    config.auxtaURL = jsonConfig.auxtaURL;
+    if (!jsonConfig.timezone) throw new Error("auxtaURL missing");
+    config.timezone = jsonConfig.timezone;
     if (!jsonConfig.digitalProduct) throw new Error("digitalProduct");
     config.digitalProduct = jsonConfig.digitalProduct;
     if (!jsonConfig.testsURL) throw new Error("testsURL");
@@ -31,7 +35,7 @@ export function setupOverrideConfig(overrideConfig: any) {
 }
 
 export let config = {
-    auxtaURL: "https://auxta.live/.netlify/functions/",
+    auxtaURL: "",
     baseURL: "",
     siteURL: "",
     organization: "",
@@ -48,4 +52,5 @@ export let config = {
         email: "",
         password: "",
     },
+    timezone: ""
 }

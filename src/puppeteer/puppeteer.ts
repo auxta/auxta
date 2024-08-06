@@ -7,7 +7,6 @@ import {UploadModel} from "../auxta/models/upload.model";
 import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
 import {postNotificationsOnFail} from "../auxta/services/report.service";
-
 import puppeteer = require("puppeteer");
 
 export class Puppeteer {
@@ -130,27 +129,30 @@ export class Puppeteer {
                 log.push('When', log.tag, `Finished puppeteer process`, StatusOfStep.PASSED);
             } catch (err: any) {
                 console.log("Error message: \n", err);
-                let browser_start_retry = err.toString().includes("Failed to launch the browser process!");
-                const pages = await this.defaultPage.browser().pages();
-                consoleMessage.push('pages');
-                consoleMessage.push(pages.length);
-                if (browser_start_retry) {
-                    const result = await retrySuite(uploadModel.nextSuites, uploadModel.reportId, uploadModel.currentSuite, uploadModel.retries);
-                    if (!result) {
-                        return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
-                            currentPageUrl: 'undefined',
-                            console: consoleMessage,
-                            https: httpsMessage,
-                            error: 'Browser did not open'
-                        });
+                if (process.env.ENVIRONMENT !== 'LOCAL') {
+                    let browser_start_retry = err.toString().includes("Failed to launch the browser process!");
+                    const pages = await this.defaultPage.browser().pages();
+                    consoleMessage.push('pages');
+                    consoleMessage.push(pages.length);
+                    if (browser_start_retry) {
+                        const result = await retrySuite(uploadModel.nextSuites, uploadModel.reportId, uploadModel.currentSuite, uploadModel.retries);
+                        if (!result) {
+                            return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
+                                currentPageUrl: 'undefined',
+                                console: consoleMessage,
+                                https: httpsMessage,
+                                error: 'Browser did not open'
+                            });
+                        }
+                        return {statusCode: 204}
                     }
-                    return {statusCode: 204}
+                    errMessage = err;
+                    statusCode = 500;
+                    screenshotBuffer = await captureScreenshot();
+                    log.push('When', log.tag, `Finished puppeteer process`, StatusOfStep.FAILED);
+                    await postNotificationsOnFail(uploadModel);
                 }
-                errMessage = err;
-                statusCode = 500;
-                screenshotBuffer = await captureScreenshot();
-                log.push('When', log.tag, `Finished puppeteer process`, StatusOfStep.FAILED);
-                await postNotificationsOnFail(uploadModel);
+
             }
             let url = this.defaultPage.url();
             if (close) await this.close();
