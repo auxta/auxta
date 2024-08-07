@@ -149,14 +149,6 @@ export class Puppeteer {
                     statusCode = 500;
                     screenshotBuffer = await captureScreenshot();
                     log.push('When', log.tag, `Finished puppeteer process`, StatusOfStep.FAILED);
-                    let url = this.defaultPage.url();
-                    if (close) await this.close();
-                    return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
-                        currentPageUrl: url,
-                        console: consoleMessage,
-                        https: httpsMessage,
-                        error: errMessage
-                    },true);
                 }
 
             }
