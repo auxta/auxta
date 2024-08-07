@@ -1,7 +1,7 @@
 import {basename} from 'path'
 import log from "../services/log.service";
 import {
-    postNotifications,
+    postNotifications, postNotificationsOnFail,
     Scenarios,
     Steps,
     updateReport,
@@ -20,8 +20,9 @@ import {UploadModel} from "../models/upload.model";
  * @param statusCode
  * @param screenshotBuffer
  * @param errMessage
+ * @param failed
  * */
-export async function onTestEnd(body: any, featureName: string, scenarioName: string, statusCode: number, screenshotBuffer?: Buffer, errMessage?: object) {
+export async function onTestEnd(body: any, featureName: string, scenarioName: string, statusCode: number, screenshotBuffer?: Buffer, errMessage?: object, failed = false) {
     let isFinal: boolean = false;
     if (process.env.ENVIRONMENT == "LIVE") {
         console.log('--- Uploading scenario and feature for AUXTA report ---');
@@ -52,13 +53,18 @@ export async function onTestEnd(body: any, featureName: string, scenarioName: st
             console.log(error)
         }
     }
-    if (isFinal) await afterComplete(body);
+    if (isFinal) await afterComplete(body, failed);
     else if (body && body.nextSuites) {
         return await startSuite(body.nextSuites, body.reportId);
     }
 }
 
-export async function afterComplete(body: UploadModel) {
-    if (process.env.ENVIRONMENT == "LIVE")
-        await postNotifications(body);
+export async function afterComplete(body: UploadModel, failed: boolean) {
+    if (process.env.ENVIRONMENT == "LIVE") {
+        if (!failed) {
+            await postNotifications(body);
+        } else {
+            await postNotificationsOnFail(body);
+        }
+    }
 }

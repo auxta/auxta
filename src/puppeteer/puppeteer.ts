@@ -6,7 +6,6 @@ import {StatusOfStep} from "../auxta/enums/status-of.step";
 import {UploadModel} from "../auxta/models/upload.model";
 import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
-import {postNotificationsOnFail} from "../auxta/services/report.service";
 import puppeteer = require("puppeteer");
 
 export class Puppeteer {
@@ -142,7 +141,7 @@ export class Puppeteer {
                                 console: consoleMessage,
                                 https: httpsMessage,
                                 error: 'Browser did not open'
-                            });
+                            }, true);
                         }
                         return {statusCode: 204}
                     }
@@ -150,7 +149,14 @@ export class Puppeteer {
                     statusCode = 500;
                     screenshotBuffer = await captureScreenshot();
                     log.push('When', log.tag, `Finished puppeteer process`, StatusOfStep.FAILED);
-                    await postNotificationsOnFail(uploadModel);
+                    let url = this.defaultPage.url();
+                    if (close) await this.close();
+                    return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
+                        currentPageUrl: url,
+                        console: consoleMessage,
+                        https: httpsMessage,
+                        error: errMessage
+                    },true);
                 }
 
             }
