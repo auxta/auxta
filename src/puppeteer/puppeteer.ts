@@ -141,7 +141,7 @@ export class Puppeteer {
                                 console: consoleMessage,
                                 https: httpsMessage,
                                 error: 'Browser did not open'
-                            }, true);
+                            });
                         }
                         return {statusCode: 204}
                     }
