@@ -64,16 +64,26 @@ async function auth() {
     return token;
 }
 
-/**
- * This method used to sets time zone for organization in the database
- * @return reportId - id of the report
- * */
-export async function setTimeZone(): Promise<string> {
+
+export async function setTimeZone(){
     const token = await auth();
     return (await axios.post(
-        config.auxtaURL + "set-timezone",
+        config.auxtaURL + "set-timezone-organization",
         {
-            organization: config.organization
+            organization: config.organization,
+            timezone: config.timezone
+        },
+        headers(token)
+    )).data;
+}
+
+export async function setEmailProvider() {
+    const token = await auth();
+    return (await axios.post(
+        config.auxtaURL + "set-email-provider-organization",
+        {
+            organization: config.organization,
+            emailProvider: config.emailProvider
         },
         headers(token)
     )).data;
@@ -94,6 +104,7 @@ export async function createEmptyReport(body: any): Promise<string> {
             digitalProductToken: body.digitalProduct,
             bucket: body.bucket,
             start: moment().tz(config.timezone),
+            emailProvider: config.emailProvider,
             url: body.baseUrl
         },
         headers(token)

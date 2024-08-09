@@ -3,8 +3,8 @@ export function setupConfig(jsonConfig: any) {
     config.baseURL = jsonConfig.baseURL;
     if (!jsonConfig.auxtaURL) throw new Error("auxtaURL missing");
     config.auxtaURL = jsonConfig.auxtaURL;
-    if (!jsonConfig.timezone) throw new Error("auxtaURL missing");
-    config.timezone = jsonConfig.timezone;
+    if (jsonConfig.emailProvider) config.emailProvider = jsonConfig.emailProvider;
+    if (jsonConfig.timezone) config.timezone = jsonConfig.timezone;
     if (!jsonConfig.digitalProduct) throw new Error("digitalProduct");
     config.digitalProduct = jsonConfig.digitalProduct;
     if (!jsonConfig.testsURL) throw new Error("testsURL");
@@ -52,5 +52,6 @@ export let config = {
         email: "",
         password: "",
     },
-    timezone: ""
+    timezone: "Europe/Brussels",
+    emailProvider: "Mailgun"
 }
