@@ -7,7 +7,7 @@ import {UploadModel} from "./auxta/models/upload.model";
 import * as dotenv from "dotenv";
 import {config as c, setupConfig, setupOverrideConfig} from "./auxta/configs/config";
 import {startSuite} from "./auxta/utilities/start-suite.helper";
-import {createEmptyReport} from "./auxta/services/report.service";
+import {createEmptyReport, setEmailProvider, setTimeZone} from "./auxta/services/report.service";
 import Aux2faAuth from "./macros/helpers/Aux2faAuth";
 import emailHelper from "./macros/helpers/emailHelper";
 
@@ -94,6 +94,8 @@ class AuxTA extends FunctionHelper {
             this.uploadModel.reportId = await createEmptyReport(this.uploadModel);
             this.uploadModel.currentSuite = fileName
             this.uploadModel.nextSuites = [];
+            await setTimeZone();
+            await setEmailProvider();
         }
         return this.puppeteer.run(event, callback, feature, scenario)
     }

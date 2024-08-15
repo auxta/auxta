@@ -17,7 +17,8 @@ export interface Steps {
     passedSteps: number,
     skippedSteps: number,
     suggestedSteps: number,
-    performanceFailure: number
+    performanceFailure: number,
+    log: number
 }
 
 const isManualChecklist = process.argv.includes('--create-manual-checklist');
@@ -66,6 +67,31 @@ async function auth() {
     return token;
 }
 
+
+export async function setTimeZone(){
+    const token = await auth();
+    return (await axios.post(
+        config.auxtaURL + "set-timezone-organization",
+        {
+            organization: config.organization,
+            timezone: config.timezone
+        },
+        headers(token)
+    )).data;
+}
+
+export async function setEmailProvider() {
+    const token = await auth();
+    return (await axios.post(
+        config.auxtaURL + "set-email-provider-organization",
+        {
+            organization: config.organization,
+            emailProvider: config.emailProvider
+        },
+        headers(token)
+    )).data;
+}
+
 /**
  * This method used to create empty report in the database
  * @param body
@@ -73,13 +99,15 @@ async function auth() {
  * */
 export async function createEmptyReport(body: any): Promise<string> {
     const token = await auth();
+    const moment = require('moment-timezone');
     return (await axios.post(
         config.auxtaURL + "create-empty-report",
         {
             environment: body.environment,
             digitalProductToken: body.digitalProduct,
             bucket: body.bucket,
-            start: new Date(),
+            start: moment().tz(config.timezone),
+            emailProvider: config.emailProvider,
             url: body.baseUrl,
             isManualChecklist
         },
@@ -177,11 +205,13 @@ export async function uploadScenario(stepRes: any[], scenarioName: string, uri: 
  * */
 export async function updateReport(reportId: string, scenario: Scenarios, steps: Steps, isFinal: boolean) {
     let token = await auth();
+    const moment = require('moment-timezone');
     await axios.post(
         config.auxtaURL + "update-inprogress-report",
         {
             reportId: reportId,
             isFinal: isFinal,
+            end: moment().tz(config.timezone),
             data: {
                 scenario: {
                     scenarioRef: scenario.scenarioId,

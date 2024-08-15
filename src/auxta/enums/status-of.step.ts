@@ -3,7 +3,8 @@ export enum StatusOfStep {
     FAILED = 'failed',
     SKIPPED = 'skipped',
     SUGGESTION = 'suggestion',
-    PERFORMANCE_FAIL= 'performanceFailure'
+    PERFORMANCE_FAIL= 'performanceFailure',
+    LOG= 'log'
 }
 
 export default StatusOfStep;

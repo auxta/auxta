@@ -24,7 +24,8 @@ export class LogSteps {
         [StatusOfStep.FAILED]: 0,
         [StatusOfStep.SKIPPED]: 0,
         [StatusOfStep.SUGGESTION]: 0,
-        [StatusOfStep.PERFORMANCE_FAIL]: 0
+        [StatusOfStep.PERFORMANCE_FAIL]: 0,
+        [StatusOfStep.LOG]: 0
     }
     private stepLog: Step[] = [];
     private lastStepTime = new Date().getTime();
@@ -79,7 +80,8 @@ export class LogSteps {
             [StatusOfStep.FAILED]: 0,
             [StatusOfStep.SKIPPED]: 0,
             [StatusOfStep.SUGGESTION]: 0,
-            [StatusOfStep.PERFORMANCE_FAIL]: 0
+            [StatusOfStep.PERFORMANCE_FAIL]: 0,
+            [StatusOfStep.LOG]: 0
         }
     }
 
