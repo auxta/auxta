@@ -24,7 +24,7 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     public setTag(tag: string) {
-        if(!log.tag || log.tag === 'default'){
+        if(!log.tag || log.tag === '' || log.tag === 'default'){
             log.tag = tag;
         }
     }
