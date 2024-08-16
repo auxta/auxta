@@ -21,6 +21,8 @@ export interface Steps {
     log: number
 }
 
+const isManualChecklist = process.argv.includes('--create-manual-checklist');
+
 function headers(token: string) {
     return {
         headers: {
@@ -106,7 +108,8 @@ export async function createEmptyReport(body: any): Promise<string> {
             bucket: body.bucket,
             start: moment().tz(config.timezone),
             emailProvider: config.emailProvider,
-            url: body.baseUrl
+            url: body.baseUrl,
+            isManualChecklist
         },
         headers(token)
     )).data.reportId;
@@ -186,7 +189,8 @@ export async function uploadScenario(stepRes: any[], scenarioName: string, uri: 
                 uri: uri
             },
             scenarios: stepRes,
-            hasFailed: hasFailed
+            hasFailed: hasFailed,
+            isManualChecklist
         },
         headers(token)
     )).data;
