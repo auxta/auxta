@@ -318,8 +318,9 @@ export class FunctionHelper extends ExtendDefaultPage {
      * @param page
      * @param newPage
      *
+     * @param staySignIn
      * */
-    public async microsoftLogin(button: string, email: string, password: string, page = puppeteer.defaultPage, newPage = true) {
+    public async microsoftLogin(button: string, email: string, password: string, page = puppeteer.defaultPage, newPage = true, staySignIn = true) {
         const email_input = 'input[type="email"]';
         const password_input = 'input[type="password"]';
         await this.clickAndWaitForPageToBeCreated(button, page, newPage);
@@ -347,9 +348,11 @@ export class FunctionHelper extends ExtendDefaultPage {
         }
         await this.timeout(1000);
         await loginPage.keyboard.press('Enter');
-        await this.waitForResponse('2_11d9e3bcdfede9ce5ce5ace2d129f1c4', true, loginPage);
-        await this.timeout(1000);
-        await loginPage.keyboard.press('Enter');
+        if (!staySignIn) {
+            await this.waitForResponse('2_11d9e3bcdfede9ce5ce5ace2d129f1c4', true, loginPage);
+            await this.timeout(1000);
+            await loginPage.keyboard.press('Enter');
+        }
     }
 
     private getEscapedText(text: string) {
