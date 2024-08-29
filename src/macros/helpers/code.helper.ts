@@ -329,7 +329,7 @@ export class FunctionHelper extends ExtendDefaultPage {
         await this.waitForResponse('signin-options', true, loginPage)
         await loginPage.type(email_input, email, {delay: 0});
         await loginPage.keyboard.press('Enter');
-        await this.waitForResponse('microsoft_logo', true, loginPage);
+        await this.waitForResponse('arrow_left', true, loginPage);
         let isWorkOrPersonalVisible = await page.$('div.table');
         if (!!isWorkOrPersonalVisible) {
             await (await page.$$('div.table'))[0].click();
@@ -347,7 +347,7 @@ export class FunctionHelper extends ExtendDefaultPage {
         }
         await this.timeout(1000);
         await loginPage.keyboard.press('Enter');
-        await this.waitForResponse('2_bc3d32a696895f78c19d', true, loginPage);
+        await this.waitForResponse('2_11d9e3bcdfede9ce5ce5ace2d129f1c4', true, loginPage);
         await this.timeout(1000);
         await loginPage.keyboard.press('Enter');
     }
