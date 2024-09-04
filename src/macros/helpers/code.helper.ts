@@ -6,6 +6,7 @@ import {ExtendDefaultPage} from "./extend-default-page";
 import {CDPSession, KnownDevices} from "puppeteer";
 import {captureScreenshotPage} from "../../auxta/utilities/screenshot.helper";
 import {compareScreenshots} from "../../auxta/services/report.service";
+import axios from "axios";
 
 export class FunctionHelper extends ExtendDefaultPage {
     public cdp: CDPSession | undefined;
@@ -31,6 +32,25 @@ export class FunctionHelper extends ExtendDefaultPage {
 
     public clearTag() {
         log.tag = '';
+    }
+
+    /**
+     * This method is used to call a REST API.
+     * @param method // HTTP method (e.g., 'GET', 'POST', 'PUT', etc.)
+     * @param url // URL with query parameters
+     * @param headers // Optional Request headers (object in JSON format)
+     * @param body // Optional Request body (object in JSON format)
+     * @returns 
+     */
+    public async callREST(method: string, url: string, headers?: object, body?: object) {
+        const response = await axios({
+            method: method,
+            url: url,
+            headers: headers,
+            data: body
+        });
+        
+        return response; 
     }
 
     /**
