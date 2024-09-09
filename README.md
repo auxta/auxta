@@ -1,5 +1,9 @@
 # AuxTA
 
+## Guidelines for the Frontend Programmers
+
+...
+
 ## Implementing
 
 The main thing is a `scenario`.
