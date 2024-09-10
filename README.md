@@ -50,6 +50,10 @@ waitforseelctorbytext `depreciated`
 
 ### Complex Workflows
 
+#### Use State Scripts
+
+State Scripts bring the system to a desired state from which a specific scenario begins.
+
 #### Email
 
 * (AuxTA) We do some action on the website.
