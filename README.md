@@ -50,6 +50,10 @@ waitforseelctorbytext `depreciated`
 
 ### Complex Workflows
 
+#### Use Bulilding Blocks
+
+Building Blocks do one simple thing each and allow you to build State Scripts and Scenrios.
+
 #### Use State Scripts
 
 State Scripts bring the system to a desired state from which a specific scenario begins.
