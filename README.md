@@ -2,7 +2,25 @@
 
 ## Guidelines for the Frontend Programmers
 
-...
+Every HTML element on a web page can be a selector, which can be used to create AuxTA scenarios.
+
+Of course, not all HTML elemets are used as selectors to create AuxTA scenarios.
+
+Those HTML elements, which will be used as selectors for AuxTA scenarios, should have a Unique ID. This way AuxTA scenarios are created the fastest.
+
+The best candidate for this is the HTML "id" attribute.
+
+The ID value should reflect the functionality of the place.
+
+To create a unique ID, make it multipart, beginning with more general parts which are guaranteed to be unique. This way one creates namespaces, which make it easier after that to end up with a unique ID.
+
+For expmple:
+
+id="shop_cart_button_submit"
+
+More than one of the same element, For example several tables on one page, each should have a unique ID.
+
+If it has nested elements they can have the same selectors as in the other elements, but it’s not necessary.
 
 ## Implementing
 
