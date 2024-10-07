@@ -17,21 +17,17 @@ export class FunctionHelper extends ExtendDefaultPage {
      * @param name
      * @param status
      * @param screenshot
-     *
-     *
      */
     public log(keyword: string, name: string, status: StatusOfStep, screenshot?: ArrayBuffer) {
         log.push(keyword, log.tag, name, status, screenshot)
     }
 
     public setTag(tag: string) {
-        if(!log.tag || log.tag === '' || log.tag === 'default'){
-            log.tag = tag;
-        }
+        log.tag = tag;
     }
 
     public clearTag() {
-        log.tag = '';
+        log.clearTag();
     }
 
     /**

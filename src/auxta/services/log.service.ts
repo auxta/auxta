@@ -26,7 +26,7 @@ export class LogSteps {
     }
     private stepLog: Step[] = [];
     private lastStepTime = new Date().getTime();
-    private _tag = 'default'
+    private _tags = ['default'];
 
     /**
      * This method used to add a suggestion log
@@ -35,7 +35,7 @@ export class LogSteps {
     public addSuggestion(text: string) {
         this.statusCounter[StatusOfStep.SUGGESTION]++;
         this.stepLog.push({
-            keyword: 'Suggestion', tag: this._tag, name: text, imageCompareKey: '', result:
+            keyword: 'Suggestion', tag: this.tag, name: text, imageCompareKey: '', result:
                 {status: StatusOfStep.SUGGESTION, duration: 0}
         });
     }
@@ -50,7 +50,7 @@ export class LogSteps {
             };
             this.stepLog.push({
                 keyword: 'PerformanceFail',
-                tag: this._tag,
+                tag: this.tag,
                 name: text,
                 imageCompareKey: '',
                 result: {status: StatusOfStep.PERFORMANCE_FAIL, duration: currentStep - this.lastStepTime, embedding: embedding}
@@ -58,7 +58,7 @@ export class LogSteps {
         } else {
             this.stepLog.push({
                 keyword: 'PerformanceFail',
-                tag: this._tag,
+                tag: this.tag,
                 name: text,
                 imageCompareKey: '',
                 result: {status: StatusOfStep.PERFORMANCE_FAIL, duration: currentStep - this.lastStepTime}
@@ -128,11 +128,15 @@ export class LogSteps {
     }
 
     get tag(): string {
-        return this._tag;
+        return this._tags.length === 1 ? this._tags[0] : this._tags[1];
     }
 
     set tag(value: string) {
-        this._tag = value;
+        this._tags.push(value);
+    }
+
+    public clearTag() {
+        this._tags.pop();
     }
 }
 
