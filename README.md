@@ -28,6 +28,10 @@ The main thing is a `scenario`.
 
 `Scenarios` consts of `steps.
 
+### Helpers
+
+Change so that there is one function per helper file.
+
 ### Clicking
 
 All clicks wait for the selector by default and timeout w/ the standard timeout unless different is specified.
@@ -137,3 +141,9 @@ control click go to source directory
 Also some improvements to the platform in general:
 
 * get the console state after a fail, this would increase the value of each failed report.
+
+# Backlog
+
+## 13 October 2024
+
+Make so that there can be more than one helper file and that we have one function per helper file.
