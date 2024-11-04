@@ -376,6 +376,24 @@ export class FunctionHelper extends ExtendDefaultPage {
         return `concat('${splitedQuotes}', '')`;
     }
 
+    /**
+     * Sends a POST request to the specified URL with the provided body and Bearer token.
+     *
+     * @param {string} url - The endpoint URL to which the request is sent.
+     * @param {Object} body - The request payload to be sent in the body of the POST request.
+     * @param {string} token - The Bearer token used for authentication in the Authorization header.
+     * @throws {Error} - Throws an error if the request fails or if a non-200 status code is returned.
+     */
+    public async callAPI(url: string, body: {}, token: string) {
+        return await axios.post(url, body, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    }
+
+
 }
 
 export default new FunctionHelper();
