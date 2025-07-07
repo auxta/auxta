@@ -129,6 +129,7 @@ class AuxTA extends FunctionHelper {
             if (overrideConfig.baseURL) this.uploadModel.baseUrl = overrideConfig.baseURL
             if (overrideConfig.bucket) this.uploadModel.bucket = overrideConfig.bucket
             if (overrideConfig.isOfficial !== undefined) this.uploadModel.isOfficial = overrideConfig.isOfficial
+            if (overrideConfig.toRetry !== undefined) this.uploadModel.toRetry = overrideConfig.toRetry
             this.config = setupOverrideConfig(overrideConfig)
         }
     }

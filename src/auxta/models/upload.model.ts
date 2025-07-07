@@ -1,7 +1,7 @@
 export class UploadModel {
     private readonly _organization: string;
 
-    constructor(org: string, baseUrl: string, digitalProduct: string, environment: string, bucket: string, isOfficial: boolean) {
+    constructor(org: string, baseUrl: string, digitalProduct: string, environment: string, bucket: string, isOfficial: boolean, toRetry: boolean = false) {
         this._reportId = '';
         this._nextSuites = [];
         this._currentSuite = '';
@@ -13,7 +13,8 @@ export class UploadModel {
         this._baseUrl = baseUrl;
         this._featureName = '';
         this._scenarioName = '';
-        this._isOfficial = isOfficial
+        this._isOfficial = isOfficial;
+        this._toRetry = toRetry;
     }
 
     private _reportId: string;
@@ -124,6 +125,16 @@ export class UploadModel {
 
     set isOfficial(value: boolean) {
         this._isOfficial = value;
+    }
+
+    private _toRetry: boolean;
+
+    get toRetry(): boolean {
+        return this._toRetry;
+    }
+
+    set toRetry(value: boolean) {
+        this._toRetry = value;
     }
 
     get organization(): string {
