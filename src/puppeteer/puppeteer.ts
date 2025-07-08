@@ -143,6 +143,7 @@ export class Puppeteer {
                 if (process.env.ENVIRONMENT !== 'LOCAL') {
                     if (uploadModel.toRetry) {
                         log.clear(); // Clear the logs to avoid the scenario being flagged as FAILED
+                        log.clearTag();
                         log.push('When', log.tag, `Retrying puppeteer process`, StatusOfStep.PASSED);
                         try {
                             await this.close();
@@ -169,7 +170,6 @@ export class Puppeteer {
             let url = this.defaultPage.url();
             if (close) await this.close();
 
-            log.push('When', log.tag, `Finish line Status code: ${statusCode}`, StatusOfStep.PASSED);
             return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
                 currentPageUrl: url,
                 console: consoleMessage,
