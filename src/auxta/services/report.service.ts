@@ -241,7 +241,7 @@ export async function getLastDayResults(): Promise<any> {
     )).data.results;
 }
 
-export async function compareScreenshots(key: string, screenshot: ArrayBuffer): Promise<any> {
+export async function compareScreenshots(key: string, screenshot: Buffer): Promise<any> {
     let token = await auth();
     const embedding = {
         data: screenshot,

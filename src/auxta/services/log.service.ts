@@ -9,7 +9,7 @@ export interface Step {
         status: StatusOfStep,
         duration: number
         embedding?: {
-            data: ArrayBuffer,
+            data: Buffer,
             mime_type: string
         },
     }
@@ -40,7 +40,7 @@ export class LogSteps {
         });
     }
 
-    public addPerformanceFail(text: string, screenshot = new ArrayBuffer(0)) {
+    public addPerformanceFail(text: string, screenshot = Buffer.alloc(0)) {
         this.statusCounter[StatusOfStep.PERFORMANCE_FAIL]++;
         const currentStep = new Date().getTime();
         if (screenshot.byteLength != 0) {
@@ -90,7 +90,7 @@ export class LogSteps {
      * @param screenshot
      * @param imageCompareKey
      * */
-    public push(keyword: string, tag: string, name: string, status: StatusOfStep, screenshot = new ArrayBuffer(0), imageCompareKey = '') {
+    public push(keyword: string, tag: string, name: string, status: StatusOfStep, screenshot = Buffer.alloc(0), imageCompareKey = '') {
         console.log(`System log -- status: ${status} -- tag: ${tag} -- : ${name} `);
         this.statusCounter[status]++;
         const currentStep = new Date().getTime();

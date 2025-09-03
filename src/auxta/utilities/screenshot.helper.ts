@@ -63,7 +63,7 @@ export async function captureScreenshotPage(page: Page) {
         try {
             const pages = await puppeteer.defaultPage.browser().pages();
             log.push('When', log.tag, `Before the screenshot the number of pages are ${pages.length}`, StatusOfStep.PASSED);
-            const screenshotBuffer: ArrayBuffer = await page.screenshot({
+            const screenshotBuffer: Buffer = await page.screenshot({
                     fullPage: true,
                     captureBeyondViewport: false,
                     encoding: 'binary'
