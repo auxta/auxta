@@ -7,10 +7,12 @@ import {UploadModel} from "../auxta/models/upload.model";
 import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
 import puppeteer = require("puppeteer");
+import { attachUserConsoleCapture, UserConsoleEntry } from "../auxta/helpers/console-debug.helper"
 
 export class Puppeteer {
     public defaultPage!: puppeteer.Page;
     private browser!: puppeteer.Browser;
+    private userConsoleMessages: UserConsoleEntry[] = [];
 
     private static setupHeader(event: any, uploadModel: UploadModel) {
         let close = true;
@@ -89,14 +91,46 @@ export class Puppeteer {
 
     private async initiateBrowser(consoleMessage: any[], httpsMessage: any []) {
         await this.startBrowser()
-        this.defaultPage.on('console', (message: any) =>
-            consoleMessage.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
-            // @ts-ignore
+        this.browser.on('targetcreated', async (target) => {
+            try {
+                if (target.type() !== 'page') return;
+                const page = await target.page();
+                if (!page) return;
+                attachUserConsoleCapture(page, (entry) => {
+                this.userConsoleMessages.push(entry);
+                if (this.userConsoleMessages.length > 300) this.userConsoleMessages.shift();
+                });
+            } catch {}
+        });
+        this.defaultPage.on('console', (msg: any) => {
+            const t = typeof msg.type === 'function' ? msg.type() : (msg.type || '');
+            if (t !== 'error' /* && t !== 'warning' */) return; 
+
+            let loc = '';
+            try {
+                const l = typeof (msg as any).location === 'function' ? (msg as any).location() : undefined;
+                if (l) {
+                const at =
+                    `${l.url || ''}` +
+                    `${l.lineNumber != null ? ':' + l.lineNumber : ''}` +
+                    `${l.columnNumber != null ? ':' + l.columnNumber : ''}`;
+                loc = at ? ` @ ${at}` : '';
+                }
+            } catch {}
+
+            const text = typeof msg.text === 'function' ? msg.text() : String(msg.text ?? '');
+            if (text === 'pages' || /^\d+$/.test(text)) return;
+
+            consoleMessage.push(`${String(t).toUpperCase()} ${text}${loc}`);
+            })
             .on('pageerror', ({message}) => consoleMessage.push(message))
             .on('response', (response: any) =>
                 httpsMessage.push(`${response.status()} ${response.url()}`))
             .on('requestfailed', (request: any) =>
                 httpsMessage.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
+            attachUserConsoleCapture(this.defaultPage, (entry) => {
+                this.userConsoleMessages.push(entry);
+                if (this.userConsoleMessages.length > 300) this.userConsoleMessages.shift()});
     }
 
     private async logFail(consoleMessage: any[]) {
@@ -169,16 +203,19 @@ export class Puppeteer {
             }
             let url = this.defaultPage.url();
             if (close) await this.close();
-
+            const debugCandidate = this.userConsoleMessages.slice(-150);
+            
             return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
                 currentPageUrl: url,
                 console: consoleMessage,
                 https: httpsMessage,
-                error: errMessage
+                error: errMessage,
+                debugCandidate
             });
         } catch (e) {
             console.log("Lib error:", e);
         } finally {
+            this.userConsoleMessages = [];
             log.clear();
         }
     }

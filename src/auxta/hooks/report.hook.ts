@@ -28,7 +28,25 @@ export async function onTestEnd(body: any, featureName: string, scenarioName: st
         console.log('--- Uploading scenario and feature for AUXTA report ---');
         const stepsArr = log.returnScenarioReport();
         try {
-            const stepRes = await uploadStep(stepsArr, scenarioName, screenshotBuffer, errMessage);
+            const { debugCandidate = [], ...restErrors } = (errMessage as any) || {};
+            let errorPayload: any = restErrors;
+
+            const failed = statusCode !== 200;
+
+            const hasScreenshot = !!(
+            screenshotBuffer &&
+            (
+                (typeof Buffer !== 'undefined' && (Buffer as any).isBuffer?.(screenshotBuffer) && (screenshotBuffer as any).length > 0) ||
+                (typeof (screenshotBuffer as any).byteLength === 'number' && (screenshotBuffer as any).byteLength > 0)
+            )
+            );
+
+            if (failed && hasScreenshot && Array.isArray(debugCandidate) && debugCandidate.length) {
+            errorPayload = { ...restErrors, debug: debugCandidate };
+            }
+
+
+            const stepRes = await uploadStep(stepsArr, scenarioName, screenshotBuffer, errorPayload);
             const scenarioRes = await uploadScenario(stepRes, featureName, basename(__filename), (statusCode != 200));
             const scenario: Scenarios = {
                 scenarioId: scenarioRes.scenarioRef,
