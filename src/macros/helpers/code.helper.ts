@@ -18,7 +18,7 @@ export class FunctionHelper extends ExtendDefaultPage {
      * @param status
      * @param screenshot
      */
-    public log(keyword: string, name: string, status: StatusOfStep, screenshot?: ArrayBuffer) {
+    public log(keyword: string, name: string, status: StatusOfStep, screenshot: Uint8Array | Buffer = new Uint8Array()) {
         log.push(keyword, log.tag, name, status, screenshot)
     }
 
