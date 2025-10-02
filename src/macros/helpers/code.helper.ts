@@ -365,7 +365,7 @@ export class FunctionHelper extends ExtendDefaultPage {
         await this.timeout(1000);
         await loginPage.keyboard.press('Enter');
         if (staySignIn) {
-            await this.waitForResponse('2_11d9e3bcdfede9ce5ce5ace2d129f1c4', true, loginPage);
+            await this.waitForResponse('4_eae2dd7eb3a55636dc2d74f4fa4c386e', true, loginPage);
             await this.timeout(1000);
             await loginPage.keyboard.press('Enter');
         }
