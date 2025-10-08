@@ -66,7 +66,8 @@ export async function captureScreenshotPage(page: Page) {
             const screenshotBuffer: Uint8Array = await page.screenshot({
                     fullPage: true,
                     captureBeyondViewport: false,
-                    encoding: 'binary'
+                    encoding: 'binary',
+                    quality: 80
                 }
             );
             if (Buffer.isBuffer(screenshotBuffer))
