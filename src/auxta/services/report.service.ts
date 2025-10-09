@@ -126,7 +126,31 @@ export async function uploadStep(stepLog: Step[], scenarioName: string, screensh
     let lastStep = stepLog[stepLog.length - 1];
     const stepLogFormat = JSON.parse(JSON.stringify(stepLog));
     stepLogFormat.pop();
-    let output = (await axios.post(
+    
+    // Attach per-tab error messages to steps (e.g., "1 Image", "2 Image", ...)
+    try {
+        const byTab = (errMessage as any)?.byTab || undefined;
+        if (byTab) {
+            for (let idx = 0; idx < stepLogFormat.length; idx++) {
+                const step: any = stepLogFormat[idx];
+                if (typeof step?.name === 'string') {
+                    const m = step.name.match(/^(\d+)\s+Image/i);
+                    if (m) {
+                        const tabNum = Number(m[1]);
+                        const tabErr = byTab[String(tabNum)] || byTab[tabNum];
+                        if (tabErr) {
+                            stepLogFormat[idx] = Object.assign({}, step, {
+                                result: Object.assign({}, step.result, {
+                                    error_message: JSON.stringify(tabErr)
+                                })
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    } catch {/* no-op */}
+let output = (await axios.post(
         config.auxtaURL + "create-steps",
         {
             json: {

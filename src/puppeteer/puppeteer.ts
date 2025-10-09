@@ -9,10 +9,85 @@ import {retrySuite} from "../auxta/utilities/start-suite.helper";
 import puppeteer = require("puppeteer");
 
 export class Puppeteer {
+    /**
+     * Attach console/network listeners to all existing and future tabs (pages).
+     * Aggregates logs into the provided arrays. Appends a suffix like " [tab N]"
+     * so you can see which tab produced the line, while preserving
+     * "STATUS URL" ordering for HTTP lines.
+     */
+    private async attachListenersToAllTabs(consoleMessage: any[], httpsMessage: any[]) {
+        let tabSeq = 0;
+
+        const attach = async (page: puppeteer.Page, fixedIndex?: number) => {
+            const id = typeof fixedIndex === 'number' ? fixedIndex : (++tabSeq);
+            const suffix = ` [tab ${id}]`;
+
+            
+            if (!this._tabLogs[id]) this._tabLogs[id] = { console: [], https: [] };
+page
+                .on('console', (message: any) => {
+                    try {
+                        consoleMessage.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}${suffix}`);
+                    this._tabLogs[id].console.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`);
+                    } catch {
+                        try {
+                            // Fallback if message.text() fails
+                            consoleMessage.push(`LOG ${String((message as any)?.text?.() ?? '')}${suffix}`);
+                            this._tabLogs[id].console.push(`LOG ${String((message as any)?.text?.() ?? '')}`);
+                        } catch {
+                            consoleMessage.push(`LOG${suffix}`);
+                            this._tabLogs[id].console.push(`LOG`);
+                        }
+                    }
+                })
+                // @ts-ignore - puppeteer types before v22
+                .on('pageerror', ({ message }: any) => consoleMessage.push(`${message}${suffix}`))
+                .on('response', (response: any) => {
+                    try {
+                        httpsMessage.push(`${response.status()} ${response.url()}${suffix}`);
+                    this._tabLogs[id].https.push(`${response.status()} ${response.url()}`);
+                    try { this._tabLogs[id].url = response.url(); } catch { }
+                    } catch {
+                        // ignore
+                    }
+                })
+                .on('requestfailed', (request: any) => {
+                    try {
+                        const failure = request.failure();
+                        const err = failure !== null && failure !== undefined ? failure.errorText : '';
+                        httpsMessage.push(`${err ?? ''} ${request.url()}${suffix}`);
+                    this._tabLogs[id].https.push(`${err ?? ''} ${request.url()}`);
+                    try { this._tabLogs[id].url = request.url(); } catch { }
+                    } catch {
+                        // ignore
+                    }
+                });
+        };
+
+        // Attach to all currently open pages
+        const pages = await this.browser.pages();
+        tabSeq = pages.length - 1; // 0-based index to align with `${i} Image`
+        await Promise.all(pages.map((p, idx) => attach(p, idx))); // 0-based
+
+        // Attach to future pages
+        this.browser.on('targetcreated', async (target: any) => {
+            try {
+                if (typeof target.page === 'function') {
+                    const page = await target.page();
+                    if (page) await attach(page);
+                }
+            } catch {
+                // ignore
+            }
+        });
+    }
+
     public defaultPage!: puppeteer.Page;
     private browser!: puppeteer.Browser;
 
-    private static setupHeader(event: any, uploadModel: UploadModel) {
+    
+    private _tabLogs: { [k: number]: { console: string[]; https: string[]; url?: string } } = {};
+private static setupHeader(event: any, uploadModel: UploadModel) {
         let close = true;
         if (process.env.ENVIRONMENT !== 'LOCAL' && event) {
             uploadModel.reportId = event.reportId;
@@ -89,15 +164,10 @@ export class Puppeteer {
 
     private async initiateBrowser(consoleMessage: any[], httpsMessage: any []) {
         await this.startBrowser()
-        this.defaultPage.on('console', (message: any) =>
-            consoleMessage.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
-            // @ts-ignore
-            .on('pageerror', ({message}) => consoleMessage.push(message))
-            .on('response', (response: any) =>
-                httpsMessage.push(`${response.status()} ${response.url()}`))
-            .on('requestfailed', (request: any) =>
-                httpsMessage.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
+        await this.attachListenersToAllTabs(consoleMessage, httpsMessage);
     }
+
+    
 
     private async logFail(consoleMessage: any[]) {
         const pages = await this.defaultPage.browser().pages();
@@ -170,11 +240,24 @@ export class Puppeteer {
             let url = this.defaultPage.url();
             if (close) await this.close();
 
-            return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
-                currentPageUrl: url,
-                console: consoleMessage,
-                https: httpsMessage,
-                error: errMessage
+            
+            // Pick per-tab logs for the last step instead of aggregated logs
+            let activeTabIndex = undefined as unknown as number | undefined;
+            try {
+                const _pagesForFinish = await this.defaultPage.browser().pages();
+                if (_pagesForFinish && _pagesForFinish.length) activeTabIndex = _pagesForFinish.length - 1; // last opened
+            } catch {}
+            const tabLogs = this.getTabLogs() as any;
+            const chosen = (activeTabIndex !== undefined && tabLogs && tabLogs[activeTabIndex]) ? tabLogs[activeTabIndex] : undefined;
+            const perTabConsole = chosen?.console ?? consoleMessage;
+            const perTabHttps = chosen?.https ?? httpsMessage;
+            const perTabUrl = chosen?.url ?? url;
+return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
+                currentPageUrl: perTabUrl,
+                console: perTabConsole,
+                https: perTabHttps,
+                error: errMessage,
+                byTab: this.getTabLogs()
             });
         } catch (e) {
             console.log("Lib error:", e);
@@ -214,14 +297,7 @@ export class Puppeteer {
             try {
                 await log.push('When', log.tag, `Starting puppeteer process`, StatusOfStep.PASSED);
                 await this.startBrowser()
-                this.defaultPage.on('console', (message: any) =>
-                    consoleStack.push(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
-                    // @ts-ignore
-                    .on('pageerror', ({message}) => consoleStack.push(message))
-                    .on('response', (response: any) =>
-                        consoleStack.push(`${response.status()} ${response.url()}`))
-                    .on('requestfailed', (request: any) =>
-                        consoleStack.push(`${request.failure() !== null ? request.failure()?.errorText : ""} ${request.url()}`))
+                await this.attachListenersToAllTabs(consoleStack, consoleStack)
                 await callback(event)
                 log.push('When', log.tag, `Finished puppeteer process`, StatusOfStep.PASSED);
             } catch (err: any) {
@@ -244,6 +320,11 @@ export class Puppeteer {
         }
         return {statusCode: 200}
     }
+
+    public getTabLogs() {
+        return this._tabLogs;
+    }
+
 }
 
 export default new Puppeteer();
