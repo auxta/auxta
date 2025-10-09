@@ -126,6 +126,17 @@ export async function uploadStep(stepLog: Step[], scenarioName: string, screensh
     let lastStep = stepLog[stepLog.length - 1];
     const stepLogFormat = JSON.parse(JSON.stringify(stepLog));
     stepLogFormat.pop();
+    // Ensure each step with result.embedding also has top-level `embeddings` (backend-friendly)
+    try {
+        for (let i = 0; i < stepLogFormat.length; i++) {
+            const st: any = stepLogFormat[i];
+            const emb = st?.result?.embedding;
+            if (emb && typeof st.embeddings === 'undefined') {
+                st.embeddings = [ emb ];
+            }
+        }
+    } catch { /* no-op */ }
+
     // Attach per-tab error messages (including debug) to 'Image' steps
     try {
         const byTab = (errMessage as any)?.byTab || undefined;
@@ -149,6 +160,7 @@ export async function uploadStep(stepLog: Step[], scenarioName: string, screensh
             }
         }
     } catch {/* no-op */}
+
     let output = (await axios.post(
         config.auxtaURL + "create-steps",
         {

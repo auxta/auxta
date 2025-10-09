@@ -115,7 +115,7 @@ export class Puppeteer {
 
     
     private _tabLogs: { [k: number]: { console: string[]; https: string[]; debug: any[]; url?: string } } = {};
-    private static setupHeader(event: any, uploadModel: UploadModel) {
+private static setupHeader(event: any, uploadModel: UploadModel) {
         let close = true;
         if (process.env.ENVIRONMENT !== 'LOCAL' && event) {
             uploadModel.reportId = event.reportId;
