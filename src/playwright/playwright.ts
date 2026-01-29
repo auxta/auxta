@@ -1,0 +1,361 @@
+import log from "../auxta/services/log.service";
+import {captureScreenshotPlaywright} from "../auxta/utilities/screenshot.helper.playwright";
+import {onTestEnd} from "../auxta/hooks/report.hook";
+import auxtaPlaywright from "../AuxTA.playwright";
+import {StatusOfStep} from "../auxta/enums/status-of.step";
+import {UploadModel} from "../auxta/models/upload.model";
+import {config} from "../auxta/configs/config";
+import {retrySuite} from "../auxta/utilities/start-suite.helper";
+import { chromium, Browser, Page, BrowserContext } from "playwright";
+
+export class PlaywrightDriver {
+    /**
+     * Attach console/network listeners to all existing and future tabs.
+     * Also builds per-tab debug entries matching frontend expectations:
+     *   { ts, level, args?: any[], text?: string }
+     */
+    private async attachListenersToAllTabs(consoleMessage: any[], httpsMessage: any[], debugMessage?: any[]) {
+        let tabSeq = 0;
+
+        const attach = async (page: Page, fixedIndex?: number) => {
+            const id = typeof fixedIndex === 'number' ? fixedIndex : (++tabSeq);
+            const suffix = ` [tab ${id}]`;
+            if (!this._tabLogs[id]) this._tabLogs[id] = { console: [], https: [], debug: [] };
+
+            page
+                .on('console', async (message) => {
+                    try {
+                        const entry: any = {
+                            ts: Date.now(),
+                            level: message.type() || 'log',
+                            text: message.text() || String(message)
+                        };
+                        try {
+                            const loc = message.location();
+                            if (loc) (entry as any).location = loc;
+                        } catch { /* ignore */ }
+                        // collect args
+                        try {
+                            const args: any[] = [];
+                            for (const arg of message.args()) {
+                                try {
+                                    args.push(await arg.jsonValue());
+                                } catch {
+                                    try { args.push(String(arg)); } catch { args.push('[unserializable]'); }
+                                }
+                            }
+                            entry.args = args;
+                        } catch { /* ignore */ }
+
+                        // per-tab debug
+                        this._tabLogs[id].debug.push(entry);
+                        // aggregated debug if provided
+                        if (debugMessage) debugMessage.push(entry);
+
+                        // legacy short console string
+                        const short = `${String(entry.level).substr(0, 3).toUpperCase()} ${entry.text}${suffix}`;
+                        consoleMessage.push(short);
+                        this._tabLogs[id].console.push(`${String(entry.level).substr(0, 3).toUpperCase()} ${entry.text}`);
+                    } catch {
+                        // ignore
+                    }
+                })
+                .on('pageerror', (error) => {
+                    const message = error.message || String(error);
+                    consoleMessage.push(`${message}${suffix}`);
+                    this._tabLogs[id].console.push(`${message}`);
+                })
+                .on('response', (response) => {
+                    try {
+                        const line = `${response.status()} ${response.url()}${suffix}`;
+                        httpsMessage.push(line);
+                        this._tabLogs[id].https.push(`${response.status()} ${response.url()}`);
+                        this._tabLogs[id].url = response.url();
+                    } catch { /* ignore */ }
+                })
+                .on('requestfailed', (request) => {
+                    try {
+                        const failure = request.failure();
+                        const err = failure ? failure.errorText : '';
+                        const line = `${err ?? ''} ${request.url()}${suffix}`;
+                        httpsMessage.push(line);
+                        this._tabLogs[id].https.push(`${err ?? ''} ${request.url()}`);
+                        this._tabLogs[id].url = request.url();
+                    } catch { /* ignore */ }
+                });
+        };
+
+        // Attach to current pages (0-based to align with `${i} Image`)
+        const pages = this.context.pages();
+        tabSeq = pages.length - 1;
+        await Promise.all(pages.map((p, idx) => attach(p, idx)));
+
+        // Watch future pages (Playwright uses context.on('page') instead of browser.on('targetcreated'))
+        this.context.on('page', async (page) => {
+            try {
+                await attach(page);
+            } catch { /* ignore */ }
+        });
+    }
+
+    public getTabLogs() {
+        return this._tabLogs;
+    }
+
+    public defaultPage!: Page;
+    private browser!: Browser;
+    private context!: BrowserContext;
+
+
+    private _tabLogs: { [k: number]: { console: string[]; https: string[]; debug: any[]; url?: string } } = {};
+
+    private static setupHeader(event: any, uploadModel: UploadModel) {
+        let close = true;
+        if (process.env.ENVIRONMENT !== 'LOCAL' && event) {
+            uploadModel.reportId = event.reportId;
+            uploadModel.nextSuites = event.nextSuites;
+            uploadModel.currentSuite = event.currentSuite;
+            uploadModel.retries = Number(event.retries);
+        }
+        try {
+            if (event.close) {
+                close = event.close === "true";
+            }
+            return close;
+        } catch (e) {
+            return true
+        }
+    }
+
+    /**
+     * Start the Browser with Playwright
+     *
+     * @remarks
+     * Starts Playwright with the given parameters either with browser or in headless mode
+     *
+     *
+     */
+    public async startBrowser() {
+        let args = [];
+        if (process.env.ENVIRONMENT === 'LOCAL') {
+            args.push('--start-maximized');
+        }
+
+        args.push(`--window-size=${config.screenWidth ? config.screenWidth : 1920},${config.screenHeight ? config.screenHeight : 1080}`)
+        // needed because without these tags it doesn't work
+        args.push("--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu")
+        args.push('--enable-automation=false');
+
+        this.browser = await chromium.launch({
+            slowMo: process.env.slowMo ? Number(process.env.slowMo) : 0,
+            args,
+            ignoreDefaultArgs: ["--enable-automation"],
+            headless: process.env.ENVIRONMENT === 'LOCAL' ? (process.env.headless === 'true') : true
+        });
+
+        // Create a browser context with viewport settings
+        this.context = await this.browser.newContext({
+            viewport: process.env.ENVIRONMENT === 'LOCAL' ? null : {
+                width: config.screenWidth,
+                height: config.screenHeight
+            }
+        });
+
+        this.defaultPage = await this.context.newPage();
+        await auxtaPlaywright.extend_page_functions(this.defaultPage);
+        await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle'});
+        await this.defaultPage.waitForLoadState('networkidle');
+    }
+
+    /**
+     * Closes all browsers
+     *
+     * @remarks
+     * This method closes all browsers
+     *
+     *
+     */
+    public async close() {
+        if (this.browser) {
+            let pages = this.context.pages();
+            await Promise.all(pages.map((page) => page.close()));
+            await this.context.close();
+            await this.browser.close();
+        }
+    }
+
+    private async initiateBrowser(consoleMessage: any[], httpsMessage: any[], debugStack: any[]) {
+        await this.startBrowser();
+        await this.attachListenersToAllTabs(consoleMessage, httpsMessage, debugStack);
+    }
+
+    private async logFail(consoleMessage: any[]) {
+        const pages = this.context.pages();
+        consoleMessage.push('pages');
+        consoleMessage.push(pages.length);
+    }
+
+    /**
+     * Get the browser context
+     */
+    public getContext(): BrowserContext {
+        return this.context;
+    }
+
+    /**
+     * Get the browser instance
+     */
+    public getBrowser(): Browser {
+        return this.browser;
+    }
+
+    /**
+     * This method is the main method that starts the given test
+     *
+     * @param event
+     * @param callback - the main function code that need to be run in the browser
+     * @param featureName
+     * @param scenarioName
+     * @param uploadModel - the given configuration that is going to be used to upload the test
+     *
+     *
+     */
+    public async run(event: any, callback: any, featureName = 'Test feature', scenarioName = 'Test scenario', uploadModel?: UploadModel) {
+        let close;
+        let debugStack: any[] = [];
+        try {
+            if (uploadModel === undefined) {
+                uploadModel = auxtaPlaywright.getUploadModel();
+                uploadModel.featureName = featureName;
+                uploadModel.scenarioName = scenarioName;
+            }
+            if (event.close === undefined) close = PlaywrightDriver.setupHeader(event, uploadModel)
+            let screenshotBuffer: Buffer | undefined;
+            let errMessage: any;
+            let statusCode: number = 200;
+
+            let consoleMessage: any [] = [];
+            let httpsMessage: any [] = [];
+
+            log.push('When', log.tag, `Starting Playwright process`, StatusOfStep.PASSED);
+
+            try {
+                await this.initiateBrowser(consoleMessage, httpsMessage, debugStack);
+                await callback(event)
+                log.push('When', log.tag, `Finished Playwright process`, StatusOfStep.PASSED);
+            } catch (err: any) {
+                console.log("Error message: \n", err);
+                if (process.env.ENVIRONMENT !== 'LOCAL') {
+                    if (uploadModel.toRetry) {
+                        log.clear(); // Clear the logs to avoid the scenario being flagged as FAILED
+                        log.clearTag();
+                        log.push('When', log.tag, `Retrying Playwright process`, StatusOfStep.PASSED);
+                        try {
+                            await this.close();
+                            await this.initiateBrowser(consoleMessage, httpsMessage, debugStack);
+                            await callback(event);
+                            log.push('When', log.tag, `Finished Playwright process from the 2nd try`, StatusOfStep.PASSED);
+                        } catch (err: any) {
+                            this.logFail(consoleMessage)
+                            errMessage = err;
+                            statusCode = 500;
+                            screenshotBuffer = await captureScreenshotPlaywright(this);
+                            log.push('When', log.tag, `Failed Playwright process from the 2nd try`, StatusOfStep.FAILED);
+                        }
+                    } else {
+                        this.logFail(consoleMessage)
+                        errMessage = err;
+                        statusCode = 500;
+                        screenshotBuffer = await captureScreenshotPlaywright(this);
+
+                        log.push('When', log.tag, `Finished Playwright process`, StatusOfStep.FAILED);
+                    }
+                }
+            }
+            let url = this.defaultPage.url();
+            if (close) await this.close();
+
+            // Per-tab selection for final errorMessage
+            let activeTabIndex: number | undefined = undefined;
+            try {
+                const _pagesForFinish = this.context.pages();
+                if (_pagesForFinish && _pagesForFinish.length) activeTabIndex = _pagesForFinish.length - 1;
+            } catch {}
+            const tabLogs = this.getTabLogs() as any;
+            const chosen = (activeTabIndex !== undefined && tabLogs && tabLogs[activeTabIndex]) ? tabLogs[activeTabIndex] : undefined;
+            const perTabConsole = chosen?.console ?? consoleMessage;
+            const perTabHttps = chosen?.https ?? httpsMessage;
+            const perTabUrl = chosen?.url ?? url;
+            const perTabDebug = chosen?.debug ?? debugStack;
+
+            return await onTestEnd(uploadModel, featureName, scenarioName, statusCode, screenshotBuffer, !errMessage ? undefined : {
+                currentPageUrl: perTabUrl,
+                console: perTabConsole,
+                https: perTabHttps,
+                error: errMessage, debug: perTabDebug, byTab: this.getTabLogs()
+            });
+        } catch (e) {
+            console.log("Lib error:", e);
+        } finally {
+            log.clear();
+        }
+    }
+
+    /**
+     * This method can be used to start the browser and run the test when live without uploading them
+     *
+     * @param event
+     * @param callback - the main function code that need to be run in the browser
+     * @param uploadModel - the given configuration that is going to be used to upload the test
+     * @param close
+     *
+     */
+    public async runRPA(event: any, callback: any, uploadModel?: UploadModel, close?: boolean) {
+        let errMessage: any;
+        try {
+            if (uploadModel === undefined) uploadModel = auxtaPlaywright.getUploadModel();
+            if (close === undefined) {
+                try {
+                    if (event.close) {
+                        close = event.close === "true";
+                    } else {
+                        close = true
+                    }
+                    if (event.retries) {
+                        uploadModel.retries = Number(event.retries)
+                    }
+                } catch (e) {
+                    close = true;
+                }
+            }
+            let consoleStack: any[] = [];
+            let debugStack: any[] = [];
+            try {
+                await log.push('When', log.tag, `Starting Playwright process`, StatusOfStep.PASSED);
+                await this.startBrowser()
+                await this.attachListenersToAllTabs(consoleStack, consoleStack, debugStack)
+                await callback(event)
+                log.push('When', log.tag, `Finished Playwright process`, StatusOfStep.PASSED);
+            } catch (err: any) {
+                console.log("Error message: \n", err);
+                let browser_start_retry = err.toString().includes("Failed to launch the browser process!");
+
+                if (browser_start_retry) {
+                    await retrySuite([], '', uploadModel.currentSuite, uploadModel.retries);
+                    return {statusCode: 204}
+                }
+                errMessage = err;
+                log.push('When', log.tag, `Finished Playwright process`, StatusOfStep.FAILED);
+                return errMessage;
+            }
+            if (close) await this.close();
+        } catch (e) {
+            console.log("Lib error:", e);
+        } finally {
+            log.clear();
+        }
+        return {statusCode: 200}
+    }
+}
+
+export default new PlaywrightDriver();
