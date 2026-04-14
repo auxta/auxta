@@ -21,7 +21,7 @@
     "dotenv-extended": "^2.9.0",
     "fs": "^0.0.1-security",
     "js-base64": "^3.7.5",
-    "moment-timezone": "^0.5.45",
+    "moment-timezone": "^0.6.1",
     "node-2fa": "^2.0.3",
     "nodemailer": "^8.0.4",
     "puppeteer": "^24.39.0",
