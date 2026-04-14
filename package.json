@@ -15,7 +15,7 @@
   "author": "auxcode",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^17.0.9",
+    "@types/node": "^25.6.0",
     "axios": "^1.13.5",
     "dotenv": "^10.0.0",
     "dotenv-extended": "^2.9.0",
