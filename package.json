@@ -26,7 +26,7 @@
     "nodemailer": "^8.0.4",
     "puppeteer": "^24.39.0",
     "readline": "^1.3.0",
-    "typescript": "^5.9.2"
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.23.3"
