@@ -29,7 +29,7 @@
     "typescript": "^6.0.3"
   },
   "devDependencies": {
-    "@babel/preset-typescript": "^7.23.3"
+    "@babel/preset-typescript": "^8.0.1"
   },
   "overrides": {
     "js-yaml": "4.1.1"
