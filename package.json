@@ -15,7 +15,7 @@
   "author": "auxcode",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^25.6.0",
+    "@types/node": "^26.0.0",
     "axios": "^1.13.5",
     "dotenv": "^17.4.2",
     "dotenv-extended": "^3.1.0",
@@ -24,9 +24,9 @@
     "moment-timezone": "^0.6.1",
     "node-2fa": "^2.0.3",
     "nodemailer": "^9.0.1",
-    "puppeteer": "^24.39.0",
+    "puppeteer": "^25.1.0",
     "readline": "^1.3.0",
-    "typescript": "^5.9.2"
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.23.3"
