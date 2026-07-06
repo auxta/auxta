@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     /* Basic Options */
     "incremental": true,
     /* Enable incremental compilation */

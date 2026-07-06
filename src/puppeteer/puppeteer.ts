@@ -157,7 +157,7 @@ private static setupHeader(event: any, uploadModel: UploadModel) {
 
         this.browser = await puppeteer.default.launch({
             slowMo: process.env.slowMo ? Number(process.env.slowMo) : 0,
-            executablePath: puppeteer.default.executablePath(),
+            executablePath: await puppeteer.default.executablePath(),
             args,
             env,
             ignoreDefaultArgs: ["--enable-automation"],
