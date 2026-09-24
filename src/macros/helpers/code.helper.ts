@@ -340,8 +340,9 @@ export class FunctionHelper extends ExtendDefaultPage {
         const email_input = 'input[type="email"]';
         // Microsoft keeps an off-screen, aria-hidden password field on the email step for browser autofill
         const password_input = 'input[type="password"]:not([aria-hidden="true"])';
-        // "Work or school account" / "Personal account" picker, shown only for some accounts
-        const account_type_tile = 'div.table';
+        // "Work or school account" tile of the account type picker, shown only for some accounts.
+        // Not a generic div.table: the "Sign-in options" tile is one too and flashes up right after the email step
+        const account_type_tile = '#aadTile';
         // Checkbox on the optional "Stay signed in?" prompt
         const stay_signed_in_checkbox = 'input[name="DontShowAgain"]';
         const login_error = '#usernameError, #passwordError';
