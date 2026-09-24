@@ -338,36 +338,94 @@ export class FunctionHelper extends ExtendDefaultPage {
      * */
     public async microsoftLogin(button: string, email: string, password: string, page = puppeteer.defaultPage, newPage = true, staySignIn = true) {
         const email_input = 'input[type="email"]';
-        const password_input = 'input[type="password"]';
+        // Microsoft keeps an off-screen, aria-hidden password field on the email step for browser autofill
+        const password_input = 'input[type="password"]:not([aria-hidden="true"])';
+        // "Work or school account" / "Personal account" picker, shown only for some accounts
+        const account_type_tile = 'div.table';
+        // Checkbox on the optional "Stay signed in?" prompt
+        const stay_signed_in_checkbox = 'input[name="DontShowAgain"]';
+        const login_error = '#usernameError, #passwordError';
+
         await this.clickAndWaitForPageToBeCreated(button, page, newPage);
         const pages = await page.browser().pages();
         const loginPage = pages[pages.length - 1];
         await this.extend_page_functions(loginPage);
-        await this.waitForResponse('signin-options', true, loginPage)
+
+        await this.waitForSelector('visible', email_input, this.defaultTimeout, loginPage);
         await loginPage.type(email_input, email, {delay: 0});
         await loginPage.keyboard.press('Enter');
-        await this.waitForResponse('arrow_left', true, loginPage);
-        let isWorkOrPersonalVisible = await page.$('div.table');
-        if (!!isWorkOrPersonalVisible) {
-            await (await page.$$('div.table'))[0].click();
-            console.log('Then', 'I clicked Work or school account', StepStatus.PASSED);
-            await this.waitForResponse('microsoft_logo', true, loginPage);
-        }
-        // if() here check is container with asking Work or Personal is account?
+
+        // After the email the page shows either the password step or the account type picker
         try {
-            await this.timeout(1000);
-            (await loginPage.$(password_input))?.type(password);
-            await this.log('Then', `I type password into the ${password_input}`, StepStatus.PASSED);
+            await loginPage.waitForSelector(`${password_input}, ${account_type_tile}, ${login_error}`, {
+                visible: true,
+                timeout: this.defaultTimeout
+            });
         } catch (e) {
-            await this.log('Then', `I type password into the ${password_input}`, StepStatus.FAILED);
+            this.log('Then', `I wait for the password step of the microsoft login`, StepStatus.FAILED);
+            throw new Error(`I wait for the password step of the microsoft login`);
+        }
+        await this.failOnMicrosoftLoginError(loginPage, login_error);
+        const accountTypeTile = await loginPage.$(account_type_tile);
+        if (accountTypeTile && await accountTypeTile.isVisible()) {
+            await accountTypeTile.click();
+            this.log('Then', 'I click on the Work or school account', StepStatus.PASSED);
+        }
+
+        // ElementHandle.type is used on purpose, the extended page.type would log the password
+        try {
+            const passwordField = await loginPage.waitForSelector(password_input, {
+                visible: true,
+                timeout: this.defaultTimeout
+            });
+            await passwordField!.type(password, {delay: 0});
+            const typedLength = await passwordField!.evaluate((e: any) => e.value.length);
+            if (typedLength !== password.length) {
+                throw new Error(`Typed ${typedLength} of ${password.length} password characters`);
+            }
+            this.log('Then', `I type password into the ${password_input}`, StepStatus.PASSED);
+        } catch (e) {
+            this.log('Then', `I type password into the ${password_input}`, StepStatus.FAILED);
             throw new Error(`I type password into the ${password_input}`)
         }
-        await this.timeout(1000);
         await loginPage.keyboard.press('Enter');
+
         if (staySignIn) {
-            await this.waitForResponse('4_eae2dd7eb3a55636dc2d74f4fa4c386e', true, loginPage);
-            await this.timeout(1000);
-            await loginPage.keyboard.press('Enter');
+            // The "Stay signed in?" prompt is not always shown, so wait for whichever comes first:
+            // the prompt, a login error, or the redirect away from the Microsoft login pages
+            let outcome: string;
+            try {
+                const handle = await loginPage.waitForFunction((checkbox: string, error: string) => {
+                    const errorElement = document.querySelector(error) as HTMLElement | null;
+                    if (errorElement && errorElement.offsetParent !== null) return 'error';
+                    if (document.querySelector(checkbox)) return 'prompt';
+                    if (!/(^|\.)(login\.microsoftonline\.com|login\.live\.com)$/.test(location.hostname)) return 'redirected';
+                    return false;
+                }, {timeout: this.defaultTimeout, polling: 500}, stay_signed_in_checkbox, login_error);
+                outcome = await handle.jsonValue() as string;
+            } catch (e) {
+                this.log('Then', `I wait for the Stay signed in prompt of the microsoft login`, StepStatus.FAILED);
+                throw new Error(`I wait for the Stay signed in prompt of the microsoft login`);
+            }
+            if (outcome === 'error') {
+                await this.failOnMicrosoftLoginError(loginPage, login_error);
+            } else if (outcome === 'prompt') {
+                await this.waitForSelector('visible', stay_signed_in_checkbox, this.defaultTimeout, loginPage, false);
+                await loginPage.keyboard.press('Enter');
+                this.log('Then', `I confirm the Stay signed in prompt`, StepStatus.PASSED);
+            } else {
+                this.log('Then', `The Stay signed in prompt was not shown`, StepStatus.PASSED);
+            }
+        }
+    }
+
+    private async failOnMicrosoftLoginError(loginPage: any, login_error: string) {
+        const errorElement = await loginPage.$(login_error);
+        if (errorElement && await errorElement.isVisible()) {
+            const errorText = await errorElement.evaluate((e: any) => e.textContent?.trim());
+            const message = `The microsoft login shows an error: ${errorText}`;
+            this.log('Then', message, StepStatus.FAILED);
+            throw new Error(message);
         }
     }
 

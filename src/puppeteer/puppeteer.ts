@@ -151,8 +151,12 @@ private static setupHeader(event: any, uploadModel: UploadModel) {
         // needed because without these tree tags in doesn't work
         args.push("--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu")
         args.push('--enable-automation=false');
+        // Docker limits /dev/shm to 64MB by default, which crashes tabs when several browsers run in one container
+        args.push('--disable-dev-shm-usage');
+        // puppeteer replaces the browser environment with this object, so keep HOME, PATH, TMPDIR etc.
         let env = {
-            DISPLAY: ":10.0"
+            ...process.env,
+            DISPLAY: process.env.DISPLAY ?? ":10.0"
         }
 
         this.browser = await puppeteer.default.launch({
