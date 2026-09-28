@@ -16,10 +16,71 @@ export async function describePageFailure(page: any, error: any) {
     } catch (e: any) {
         text = `(page text unavailable: ${String(e?.message ?? e).split('\n')[0]})`;
     }
-    const failedRequests = (page.__auxtaFailedRequests ?? []).slice(-10).join(', ') || 'none';
-    const details = `reason: ${reason} | url: ${url} | page text: ${text} | failed requests: ${failedRequests}`;
+    const details = `reason: ${reason} | url: ${url} | page text: ${text} | ${pageProblemsSummary(page)}`;
     console.log(`${new Date().toISOString()} Failure details -- ${details}`);
     return details;
+}
+
+const MAX_TRACKED_PROBLEMS = 50;
+
+function pushLimited(list: string[], entry: string) {
+    list.push(entry);
+    if (list.length > MAX_TRACKED_PROBLEMS) list.shift();
+}
+
+/**
+ * Keeps the last failed requests and console errors of a page.
+ * A failed script request leaves an app blank without any failing step, so these are the only trace of the cause.
+ * Failed requests come from CDP, which also says whether Chrome cancelled or blocked the request and why.
+ */
+export async function trackPageProblems(page: any) {
+    if (page.__auxtaFailedRequests) return;
+    page.__auxtaFailedRequests = [];
+    page.__auxtaConsoleErrors = [];
+
+    page.on('console', (message: any) => {
+        const text = message.text();
+        // The CSP inline style warnings are constant noise that would push the useful errors out
+        if (message.type() === 'error' && !text.startsWith('Refused to apply inline style')) {
+            pushLimited(page.__auxtaConsoleErrors, `${new Date().toISOString()} ${text.slice(0, 200)}`);
+        }
+    });
+    page.on('pageerror', (error: any) => {
+        pushLimited(page.__auxtaConsoleErrors, `${new Date().toISOString()} uncaught: ${String(error?.message ?? error).slice(0, 200)}`);
+    });
+
+    try {
+        const cdp = await page.createCDPSession();
+        const requests = new Map<string, string>();
+        cdp.on('Network.requestWillBeSent', (event: any) => requests.set(event.requestId, event.request.url));
+        cdp.on('Network.loadingFinished', (event: any) => requests.delete(event.requestId));
+        cdp.on('Network.loadingFailed', (event: any) => {
+            const why = [
+                event.type,
+                event.canceled ? 'canceled' : '',
+                event.blockedReason ? `blocked: ${event.blockedReason}` : '',
+                event.corsErrorStatus?.corsError ? `cors: ${event.corsErrorStatus.corsError}` : ''
+            ].filter(Boolean).join(', ');
+            pushLimited(page.__auxtaFailedRequests, `${new Date().toISOString()} ${event.errorText} (${why}) ${requests.get(event.requestId) ?? event.requestId}`);
+            requests.delete(event.requestId);
+        });
+        await cdp.send('Network.enable');
+    } catch (e) {
+        page.on('requestfailed', (request: any) => {
+            pushLimited(page.__auxtaFailedRequests, `${new Date().toISOString()} ${request.failure()?.errorText ?? 'unknown error'} ${request.url()}`);
+        });
+    }
+}
+
+export function pageProblemsSummary(page: any) {
+    const failedRequests = (page.__auxtaFailedRequests ?? []).slice(-10).join(', ') || 'none';
+    const consoleErrors = (page.__auxtaConsoleErrors ?? []).slice(-5).join(', ') || 'none';
+    return `failed requests: ${failedRequests} | console errors: ${consoleErrors}`;
+}
+
+export function clearPageProblems(page: any) {
+    if (page.__auxtaFailedRequests) page.__auxtaFailedRequests.length = 0;
+    if (page.__auxtaConsoleErrors) page.__auxtaConsoleErrors.length = 0;
 }
 
 export class ExtendDefaultPage {
@@ -27,15 +88,7 @@ export class ExtendDefaultPage {
 
     public async extend_page_functions(page: any, time = this.defaultTimeout) {
         this.defaultTimeout = config.timeout
-        // Keep the last failed requests of this page, a failed script request leaves the app blank without any error step
-        if (!page.__auxtaFailedRequests) {
-            page.__auxtaFailedRequests = [];
-            page.on('requestfailed', (request: any) => {
-                const entry = `${new Date().toISOString()} ${request.failure()?.errorText ?? 'unknown error'} ${request.url()}`;
-                page.__auxtaFailedRequests.push(entry);
-                if (page.__auxtaFailedRequests.length > 50) page.__auxtaFailedRequests.shift();
-            });
-        }
+        await trackPageProblems(page);
         const {
             goto: original_goto,
             click: original_click,

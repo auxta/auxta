@@ -6,6 +6,7 @@ import {StatusOfStep} from "../auxta/enums/status-of.step";
 import {UploadModel} from "../auxta/models/upload.model";
 import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
+import {clearPageProblems, pageProblemsSummary} from "../macros/helpers/extend-default-page";
 import puppeteer = require("puppeteer");
 
 export class Puppeteer {
@@ -172,11 +173,36 @@ private static setupHeader(event: any, uploadModel: UploadModel) {
             // Return back to headless for netlify
             headless: process.env.ENVIRONMENT === 'LOCAL' ? (process.env.headless === 'true') : true
         });
+        Puppeteer.printBrowserErrors(this.browser);
         this.defaultPage = (await this.browser.pages())[0];
         await auxta.extend_page_functions(this.defaultPage);
         await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle0'})
         await this.defaultPage.waitForNetworkIdle();
         await this.reloadIfBlank(this.defaultPage);
+    }
+
+    /**
+     * Prints Chrome's own error lines, e.g. a crashed network service or failing disk cache,
+     * which explain requests that fail inside the browser without reaching the server
+     *
+     * @param browser
+     * @param maxLines - stop after this many lines so a noisy browser can't flood the log
+     */
+    private static printBrowserErrors(browser: puppeteer.Browser, maxLines = 100) {
+        const important = /crash|network service|fatal|out of memory|oom|disk_cache|cache|shared_memory|shm|net_error|ERR_/i;
+        const noise = /dbus|bus\.cc|gpu_init|viz_main|fontconfig/i;
+        let printed = 0;
+        let buffer = '';
+        browser.process()?.stderr?.on('data', (data: Buffer) => {
+            buffer += data.toString();
+            const lines = buffer.split('\n');
+            buffer = lines.pop() ?? '';
+            for (const line of lines) {
+                if (printed >= maxLines || !important.test(line) || noise.test(line)) continue;
+                printed++;
+                console.log(`${new Date().toISOString()} Chrome: ${line.trim().slice(0, 300)}`);
+            }
+        });
     }
 
     /**
@@ -198,11 +224,10 @@ private static setupHeader(event: any, uploadModel: UploadModel) {
             ).then(() => true, () => false);
             if (rendered) return;
 
-            const failedRequests = ((page as any).__auxtaFailedRequests ?? []).slice(-10).join(', ') || 'none';
-            const message = `The page ${page.url()} stayed blank after loading, reloading it (attempt ${attempt} of ${retries}, failed requests: ${failedRequests})`;
+            const message = `The page ${page.url()} stayed blank after loading, reloading it (attempt ${attempt} of ${retries}, ${pageProblemsSummary(page)})`;
             console.log(`${new Date().toISOString()} ${message}`);
             log.push('When', log.tag, message, StatusOfStep.LOG);
-            (page as any).__auxtaFailedRequests = [];
+            clearPageProblems(page);
             await page.reload({waitUntil: 'networkidle0'});
             await page.waitForNetworkIdle();
         }

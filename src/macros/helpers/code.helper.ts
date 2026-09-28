@@ -2,7 +2,7 @@ import log from "../../auxta/services/log.service";
 import puppeteer from "../../puppeteer/puppeteer";
 import {StatusOfStep} from "../../auxta/enums/status-of.step";
 import {StepStatus} from "../../AuxTA";
-import {describePageFailure, ExtendDefaultPage} from "./extend-default-page";
+import {describePageFailure, ExtendDefaultPage, pageProblemsSummary} from "./extend-default-page";
 import {CDPSession, KnownDevices} from "puppeteer";
 import {captureScreenshotPage} from "../../auxta/utilities/screenshot.helper";
 import {compareScreenshots} from "../../auxta/services/report.service";
@@ -399,6 +399,8 @@ export class FunctionHelper extends ExtendDefaultPage {
                 const handle = await loginPage.waitForFunction((checkbox: string, error: string) => {
                     const errorElement = document.querySelector(error) as HTMLElement | null;
                     if (errorElement && errorElement.offsetParent !== null) return 'error';
+                    // Microsoft's full page errors, e.g. AADSTS90100, have no error element id but always show the code
+                    if (/AADSTS\d+/.test(document.body?.innerText ?? '')) return 'error';
                     if (document.querySelector(checkbox)) return 'prompt';
                     if (!/(^|\.)(login\.microsoftonline\.com|login\.live\.com)$/.test(location.hostname)) return 'redirected';
                     return false;
@@ -410,6 +412,10 @@ export class FunctionHelper extends ExtendDefaultPage {
             }
             if (outcome === 'error') {
                 await this.failOnMicrosoftLoginError(loginPage, login_error);
+                // The error disappeared before it could be read, still never treat it as a successful login
+                const message = `The microsoft login showed an error after the password step (${await describePageFailure(loginPage, 'error page')})`;
+                this.log('Then', message, StepStatus.FAILED);
+                throw new Error(message);
             } else if (outcome === 'prompt') {
                 await this.waitForSelector('visible', stay_signed_in_checkbox, this.defaultTimeout, loginPage, false);
                 await loginPage.keyboard.press('Enter');
@@ -421,10 +427,15 @@ export class FunctionHelper extends ExtendDefaultPage {
     }
 
     private async failOnMicrosoftLoginError(loginPage: any, login_error: string) {
+        let errorText: string | undefined;
         const errorElement = await loginPage.$(login_error);
         if (errorElement && await errorElement.isVisible()) {
-            const errorText = await errorElement.evaluate((e: any) => e.textContent?.trim());
-            const message = `The microsoft login shows an error: ${errorText}`;
+            errorText = await errorElement.evaluate((e: any) => e.textContent?.trim());
+        } else {
+            errorText = await loginPage.evaluate(() => (document.body?.innerText ?? '').match(/AADSTS\d+[^\n]*/)?.[0]);
+        }
+        if (errorText) {
+            const message = `The microsoft login shows an error: ${errorText} (${pageProblemsSummary(loginPage)})`;
             this.log('Then', message, StepStatus.FAILED);
             throw new Error(message);
         }
