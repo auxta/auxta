@@ -16,7 +16,8 @@ export async function describePageFailure(page: any, error: any) {
     } catch (e: any) {
         text = `(page text unavailable: ${String(e?.message ?? e).split('\n')[0]})`;
     }
-    const details = `reason: ${reason} | url: ${url} | page text: ${text}`;
+    const failedRequests = (page.__auxtaFailedRequests ?? []).slice(-10).join(', ') || 'none';
+    const details = `reason: ${reason} | url: ${url} | page text: ${text} | failed requests: ${failedRequests}`;
     console.log(`${new Date().toISOString()} Failure details -- ${details}`);
     return details;
 }
@@ -26,6 +27,15 @@ export class ExtendDefaultPage {
 
     public async extend_page_functions(page: any, time = this.defaultTimeout) {
         this.defaultTimeout = config.timeout
+        // Keep the last failed requests of this page, a failed script request leaves the app blank without any error step
+        if (!page.__auxtaFailedRequests) {
+            page.__auxtaFailedRequests = [];
+            page.on('requestfailed', (request: any) => {
+                const entry = `${new Date().toISOString()} ${request.failure()?.errorText ?? 'unknown error'} ${request.url()}`;
+                page.__auxtaFailedRequests.push(entry);
+                if (page.__auxtaFailedRequests.length > 50) page.__auxtaFailedRequests.shift();
+            });
+        }
         const {
             goto: original_goto,
             click: original_click,

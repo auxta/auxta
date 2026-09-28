@@ -176,6 +176,36 @@ private static setupHeader(event: any, uploadModel: UploadModel) {
         await auxta.extend_page_functions(this.defaultPage);
         await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle0'})
         await this.defaultPage.waitForNetworkIdle();
+        await this.reloadIfBlank(this.defaultPage);
+    }
+
+    /**
+     * Reloads the page when it stays blank after loading
+     *
+     * @remarks
+     * When one of the app's script requests fails the network still goes idle, but the app never starts
+     * and the page stays empty. Each reload is logged with the failed requests, so the cause stays visible.
+     *
+     * @param page
+     * @param retries - how many times to reload before giving up
+     * @param renderTimeout - how long to wait for the page to show text or an interactive element
+     */
+    private async reloadIfBlank(page: puppeteer.Page, retries = 2, renderTimeout = 10000) {
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            const rendered = await page.waitForFunction(
+                () => !!document.body && (document.body.innerText.trim().length > 0 || !!document.querySelector('button, input, a[href]')),
+                {timeout: renderTimeout, polling: 500}
+            ).then(() => true, () => false);
+            if (rendered) return;
+
+            const failedRequests = ((page as any).__auxtaFailedRequests ?? []).slice(-10).join(', ') || 'none';
+            const message = `The page ${page.url()} stayed blank after loading, reloading it (attempt ${attempt} of ${retries}, failed requests: ${failedRequests})`;
+            console.log(`${new Date().toISOString()} ${message}`);
+            log.push('When', log.tag, message, StatusOfStep.LOG);
+            (page as any).__auxtaFailedRequests = [];
+            await page.reload({waitUntil: 'networkidle0'});
+            await page.waitForNetworkIdle();
+        }
     }
 
     /**
