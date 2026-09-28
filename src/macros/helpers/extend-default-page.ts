@@ -2,6 +2,25 @@ import log from "../../auxta/services/log.service";
 import {StatusOfStep} from "../../auxta/enums/status-of.step";
 import {config} from "../../auxta/configs/config";
 
+/**
+ * Describes why a step failed: the underlying error, the current URL and the start of the visible page text.
+ * The generic step messages alone don't show whether the page was an error page, still loading or navigating.
+ */
+export async function describePageFailure(page: any, error: any) {
+    const reason = String(error?.message ?? error).split('\n')[0];
+    let url = '';
+    let text = '';
+    try {
+        url = page.url();
+        text = await page.evaluate(() => (document.body?.innerText ?? '').replace(/\s+/g, ' ').trim().slice(0, 300));
+    } catch (e: any) {
+        text = `(page text unavailable: ${String(e?.message ?? e).split('\n')[0]})`;
+    }
+    const details = `reason: ${reason} | url: ${url} | page text: ${text}`;
+    console.log(`${new Date().toISOString()} Failure details -- ${details}`);
+    return details;
+}
+
 export class ExtendDefaultPage {
     public defaultTimeout: number = config.timeout;
 
@@ -29,7 +48,7 @@ export class ExtendDefaultPage {
             } catch (e) {
                 const msg = `I click on the '${selector}'`;
                 log.push('Then', log.tag, msg, StatusOfStep.FAILED);
-                throw new Error(msg)
+                throw new Error(`${msg} (${await describePageFailure(page, e)})`)
             }
         };
         page.waitForNetworkIdle = async function waitForNetworkIdle(selector: any, option?: any) {
@@ -40,7 +59,7 @@ export class ExtendDefaultPage {
                 log.push('Then', log.tag, message, StatusOfStep.PASSED);
             } catch (e) {
                 log.push('Then', log.tag, message, StatusOfStep.FAILED);
-                throw new Error(message)
+                throw new Error(`${message} (${await describePageFailure(page, e)})`)
             }
             return result
         }
@@ -56,7 +75,7 @@ export class ExtendDefaultPage {
             } catch (e) {
                 const msg = `I type '${value}' into the '${field}' field`
                 log.push('Then', log.tag, msg, StatusOfStep.FAILED);
-                throw new Error(msg)
+                throw new Error(`${msg} (${await describePageFailure(page, e)})`)
             }
         }
         return page;

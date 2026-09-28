@@ -2,7 +2,7 @@ import log from "../../auxta/services/log.service";
 import puppeteer from "../../puppeteer/puppeteer";
 import {StatusOfStep} from "../../auxta/enums/status-of.step";
 import {StepStatus} from "../../AuxTA";
-import {ExtendDefaultPage} from "./extend-default-page";
+import {describePageFailure, ExtendDefaultPage} from "./extend-default-page";
 import {CDPSession, KnownDevices} from "puppeteer";
 import {captureScreenshotPage} from "../../auxta/utilities/screenshot.helper";
 import {compareScreenshots} from "../../auxta/services/report.service";
@@ -364,7 +364,7 @@ export class FunctionHelper extends ExtendDefaultPage {
             });
         } catch (e) {
             this.log('Then', `I wait for the password step of the microsoft login`, StepStatus.FAILED);
-            throw new Error(`I wait for the password step of the microsoft login`);
+            throw new Error(`I wait for the password step of the microsoft login (${await describePageFailure(loginPage, e)})`);
         }
         await this.failOnMicrosoftLoginError(loginPage, login_error);
         const accountTypeTile = await loginPage.$(account_type_tile);
@@ -387,7 +387,7 @@ export class FunctionHelper extends ExtendDefaultPage {
             this.log('Then', `I type password into the ${password_input}`, StepStatus.PASSED);
         } catch (e) {
             this.log('Then', `I type password into the ${password_input}`, StepStatus.FAILED);
-            throw new Error(`I type password into the ${password_input}`)
+            throw new Error(`I type password into the ${password_input} (${await describePageFailure(loginPage, e)})`)
         }
         await loginPage.keyboard.press('Enter');
 
@@ -406,7 +406,7 @@ export class FunctionHelper extends ExtendDefaultPage {
                 outcome = await handle.jsonValue() as string;
             } catch (e) {
                 this.log('Then', `I wait for the Stay signed in prompt of the microsoft login`, StepStatus.FAILED);
-                throw new Error(`I wait for the Stay signed in prompt of the microsoft login`);
+                throw new Error(`I wait for the Stay signed in prompt of the microsoft login (${await describePageFailure(loginPage, e)})`);
             }
             if (outcome === 'error') {
                 await this.failOnMicrosoftLoginError(loginPage, login_error);

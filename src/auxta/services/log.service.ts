@@ -91,7 +91,7 @@ export class LogSteps {
      * @param imageCompareKey
      * */
     public push(keyword: string, tag: string, name: string, status: StatusOfStep, screenshot: Uint8Array | Buffer = new Uint8Array(), imageCompareKey = '') {
-        console.log(`System log -- status: ${status} -- tag: ${tag} -- : ${name} `);
+        console.log(`${new Date().toISOString()} System log -- status: ${status} -- tag: ${tag} -- : ${name} `);
         this.statusCounter[status]++;
         const currentStep = new Date().getTime();
         if (screenshot.byteLength != 0) {
