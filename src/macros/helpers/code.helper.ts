@@ -352,19 +352,36 @@ export class FunctionHelper extends ExtendDefaultPage {
         const loginPage = pages[pages.length - 1];
         await this.extend_page_functions(loginPage);
 
-        await this.waitForSelector('visible', email_input, this.defaultTimeout, loginPage);
-        await loginPage.type(email_input, email, {delay: 0});
-        await loginPage.keyboard.press('Enter');
+        // Microsoft reloads its sign in page (sso_reload) shortly after it first loads. An email typed before
+        // such a reload is lost and the page stays on the email step, so check it moved on and type it again if not
+        const email_step_attempts = 3;
+        const next_step_timeout = 15000;
+        for (let attempt = 1; ; attempt++) {
+            await this.waitForMicrosoftEmailStep(loginPage, email_input);
+            // A reload can also land while typing, so a failed attempt is retried instead of failing the step.
+            // The field is cleared first, so a retry on a page that wasn't reloaded doesn't append the email twice
+            const typedEmail = await (async () => {
+                const emailField = await loginPage.$(email_input);
+                if (!emailField) throw new Error('email field not found');
+                await emailField.evaluate((input: any) => input.value = '');
+                await emailField.type(email, {delay: 0});
+                await loginPage.keyboard.press('Enter');
+            })().then(() => true, () => false);
+            if (typedEmail) this.log('Then', `I type '${email}' into the '${email_input}' field`, StepStatus.PASSED);
 
-        // After the email the page shows either the password step or the account type picker
-        try {
-            await loginPage.waitForSelector(`${password_input}, ${account_type_tile}, ${login_error}`, {
+            // After the email the page shows either the password step or the account type picker
+            const movedOn = typedEmail && await loginPage.waitForSelector(`${password_input}, ${account_type_tile}, ${login_error}`, {
                 visible: true,
-                timeout: this.defaultTimeout
-            });
-        } catch (e) {
-            this.log('Then', `I wait for the password step of the microsoft login`, StepStatus.FAILED);
-            throw new Error(`I wait for the password step of the microsoft login (${await describePageFailure(loginPage, e)})`);
+                timeout: attempt < email_step_attempts ? next_step_timeout : this.defaultTimeout
+            }).then(() => true, () => false);
+            if (movedOn) break;
+            if (attempt >= email_step_attempts) {
+                this.log('Then', `I wait for the password step of the microsoft login`, StepStatus.FAILED);
+                throw new Error(`I wait for the password step of the microsoft login (${await describePageFailure(loginPage, `still on the email step after ${attempt} attempts`)})`);
+            }
+            const message = `The microsoft login stayed on the email step, typing the email again (attempt ${attempt + 1} of ${email_step_attempts})`;
+            console.log(`${new Date().toISOString()} ${message}`);
+            this.log('Then', message, StepStatus.LOG);
         }
         await this.failOnMicrosoftLoginError(loginPage, login_error);
         const accountTypeTile = await loginPage.$(account_type_tile);
@@ -423,6 +440,24 @@ export class FunctionHelper extends ExtendDefaultPage {
             } else {
                 this.log('Then', `The Stay signed in prompt was not shown`, StepStatus.PASSED);
             }
+        }
+    }
+
+    /**
+     * Waits for the email field on the Microsoft page itself. The page the login starts from can have its own
+     * email field (e.g. the shared routes), which would otherwise match before the navigation to Microsoft
+     */
+    private async waitForMicrosoftEmailStep(loginPage: any, email_input: string) {
+        try {
+            await loginPage.waitForFunction((selector: string) => {
+                if (!/(^|\.)(login\.microsoftonline\.com|login\.live\.com)$/.test(location.hostname)) return false;
+                const input = document.querySelector(selector) as HTMLElement | null;
+                return !!input && input.offsetParent !== null;
+            }, {timeout: this.defaultTimeout, polling: 200}, email_input);
+            this.log('Then', `I checked for the '${email_input}' element to be visible on the microsoft login`, StepStatus.PASSED);
+        } catch (e) {
+            this.log('Then', `I wait for the email step of the microsoft login`, StepStatus.FAILED);
+            throw new Error(`I wait for the email step of the microsoft login (${await describePageFailure(loginPage, e)})`);
         }
     }
 
