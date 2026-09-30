@@ -124,6 +124,11 @@ npm i
   # Allows testing from mobile devices screens
   "screenWidth": 1920,
   "screenHeight": 1080,
+  # Chrome's network log, for debugging requests that fail inside the browser (e.g. a bare net::ERR_FAILED)
+  # When a page stays blank or a step fails, the log entries of the failed requests are printed
+  # Can also be enabled with the environment variable AUXTA_NET_LOG=true
+  # Default false, the log grows with every request (a few MB per login, more for long scenarios)
+  "netLog": false,
 }
 
 ```

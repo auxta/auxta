@@ -1,6 +1,7 @@
 import log from "../../auxta/services/log.service";
 import {StatusOfStep} from "../../auxta/enums/status-of.step";
 import {config} from "../../auxta/configs/config";
+import {printNetLogFor} from "../../auxta/utilities/net-log.helper";
 
 /**
  * Describes why a step failed: the underlying error, the current URL and the start of the visible page text.
@@ -18,6 +19,7 @@ export async function describePageFailure(page: any, error: any) {
     }
     const details = `reason: ${reason} | url: ${url} | page text: ${text} | ${pageProblemsSummary(page)}`;
     console.log(`${new Date().toISOString()} Failure details -- ${details}`);
+    printNetLogFor(failedRequestUrls(page));
     return details;
 }
 
@@ -76,6 +78,11 @@ export function pageProblemsSummary(page: any) {
     const failedRequests = (page.__auxtaFailedRequests ?? []).slice(-10).join(', ') || 'none';
     const consoleErrors = (page.__auxtaConsoleErrors ?? []).slice(-5).join(', ') || 'none';
     return `failed requests: ${failedRequests} | console errors: ${consoleErrors}`;
+}
+
+export function failedRequestUrls(page: any): string[] {
+    // Entries end with the URL, see trackPageProblems
+    return (page.__auxtaFailedRequests ?? []).map((entry: string) => entry.split(' ').pop()).filter(Boolean);
 }
 
 export function clearPageProblems(page: any) {

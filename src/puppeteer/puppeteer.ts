@@ -6,7 +6,8 @@ import {StatusOfStep} from "../auxta/enums/status-of.step";
 import {UploadModel} from "../auxta/models/upload.model";
 import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
-import {clearPageProblems, pageProblemsSummary} from "../macros/helpers/extend-default-page";
+import {clearPageProblems, failedRequestUrls, pageProblemsSummary} from "../macros/helpers/extend-default-page";
+import {netLogArgs, printNetLogFor, removeNetLog} from "../auxta/utilities/net-log.helper";
 import puppeteer = require("puppeteer");
 
 export class Puppeteer {
@@ -154,6 +155,7 @@ private static setupHeader(event: any, uploadModel: UploadModel) {
         args.push('--enable-automation=false');
         // Docker limits /dev/shm to 64MB by default, which crashes tabs when several browsers run in one container
         args.push('--disable-dev-shm-usage');
+        args.push(...netLogArgs());
         // puppeteer replaces the browser environment with this object, so keep HOME, PATH, TMPDIR etc.
         let env = {
             ...process.env,
@@ -227,6 +229,7 @@ private static setupHeader(event: any, uploadModel: UploadModel) {
             const message = `The page ${page.url()} stayed blank after loading, reloading it (attempt ${attempt} of ${retries}, ${pageProblemsSummary(page)})`;
             console.log(`${new Date().toISOString()} ${message}`);
             log.push('When', log.tag, message, StatusOfStep.LOG);
+            printNetLogFor(failedRequestUrls(page));
             clearPageProblems(page);
             await page.reload({waitUntil: 'networkidle0'});
             await page.waitForNetworkIdle();
@@ -247,6 +250,7 @@ private static setupHeader(event: any, uploadModel: UploadModel) {
             await Promise.all(pages.map((page: { close: () => any; }) => page.close()));
             await this.browser.close();
         }
+        removeNetLog();
     }
 
     private async initiateBrowser(consoleMessage: any[], httpsMessage: any[], debugStack: any[]) {
