@@ -23,6 +23,7 @@ export function setupConfig(jsonConfig: any) {
     if (jsonConfig.timeout) config.timeout = jsonConfig.timeout;
     if (jsonConfig.screenWidth) config.screenWidth = jsonConfig.screenWidth;
     if (jsonConfig.screenHeight) config.screenHeight = jsonConfig.screenHeight;
+    if (jsonConfig.netLog !== undefined) config.netLog = jsonConfig.netLog === true;
     return config;
 }
 
@@ -46,6 +47,7 @@ export let config = {
     screenWidth: 1920,
     screenHeight: 1080,
     timeout: 60000,
+    netLog: false,
     suitesList: [],
     googleEmail: "",
     auxtaCredentials: {
