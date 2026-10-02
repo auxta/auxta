@@ -70,18 +70,58 @@ export class FunctionHelper extends ExtendDefaultPage {
      * */
     public async screenshotCompare(key: string, threshold = 0.1, page = puppeteer.defaultPage) {
         if (process.env.ENVIRONMENT !== 'LOCAL') {
+            await this.logDocumentSize(key, page);
             const screenshotBuffer = await captureScreenshotPage(page);
             if (screenshotBuffer) {
                 const screenshot = screenshotBuffer;
-                const result = await compareScreenshots(key, screenshot);
+                // PNG IHDR chunk: width and height are big-endian uint32 at bytes 16 and 20
+                if (screenshot.length >= 24) {
+                    log.push('When', log.tag, `Screenshot for key ${key} is ${screenshot.readUInt32BE(16)}x${screenshot.readUInt32BE(20)}px`, StatusOfStep.PASSED)
+                }
+                let result;
+                try {
+                    result = await compareScreenshots(key, screenshot);
+                } catch (e: any) {
+                    const reason = axios.isAxiosError(e)
+                        ? `status ${e.response?.status ?? 'none'}: ${e.response?.data?.message ?? e.message}`
+                        : e?.message ?? String(e);
+                    log.push('Then', log.tag, `I compare screenshots with key ${key}, but the comparison request failed (${reason})`, StatusOfStep.FAILED, screenshot, key)
+                    return;
+                }
                 if (result.presentDifference && Number(result.presentDifference) > threshold) {
                     log.push('Then', log.tag, `I compare screenshots with key ${key}, and difference is: ${result.presentDifference}%`, StatusOfStep.FAILED, screenshot, key)
                 } else {
                     log.push('Then', log.tag, `I compare screenshots with key ${key}`, StatusOfStep.PASSED, screenshot, key)
                 }
+            } else {
+                log.push('Then', log.tag, `I compare screenshots with key ${key}, but the screenshot could not be captured`, StatusOfStep.FAILED, undefined, key)
             }
         } else {
             log.push('Then', log.tag, `I compare screenshots with key ${key}`, StatusOfStep.PASSED, undefined, key)
+        }
+    }
+
+    /**
+     * Logs the viewport and document size that a full-page screenshot will be based on,
+     * so a size mismatch against the reference can be traced to overflowing content.
+     * @param key
+     * @param page
+     *
+     * */
+    private async logDocumentSize(key: string, page = puppeteer.defaultPage) {
+        try {
+            const size = await page.evaluate(() => {
+                const doc = document.documentElement;
+                return {
+                    viewport: `${window.innerWidth}x${window.innerHeight}`,
+                    document: `${doc.scrollWidth}x${doc.scrollHeight}`,
+                    body: document.body ? `${document.body.scrollWidth}x${document.body.scrollHeight}` : 'none',
+                    dir: doc.dir || getComputedStyle(doc).direction
+                };
+            });
+            log.push('When', log.tag, `Before the screenshot for key ${key}: viewport ${size.viewport}, document ${size.document}, body ${size.body}, direction ${size.dir}`, StatusOfStep.PASSED)
+        } catch (e: any) {
+            log.push('When', log.tag, `Could not read the document size before the screenshot for key ${key}: ${e?.message ?? e}`, StatusOfStep.PASSED)
         }
     }
 
