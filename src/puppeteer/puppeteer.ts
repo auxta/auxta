@@ -8,6 +8,7 @@ import {config} from "../auxta/configs/config";
 import {retrySuite} from "../auxta/utilities/start-suite.helper";
 import {clearPageProblems, failedRequestUrls, pageProblemsSummary} from "../macros/helpers/extend-default-page";
 import {netLogArgs, printNetLogFor, removeNetLog} from "../auxta/utilities/net-log.helper";
+import {disableAnimations} from "../auxta/utilities/animations.helper";
 import puppeteer = require("puppeteer");
 
 export class Puppeteer {
@@ -176,7 +177,9 @@ private static setupHeader(event: any, uploadModel: UploadModel) {
             headless: process.env.ENVIRONMENT === 'LOCAL' ? (process.env.headless === 'true') : true
         });
         Puppeteer.printBrowserErrors(this.browser);
+        Puppeteer.disableAnimationsInNewTabs(this.browser);
         this.defaultPage = (await this.browser.pages())[0];
+        await disableAnimations(this.defaultPage);
         await auxta.extend_page_functions(this.defaultPage);
         await this.defaultPage.goto(config.baseURL, {waitUntil: 'networkidle0'})
         await this.defaultPage.waitForNetworkIdle();
@@ -204,6 +207,21 @@ private static setupHeader(event: any, uploadModel: UploadModel) {
                 printed++;
                 console.log(`${new Date().toISOString()} Chrome: ${line.trim().slice(0, 300)}`);
             }
+        });
+    }
+
+    /**
+     * Tabs opened by the app (e.g. a shared route) start loading straight away,
+     * so the first page they load can still show animations
+     *
+     * @param browser
+     */
+    private static disableAnimationsInNewTabs(browser: puppeteer.Browser) {
+        browser.on('targetcreated', async (target: any) => {
+            try {
+                const page = await target.page();
+                if (page) await disableAnimations(page);
+            } catch { /* the tab closed before it could be set up */ }
         });
     }
 

@@ -90,6 +90,57 @@ export function clearPageProblems(page: any) {
     if (page.__auxtaConsoleErrors) page.__auxtaConsoleErrors.length = 0;
 }
 
+// How long a click waits for an overlay (dialog mask, toast, loader) to move away before clicking anyway
+const MAX_COVERED_WAIT = 10000;
+
+/**
+ * Returns what covers the centre of the element, where the click lands, or '' when nothing does.
+ * Runs in the browser, so it can't use anything from this file.
+ */
+function coveringElement(element: Element): string {
+    const rect = element.getBoundingClientRect();
+    const left = Math.max(rect.left, 0), right = Math.min(rect.right, window.innerWidth);
+    const top = Math.max(rect.top, 0), bottom = Math.min(rect.bottom, window.innerHeight);
+    if (right <= left || bottom <= top) {
+        // Centring keeps the element clear of sticky headers and footers
+        element.scrollIntoView({block: 'center', inline: 'center'});
+        return 'outside the viewport';
+    }
+    const root = element.getRootNode() as Document | ShadowRoot;
+    const hit = root.elementFromPoint((left + right) / 2, (top + bottom) / 2);
+    if (!hit || hit === element || element.contains(hit) || hit.contains(element)) return '';
+    const id = hit.id ? `#${hit.id}` : '';
+    const classes = typeof hit.className === 'string' && hit.className.trim() ? '.' + hit.className.trim().split(/\s+/).join('.') : '';
+    return `${hit.tagName.toLowerCase()}${id}${classes}`;
+}
+
+/**
+ * Waits until the element is visible and nothing covers it.
+ * A covered element still gets "clicked", but the click lands on the overlay and the step passes without doing anything.
+ * If it stays covered the click goes ahead as before and the report says what was in the way.
+ */
+async function waitUntilNotCovered(page: any, selector: string, time: number) {
+    const handle = await page.locator(selector).setTimeout(time).setVisibility('visible').waitHandle();
+    await handle.dispose();
+    const deadline = Date.now() + Math.min(time, MAX_COVERED_WAIT);
+    let cover = '';
+    do {
+        cover = await page.$eval(selector, coveringElement).catch(() => '');
+        if (!cover) return;
+        await new Promise(r => setTimeout(r, 100));
+    } while (Date.now() < deadline);
+    log.push('Then', log.tag, `The '${selector}' was covered by '${cover}', clicking it anyway`, StatusOfStep.LOG);
+}
+
+async function typeWhenReady(page: any, field: string, value: any, options: any, time: number) {
+    const handle = await page.locator(field).setTimeout(time).setVisibility('visible').waitHandle();
+    try {
+        await handle.type(value, options);
+    } finally {
+        await handle.dispose();
+    }
+}
+
 export class ExtendDefaultPage {
     public defaultTimeout: number = config.timeout;
 
@@ -107,13 +158,13 @@ export class ExtendDefaultPage {
             return original_goto.apply(page, arguments);
         };
         page.click = async function click(selector: any, options?: any) {
+            if (typeof selector !== 'string') return original_click.apply(page, arguments);
             try {
-                await page.waitForSelector(selector, {
-                    timeout: time
-                });
-                let elementName = await page.$eval(selector, (e: { textContent: any; }) => e.textContent);
-                if (!elementName || elementName === ' ') elementName = selector;
-                await original_click.apply(page, arguments);
+                await waitUntilNotCovered(page, selector, time);
+                let elementName = await page.$eval(selector, (e: { textContent: any; }) => e.textContent?.trim()).catch(() => '');
+                if (!elementName) elementName = selector;
+                // The locator re-queries the element and waits until it is visible, in the viewport, not moving and enabled
+                await page.locator(selector).setTimeout(time).setVisibility('visible').click(options);
                 log.push('Then', log.tag, `I click on the '${elementName}'`, StatusOfStep.PASSED);
             } catch (e) {
                 const msg = `I click on the '${selector}'`;
@@ -133,14 +184,12 @@ export class ExtendDefaultPage {
             }
             return result
         }
-        page.type = async function type(field: any, value?: any) {
+        page.type = async function type(field: any, value?: any, options?: any) {
+            if (typeof field !== 'string') return original_type.apply(page, arguments);
             try {
-                await page.waitForSelector(field, {
-                    timeout: time
-                });
-                await original_type.apply(page, arguments);
-                let elementName = await page.$eval(field, (e: { textContent: any; }) => e.textContent);
-                if (!elementName || elementName === ' ') elementName = field;
+                await typeWhenReady(page, field, value, options, time);
+                let elementName = await page.$eval(field, (e: { textContent: any; }) => e.textContent?.trim()).catch(() => '');
+                if (!elementName) elementName = field;
                 log.push('Then', log.tag, `I type '${value}' into the '${elementName}' field`, StatusOfStep.PASSED);
             } catch (e) {
                 const msg = `I type '${value}' into the '${field}' field`

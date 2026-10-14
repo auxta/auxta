@@ -24,6 +24,7 @@ export function setupConfig(jsonConfig: any) {
     if (jsonConfig.screenWidth) config.screenWidth = jsonConfig.screenWidth;
     if (jsonConfig.screenHeight) config.screenHeight = jsonConfig.screenHeight;
     if (jsonConfig.netLog !== undefined) config.netLog = jsonConfig.netLog === true;
+    if (jsonConfig.disableAnimations !== undefined) config.disableAnimations = jsonConfig.disableAnimations === true;
     return config;
 }
 
@@ -48,6 +49,7 @@ export let config = {
     screenHeight: 1080,
     timeout: 60000,
     netLog: false,
+    disableAnimations: false,
     suitesList: [],
     googleEmail: "",
     auxtaCredentials: {

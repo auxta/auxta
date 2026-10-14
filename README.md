@@ -129,6 +129,9 @@ npm i
   # Can also be enabled with the environment variable AUXTA_NET_LOG=true
   # Default false, the log grows with every request (a few MB per login, more for long scenarios)
   "netLog": false,
+  # Shortens all CSS and Angular animations to 1ms, so steps don't click elements that are still moving or fading
+  # Default false
+  "disableAnimations": false,
 }
 
 ```
