@@ -6,6 +6,12 @@ import {Page} from "puppeteer";
 
 const RETRY_NUMBERS = 10
 
+// Puppeteer returns a Buffer on older Node versions but a plain Uint8Array on Node 26+
+function toBuffer(screenshot: Uint8Array | undefined) {
+    if (screenshot instanceof Uint8Array)
+        return Buffer.isBuffer(screenshot) ? screenshot : Buffer.from(screenshot.buffer, screenshot.byteOffset, screenshot.byteLength);
+}
+
 export async function captureScreenshot() {
     const pages = await puppeteer.defaultPage.browser().pages();
     if (!pages.length) return undefined;
@@ -16,12 +22,12 @@ export async function captureScreenshot() {
             while (count <= RETRY_NUMBERS) {
                 try {
                     const lastPage = pages[pages.length - 1] || puppeteer.defaultPage;
-                    const screenshotBuffer = await lastPage.screenshot({
+                    const screenshotBuffer = toBuffer(await lastPage.screenshot({
                             captureBeyondViewport: false,
                             encoding: 'binary'
                         }
-                    );
-                    if (Buffer.isBuffer(screenshotBuffer))
+                    ));
+                    if (screenshotBuffer)
                         return screenshotBuffer;
                 } catch (e: any) {
                     if (count == RETRY_NUMBERS) {
@@ -35,12 +41,12 @@ export async function captureScreenshot() {
             let count = 0
             while (count <= RETRY_NUMBERS) {
                 try {
-                    const screenshotBuffer: Uint8Array = await page.screenshot({
+                    const screenshotBuffer = toBuffer(await page.screenshot({
                             captureBeyondViewport: false,
                             encoding: 'binary'
                         }
-                    );
-                    if (Buffer.isBuffer(screenshotBuffer)) {
+                    ));
+                    if (screenshotBuffer) {
                         log.push("When", log.tag, `${i} Image`, StatusOfStep.FAILED, screenshotBuffer)
                         break;
                     }
@@ -63,13 +69,13 @@ export async function captureScreenshotPage(page: Page) {
         try {
             const pages = await puppeteer.defaultPage.browser().pages();
             log.push('When', log.tag, `Before the screenshot the number of pages are ${pages.length}`, StatusOfStep.PASSED);
-            const screenshotBuffer: Uint8Array = await page.screenshot({
+            const screenshotBuffer = toBuffer(await page.screenshot({
                     fullPage: true,
                     captureBeyondViewport: false,
                     encoding: 'binary'
                 }
-            );
-            if (Buffer.isBuffer(screenshotBuffer))
+            ));
+            if (screenshotBuffer)
                 return screenshotBuffer;
         } catch (e: any) {
             if (count == RETRY_NUMBERS) {
