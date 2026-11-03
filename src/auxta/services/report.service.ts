@@ -112,6 +112,19 @@ export async function createEmptyReport(body: any): Promise<string> {
     )).data.reportId;
 }
 
+// Screenshots go over the wire as base64. A Buffer serialised as JSON becomes an array of
+// numbers, which is close to three times larger and overflows the maximum string length on
+// scenarios with many full-page comparisons.
+function toBase64(data: Uint8Array | Buffer) {
+    return Buffer.from(data.buffer, data.byteOffset, data.byteLength).toString('base64');
+}
+
+function encodeStep(step: Step): any {
+    const embedding = step.result.embedding;
+    if (!embedding) return {...step, result: {...step.result}};
+    return {...step, result: {...step.result, embedding: {...embedding, data: toBase64(embedding.data)}}};
+}
+
 /**
  * This method used to create a step with the given parameters
  * @param stepLog
@@ -123,19 +136,8 @@ export async function createEmptyReport(body: any): Promise<string> {
 export async function uploadStep(stepLog: Step[], scenarioName: string, screenshot?: Buffer, errMessage?: object) {
     let scenarios = [];
     let token = await auth();
-    let lastStep = stepLog[stepLog.length - 1];
-    const stepLogFormat = JSON.parse(JSON.stringify(stepLog));
-    stepLogFormat.pop();
-    // Ensure each step with result.embedding also has top-level `embeddings` (backend-friendly)
-    try {
-        for (let i = 0; i < stepLogFormat.length; i++) {
-            const st: any = stepLogFormat[i];
-            const emb = st?.result?.embedding;
-            if (emb && typeof st.embeddings === 'undefined') {
-                st.embeddings = [ emb ];
-            }
-        }
-    } catch { /* no-op */ }
+    const stepLogFormat = stepLog.map(encodeStep);
+    const lastStep = stepLogFormat.pop();
 
     // Attach per-tab error messages (including debug) to 'Image' steps
     try {
@@ -168,13 +170,14 @@ export async function uploadStep(stepLog: Step[], scenarioName: string, screensh
                 name: scenarioName,
                 steps: [
                     ...stepLogFormat,
-                    (lastStep!.result.status == 'failed')
-                        ? Object.assign(lastStep, {
+                    (lastStep.result.status == 'failed')
+                        ? {
+                            ...lastStep,
                             result: {
-                                ...lastStep!.result,
+                                ...lastStep.result,
                                 error_message: JSON.stringify(errMessage)
                             }
-                        })
+                        }
                         : lastStep,
                     {
                         keyword: "After",
@@ -183,7 +186,7 @@ export async function uploadStep(stepLog: Step[], scenarioName: string, screensh
                             duration: 2678000000
                         },
                         embeddings: (screenshot) ? [{
-                            data: screenshot,
+                            data: toBase64(screenshot),
                             mime_type: "image/png"
                         }] : undefined,
                     }
