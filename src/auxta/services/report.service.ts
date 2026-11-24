@@ -2,6 +2,11 @@ import axios from "axios";
 import {Step} from "./log.service";
 import {config} from "../configs/config";
 import {UploadModel} from "../models/upload.model";
+import {limitErrorMessage} from "../utilities/limit-error-message.helper";
+
+// The backend stores all steps of a scenario in one MongoDB document (16 MB cap), so the logs are kept small here
+const MAX_TAB_ERROR_BYTES = 256 * 1024;
+const MAX_FINAL_ERROR_BYTES = 1024 * 1024;
 
 export interface Scenarios {
     scenarioId: string,
@@ -153,7 +158,7 @@ export async function uploadStep(stepLog: Step[], scenarioName: string, screensh
                         if (tabErr) {
                             stepLogFormat[idx] = Object.assign({}, step, {
                                 result: Object.assign({}, step.result, {
-                                    error_message: JSON.stringify(tabErr)
+                                    error_message: limitErrorMessage(JSON.stringify(tabErr), MAX_TAB_ERROR_BYTES)
                                 })
                             });
                         }
@@ -175,7 +180,8 @@ export async function uploadStep(stepLog: Step[], scenarioName: string, screensh
                             ...lastStep,
                             result: {
                                 ...lastStep.result,
-                                error_message: JSON.stringify(errMessage)
+                                // byTab is already attached to the Image steps above and the report page does not read it
+                                error_message: limitErrorMessage(JSON.stringify({...(errMessage as any), byTab: undefined}), MAX_FINAL_ERROR_BYTES)
                             }
                         }
                         : lastStep,
@@ -290,6 +296,43 @@ export async function compareScreenshots(key: string, screenshot: Uint8Array | B
         key: key,
         embedding: embedding,
     }, headers(token))).data;
+}
+
+/**
+ * This method used to upload a log file produced by a scenario. The log is compressed
+ * here and stored in AUXTA blob storage; it is not written to the database.
+ * @param reportId - id of the report the run belongs to
+ * @param scenarioName - name of the scenario
+ * @param content - the log text or bytes
+ * @param options.fileName - file name shown when the log is downloaded
+ * @param options.stepRef - optional step document id
+ * @param options.contentType - type of the uncompressed log, default text/plain
+ * @return logId - id of the stored log
+ * */
+export async function uploadScenarioLog(
+    reportId: string,
+    scenarioName: string,
+    content: string | Buffer,
+    options: { fileName?: string, stepRef?: string, contentType?: string } = {}
+): Promise<string> {
+    const {gzipSync} = require('zlib');
+    const token = await auth();
+    const fileName = options.fileName || 'scenario.log';
+    const compressed: Buffer = gzipSync(typeof content === 'string' ? Buffer.from(content, 'utf8') : content);
+
+    const form = new FormData();
+    form.append('reportId', reportId);
+    form.append('scenarioName', scenarioName);
+    form.append('fileName', fileName);
+    form.append('contentType', options.contentType || 'text/plain; charset=utf-8');
+    if (options.stepRef) form.append('stepRef', options.stepRef);
+    form.append('file', new Blob([new Uint8Array(compressed)], {type: 'application/gzip'}), `${fileName}.gz`);
+
+    return (await axios.post(`${config.auxtaURL}upload-scenario-log`, form, {
+        headers: {'cookie': `authToken=${token}`},
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity
+    })).data.logId;
 }
 
 export async function postNotifications(body: UploadModel) {

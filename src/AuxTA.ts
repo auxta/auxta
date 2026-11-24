@@ -7,7 +7,7 @@ import {UploadModel} from "./auxta/models/upload.model";
 import * as dotenv from "dotenv";
 import {config as c, setupConfig, setupOverrideConfig} from "./auxta/configs/config";
 import {startSuite} from "./auxta/utilities/start-suite.helper";
-import {createEmptyReport, setEmailProvider, setTimeZone} from "./auxta/services/report.service";
+import {createEmptyReport, setEmailProvider, setTimeZone, uploadScenarioLog} from "./auxta/services/report.service";
 import Aux2faAuth from "./macros/helpers/Aux2faAuth";
 import emailHelper from "./macros/helpers/emailHelper";
 
@@ -120,6 +120,38 @@ class AuxTA extends FunctionHelper {
 
     public getUploadModel(): UploadModel {
         return this.uploadModel;
+    }
+
+    /**
+     * Uploads a log file for the scenario that is currently running, so it can be investigated
+     * from the report in AUXTA. Logs are kept in blob storage, not in the database.
+     *
+     * @remarks
+     * Never throws: a failed upload is printed and the scenario carries on.
+     * Skipped when ENVIRONMENT is LOCAL, since there is no report to attach the log to.
+     *
+     * @param content - the log text or bytes
+     * @param options.fileName - file name shown when the log is downloaded, default scenario.log
+     * @param options.stepRef - optional step document id
+     * @param options.contentType - type of the log, default text/plain
+     * @return the id of the stored log, or undefined when nothing was uploaded
+     */
+    public async uploadLog(content: string | Buffer, options: { fileName?: string, stepRef?: string, contentType?: string } = {}): Promise<string | undefined> {
+        if (process.env.ENVIRONMENT === 'LOCAL') {
+            console.log(`uploadLog skipped in LOCAL environment (${options.fileName || 'scenario.log'})`);
+            return undefined;
+        }
+        const {reportId, scenarioName} = this.uploadModel;
+        if (!reportId) {
+            console.log('uploadLog skipped: no report id for this run');
+            return undefined;
+        }
+        try {
+            return await uploadScenarioLog(reportId, scenarioName || 'Unknown scenario', content, options);
+        } catch (e: any) {
+            console.error('uploadLog failed:', e?.response?.data || e?.message || e);
+            return undefined;
+        }
     }
 
     private changeModelData(overrideConfig?: any) {
